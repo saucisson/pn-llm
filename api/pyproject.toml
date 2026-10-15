@@ -25,6 +25,7 @@ dev = [
     "import-linter>=2.0",
     "pre-commit>=3.7",
     "pip-audit>=2.7",
+    "jsonschema>=4.20",
     "types-defusedxml>=0.7",
 ]
 

@@ -1,0 +1,33 @@
+{
+  "description": "Says how much of a list was returned, how much exists, and how to get the rest.",
+  "properties": {
+    "next_cursor": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Next Cursor"
+    },
+    "returned": {
+      "minimum": 0,
+      "title": "Returned",
+      "type": "integer"
+    },
+    "total": {
+      "minimum": 0,
+      "title": "Total",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "returned",
+    "total"
+  ],
+  "title": "Page",
+  "type": "object"
+}

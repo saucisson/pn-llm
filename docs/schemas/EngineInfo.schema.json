@@ -1,0 +1,37 @@
+{
+  "description": "Capabilities and availability of one engine.",
+  "properties": {
+    "available": {
+      "title": "Available",
+      "type": "boolean"
+    },
+    "name": {
+      "title": "Name",
+      "type": "string"
+    },
+    "supports_colored": {
+      "default": false,
+      "title": "Supports Colored",
+      "type": "boolean"
+    },
+    "syntaxes": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Syntaxes",
+      "type": "array"
+    },
+    "version": {
+      "title": "Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "name",
+    "version",
+    "syntaxes",
+    "available"
+  ],
+  "title": "EngineInfo",
+  "type": "object"
+}

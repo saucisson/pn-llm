@@ -1,0 +1,68 @@
+{
+  "$defs": {
+    "Verdict": {
+      "description": "Outcome of one verification. UNKNOWN must never be confused with FALSE.",
+      "enum": [
+        "TRUE",
+        "FALSE",
+        "UNKNOWN",
+        "TIMEOUT",
+        "OOM",
+        "ERROR"
+      ],
+      "title": "Verdict",
+      "type": "string"
+    }
+  },
+  "description": "Verdict of one formula, with the engine that produced it.",
+  "properties": {
+    "engine": {
+      "title": "Engine",
+      "type": "string"
+    },
+    "engine_version": {
+      "default": "unknown",
+      "title": "Engine Version",
+      "type": "string"
+    },
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "time_s": {
+      "default": 0.0,
+      "title": "Time S",
+      "type": "number"
+    },
+    "trace_url": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Trace Url"
+    },
+    "verdict": {
+      "$ref": "#/$defs/Verdict"
+    },
+    "warnings": {
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "title": "Warnings",
+      "type": "array"
+    }
+  },
+  "required": [
+    "id",
+    "verdict",
+    "engine"
+  ],
+  "title": "FormulaResult",
+  "type": "object"
+}
