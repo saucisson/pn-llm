@@ -37,3 +37,11 @@ Hooks use the tools of the active virtualenv, so activate it first. Never use `-
 Docstring on every public module, class, function and method. Comments explain why, not what.
 No commented-out code. No TODO/FIXME: open an issue. A `noqa` or `type: ignore` always says why.
 Details in `docs/conventions.md`.
+
+## Dependencies
+
+Runtime and development dependencies are locked with hashes: `api/requirements.txt`,
+`api/requirements-dev.txt` and `engines/common/requirements.txt` (the UI has `ui/package-lock.json`).
+`make setup`, the CI and the Docker images install exactly these. After changing the dependencies in
+`api/pyproject.toml` (or `engines/common/requirements.in`), run `make lock` and commit the result.
+Dependabot proposes updates; `make audit` runs `pip-audit` against the lock.

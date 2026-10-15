@@ -4,15 +4,21 @@ export PATH := $(CURDIR)/api/.venv/bin:$(PATH)
 RUFF_CONFIG := --config api/pyproject.toml
 
 .DEFAULT_GOAL := help
-.PHONY: help setup format lint typecheck arch docs-check schemas schemas-check budgets openapi openapi-check ui-check test cov audit check hooks
+.PHONY: help setup lock format lint typecheck arch docs-check schemas schemas-check budgets openapi openapi-check ui-check test cov audit check hooks
 
 help:  ## List the targets
 	@grep -E '^[a-z-]+:.*##' $(MAKEFILE_LIST) | sed 's/:.*## /\t/'
 
 setup:  ## Create api/.venv, install dependencies and git hooks (run once)
 	python3.14 -m venv api/.venv
-	api/.venv/bin/pip install --quiet -e "api[dev]"
+	api/.venv/bin/pip install --quiet --require-hashes -r api/requirements-dev.txt
+	api/.venv/bin/pip install --quiet --no-deps --no-build-isolation -e api
 	api/.venv/bin/pre-commit install
+
+lock:  ## Re-resolve the locked, hashed dependencies (after changing pyproject.toml)
+	uv pip compile api/pyproject.toml --python-version 3.14 --generate-hashes -o api/requirements.txt
+	uv pip compile api/pyproject.toml --extra dev --python-version 3.14 --generate-hashes -o api/requirements-dev.txt
+	uv pip compile engines/common/requirements.in --python-version 3.14 --generate-hashes -o engines/common/requirements.txt
 
 format:  ## Format and autofix (ruff)
 	ruff format $(RUFF_CONFIG) api scripts engines
@@ -56,7 +62,7 @@ cov:  ## Tests with branch coverage and the minimum threshold
 	cd api && pytest -q --cov=app --cov-branch --cov-report=term-missing
 
 audit:  ## Known vulnerabilities in dependencies
-	cd api && pip-audit --skip-editable
+	cd api && pip-audit --require-hashes -r requirements-dev.txt
 
 check: lint typecheck arch docs-check budgets schemas-check openapi-check cov  ## Everything the CI runs on the Python code
 

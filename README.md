@@ -18,7 +18,7 @@ integrate).
 Python 3.14 and Node 22 are needed (`uv python install 3.14`; `nvm use` reads `ui/.nvmrc`).
 
 ```bash
-make setup                        # virtualenv api/.venv, dependencies, git hooks
+make setup                        # virtualenv api/.venv, locked dependencies, git hooks
 source api/.venv/bin/activate
 make check                        # lint, format, types, architecture, docs sync, tests + coverage
 make ui-check                     # the UI: biome, strict TypeScript, tests

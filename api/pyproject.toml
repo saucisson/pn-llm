@@ -29,6 +29,8 @@ dev = [
     "pre-commit>=3.7",
     "pip-audit>=2.7",
     "jsonschema>=4.20",
+    "setuptools>=83",
+    "uv>=0.5",
     "types-defusedxml>=0.7",
 ]
 

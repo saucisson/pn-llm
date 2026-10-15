@@ -2,8 +2,10 @@
 # The structure follows engines/template/Dockerfile; this engine has no tool to build.
 FROM python:3.14-slim
 
+COPY engines/common/requirements.txt /tmp/requirements.txt
 RUN useradd --system --uid 10001 --no-create-home runner \
- && pip install --no-cache-dir "pydantic>=2.6"
+ && pip install --no-cache-dir --require-hashes -r /tmp/requirements.txt \
+ && rm /tmp/requirements.txt
 
 # The adapter kit and the models of the contract: the only code shared with the platform.
 COPY api/app/__init__.py /opt/pnverif/app/__init__.py

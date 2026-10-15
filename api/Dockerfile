@@ -11,10 +11,11 @@ RUN npm run build
 # ---- Stage 2: the API, serving the built UI under /ui ----------------------------------------
 FROM python:3.14-slim
 WORKDIR /srv
-COPY api/pyproject.toml ./
+COPY api/pyproject.toml api/requirements.txt ./
 COPY api/app ./app
-# Installs the dependencies declared in pyproject.toml (single source of truth).
-RUN pip install --no-cache-dir .
+# The locked, hashed dependencies first (make lock), then the application itself.
+RUN pip install --no-cache-dir --require-hashes -r requirements.txt \
+ && pip install --no-cache-dir --no-deps .
 COPY --from=ui /ui/dist ./ui
 ENV PNVERIF_DATABASE_PATH=/data/pnverif.sqlite PNVERIF_UI_DIR=/srv/ui
 EXPOSE 8000

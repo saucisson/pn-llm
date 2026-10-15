@@ -20,8 +20,10 @@ ARG TOOL_VERSION=REPLACE_WITH_A_RELEASE_TAG_OR_COMMIT
 LABEL org.opencontainers.image.title="pn-llm-verif engine REPLACE_NAME" \
       org.opencontainers.image.version="${TOOL_VERSION}"
 
+COPY engines/common/requirements.txt /tmp/requirements.txt
 RUN useradd --system --uid 10001 --no-create-home runner \
- && pip install --no-cache-dir "pydantic>=2.6"
+ && pip install --no-cache-dir --require-hashes -r /tmp/requirements.txt \
+ && rm /tmp/requirements.txt
 
 COPY --from=build /opt/tool /opt/tool
 # The adapter kit and the models of the contract: the only code shared with the platform.
