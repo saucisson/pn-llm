@@ -9,7 +9,7 @@ from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 from pydantic import JsonValue
 
-from app.domain.analyses import OPERATIONS
+from app.domain.catalog import OPERATIONS
 from app.domain.contract import Envelope, ErrorInfo, ToolInfo
 from app.domain.models import DomainModel
 from app.domain.operations import (

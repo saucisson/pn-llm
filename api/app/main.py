@@ -131,6 +131,11 @@ def build_operations(
     """Return the operation service over the database and the engines."""
     return OperationService(
         nets=store,
+        net_service=NetService(
+            nets=store,
+            max_upload_bytes=config.max_upload_bytes,
+            limits=config.document_limits(),
+        ),
         runs=SqliteOperations(path=config.database_path),
         engines=engines,
         lease_seconds=config.job_lease_seconds,

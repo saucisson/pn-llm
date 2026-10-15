@@ -13,14 +13,19 @@ import logging
 import time
 import uuid
 
-from app.domain.analyses import OPERATIONS, find_operation
+from pydantic import JsonValue
+
+from app.domain.catalog import OPERATIONS, find_operation
 from app.domain.contract import ErrorInfo, ToolInfo
-from app.domain.engine_contract import EngineRequest
+from app.domain.engine_contract import EngineOperationReport, EngineRequest
 from app.domain.errors import InvalidRequestError, NotFoundError
 from app.domain.models import DomainModel
 from app.domain.net_structure import build_structure
+from app.domain.nets import NetSummary
 from app.domain.operation_check import interpret_operation_report
 from app.domain.operations import (
+    Lineage,
+    LineageExpansion,
     OperationDefinition,
     OperationDescription,
     OperationOutcome,
@@ -30,8 +35,10 @@ from app.domain.operations import (
     RunSubmission,
 )
 from app.domain.pnml_export import render_pnml
+from app.domain.reductions.result import ReductionResult
 
 from .leases import LeaseKeeper
+from .nets import NetService
 from .ports import EngineGateway, NetRepository, OperationRepository
 
 RUN_ID_LENGTH = 12
@@ -41,6 +48,14 @@ FINISHED = frozenset({RunState.DONE, RunState.FAILED})
 logger = logging.getLogger("pnverif.operations")
 
 
+def protected_of(*, parameters: JsonValue) -> tuple[str, ...]:
+    """Read the protected ids from the parameters of a reduction (none for an analysis)."""
+    listed = parameters.get("protected") if isinstance(parameters, dict) else None
+    return (
+        tuple(item for item in listed if isinstance(item, str)) if isinstance(listed, list) else ()
+    )
+
+
 class OperationService:
     """Describe, submit, run and read operations on nets."""
 
@@ -48,6 +63,7 @@ class OperationService:
         self,
         *,
         nets: NetRepository,
+        net_service: NetService,
         runs: OperationRepository,
         engines: EngineGateway,
         lease_seconds: float,
@@ -55,6 +71,7 @@ class OperationService:
     ) -> None:
         """Create the service with its ports, the run lease and how long a request waits."""
         self._nets = nets
+        self._net_service = net_service
         self._runs = runs
         self._engines = engines
         self._lease_seconds = lease_seconds
@@ -160,10 +177,11 @@ class OperationService:
                     engine=run.engine,
                     pnml=render_pnml(document=net.document),
                     request=EngineRequest(
-                        kind="analysis",
+                        kind=definition.kind,
                         net_id=run.net_id,
                         operation=run.operation,
                         parameters=run.parameters,
+                        protected=protected_of(parameters=run.parameters),
                         limits=run.limits,
                     ),
                     job_id=run.run_id,
@@ -175,6 +193,10 @@ class OperationService:
                 engine_version=run.tool_version,
                 structure=structure,
             )
+            if definition.kind == "reduction" and outcome.status == "ok":
+                outcome = self.store_reduction(
+                    run=run, parent=net.summary, report=report, outcome=outcome
+                )
         except Exception as exc:  # noqa: BLE001 - adapter and infrastructure bugs are reported
             outcome = OperationOutcome(
                 status="failed",
@@ -190,6 +212,61 @@ class OperationService:
             extra={"run_id": run.run_id, "operation": run.operation, "status": outcome.status},
         )
         return True
+
+    def store_reduction(
+        self,
+        *,
+        run: OperationRun,
+        parent: NetSummary,
+        report: EngineOperationReport,
+        outcome: OperationOutcome,
+    ) -> OperationOutcome:
+        """Store the net a reduction produced, linked to its parent, and say so in the result.
+
+        A reduction that changed nothing stores nothing. One that says it changed the net but gave
+        none, or gave one the importer refuses, is a failed run: the claim cannot be checked.
+        """
+        result = ReductionResult.model_validate(outcome.result)
+        if not result.changed:
+            return outcome.model_copy(
+                update={
+                    "result": result.model_copy(update={"parent_id": parent.net_id}).model_dump(
+                        mode="json"
+                    )
+                }
+            )
+        if report.reduced_pnml is None:
+            return outcome.model_copy(
+                update={
+                    "status": "failed",
+                    "result": None,
+                    "error": ErrorInfo(
+                        code="reduced_net_missing",
+                        message="The engine reported a change but gave no net",
+                    ),
+                }
+            )
+        saved = self._net_service.register_derived(
+            payload=report.reduced_pnml, parent=parent, rule=run.operation
+        )
+        self._runs.save_lineage(
+            lineage=Lineage(
+                net_id=saved.stored.summary.net_id,
+                parent_id=parent.net_id,
+                rule=run.operation,
+                expansions=tuple(
+                    LineageExpansion(
+                        transition=item.transition.id,
+                        original=tuple(ref.id for ref in item.original),
+                    )
+                    for item in result.expansions
+                ),
+            )
+        )
+        stored = result.model_copy(
+            update={"parent_id": parent.net_id, "new_net_id": saved.stored.summary.net_id}
+        )
+        return outcome.model_copy(update={"result": stored.model_dump(mode="json")})
 
     def recover_interrupted(self) -> int:
         """Mark running runs whose owner stopped renewing their lease as interrupted."""

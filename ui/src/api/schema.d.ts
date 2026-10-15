@@ -633,6 +633,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/nets/{net_id}/reductions/fuse-parallel-places": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Merge places with the same producers, consumers, weights and marking. */
+        post: operations["reductions.fuse-parallel-places"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/nets/{net_id}/reductions/fuse-parallel-transitions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Merge transitions with the same input and output places and weights. */
+        post: operations["reductions.fuse-parallel-transitions"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/nets/{net_id}/reductions/remove-dead-transitions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Remove the transitions that can never fire. */
+        post: operations["reductions.remove-dead-transitions"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/nets/{net_id}/reductions/remove-self-loop-transitions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Remove the transitions that consume exactly what they produce. */
+        post: operations["reductions.remove-self-loop-transitions"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/nets/{net_id}/replay": {
         parameters: {
             query?: never;
@@ -1853,6 +1921,33 @@ export interface components {
              */
             warnings: string[];
         };
+        /** Envelope[ReductionResult] */
+        Envelope_ReductionResult_: {
+            data?: components["schemas"]["ReductionResult"] | null;
+            /** Elapsed S */
+            elapsed_s: number;
+            error?: components["schemas"]["ErrorInfo"] | null;
+            /** Net Id */
+            net_id?: string | null;
+            /**
+             * Schema Version
+             * @default 1.0
+             * @constant
+             */
+            schema_version: "1.0";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ok" | "partial" | "failed";
+            tool: components["schemas"]["ToolInfo"];
+            truncated?: components["schemas"]["Page"] | null;
+            /**
+             * Warnings
+             * @default []
+             */
+            warnings: string[];
+        };
         /** Envelope[ReplayResult] */
         Envelope_ReplayResult_: {
             data?: components["schemas"]["ReplayResult"] | null;
@@ -2846,6 +2941,15 @@ export interface components {
             transitions?: number | null;
         };
         /**
+         * MergedElements
+         * @description Elements replaced by one of them, which stays.
+         */
+        MergedElements: {
+            into: components["schemas"]["ElementRef"];
+            /** Merged */
+            merged: components["schemas"]["ElementRef"][];
+        };
+        /**
          * MessageRequest
          * @description Body of ``POST /v1/sessions/{id}/messages``.
          */
@@ -3169,6 +3273,16 @@ export interface components {
             limits?: components["schemas"]["Limits"];
             parameters: components["schemas"]["PlaceBoundsParameters"];
         };
+        /** OperationRequest[ReductionParameters] */
+        OperationRequest_ReductionParameters_: {
+            /**
+             * Engine
+             * @default auto
+             */
+            engine: string;
+            limits?: components["schemas"]["Limits"];
+            parameters: components["schemas"]["ReductionParameters"];
+        };
         /** OperationRequest[TInvariantsParameters] */
         OperationRequest_TInvariantsParameters_: {
             /**
@@ -3356,6 +3470,57 @@ export interface components {
             question_id: string;
             /** Text */
             text: string;
+        };
+        /**
+         * ReductionParameters
+         * @description Options common to every rule.
+         */
+        ReductionParameters: {
+            /** Max Applications */
+            max_applications?: number | null;
+            /**
+             * Protected
+             * @default []
+             */
+            protected: string[];
+        };
+        /**
+         * ReductionResult
+         * @description The answer of a reduction. The two ids are filled by the platform once the net is stored.
+         */
+        ReductionResult: {
+            /** Applications */
+            applications: number;
+            /** Changed */
+            changed: boolean;
+            /**
+             * Expansions
+             * @default []
+             */
+            expansions: components["schemas"]["TransitionExpansion"][];
+            /**
+             * Merged
+             * @default []
+             */
+            merged: components["schemas"]["MergedElements"][];
+            /** New Net Id */
+            new_net_id?: string | null;
+            /** Note */
+            note?: string | null;
+            /** Parent Id */
+            parent_id?: string | null;
+            /**
+             * Preserves
+             * @default []
+             */
+            preserves: string[];
+            /**
+             * Removed
+             * @default []
+             */
+            removed: components["schemas"]["ElementRef"][];
+            /** Rule */
+            rule: string;
         };
         /**
          * ReplayFailure
@@ -3759,6 +3924,18 @@ export interface components {
          * @description One firing, as the platform reports it: the transition cited by reference.
          */
         TraceStep: {
+            transition: components["schemas"]["ElementRef"];
+        };
+        /**
+         * TransitionExpansion
+         * @description What a firing of a transition of the reduced net stands for in the net it came from.
+         *
+         *     A trace of the reduced net is lifted to the parent by replacing each firing with this sequence
+         *     (docs/adding-a-reduction.md); transitions not listed stand for themselves.
+         */
+        TransitionExpansion: {
+            /** Original */
+            original: components["schemas"]["ElementRef"][];
             transition: components["schemas"]["ElementRef"];
         };
         /**
@@ -5111,6 +5288,182 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Envelope_tuple_ElementRef__________"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "reductions.fuse-parallel-places": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                net_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OperationRequest_ReductionParameters_"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_ReductionResult_"];
+                };
+            };
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_RunHandle_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "reductions.fuse-parallel-transitions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                net_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OperationRequest_ReductionParameters_"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_ReductionResult_"];
+                };
+            };
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_RunHandle_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "reductions.remove-dead-transitions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                net_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OperationRequest_ReductionParameters_"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_ReductionResult_"];
+                };
+            };
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_RunHandle_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "reductions.remove-self-loop-transitions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                net_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OperationRequest_ReductionParameters_"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_ReductionResult_"];
+                };
+            };
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_RunHandle_"];
                 };
             };
             /** @description Validation Error */

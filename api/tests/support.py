@@ -171,7 +171,7 @@ class InProcessNative:
         self.stopped = []
 
     def list_engines(self):
-        from app.domain.analyses import ANALYSES
+        from app.domain.catalog import OPERATIONS
         from app.domain.models import EngineInfo
 
         return (
@@ -179,7 +179,7 @@ class InProcessNative:
                 name="native",
                 version="1.0",
                 logics=(),
-                operations=tuple(op.name for op in ANALYSES),
+                operations=tuple(op.name for op in OPERATIONS),
                 available=self.available,
             ),
         )
@@ -204,28 +204,30 @@ class InProcessNative:
         self.stopped.append(job_id)
 
     def run_operation(self, *, engine, pnml, request, job_id):
-        from app.domain.analyses import find_operation
         from app.domain.engine_contract import EngineOperationReport
-        from app.domain.net_structure import build_structure
         from app.domain.net_validation import DocumentLimits
-        from app.domain.operations import compute_on
+        from app.domain.perform import perform
+        from app.domain.pnml_export import render_pnml
         from app.domain.pnml_import import import_pnml
 
         self.calls.append(request.operation)
         if self.gate is not None:
             self.gate.wait(timeout=10)
         document = import_pnml(payload=pnml, limits=DocumentLimits())
-        structure = build_structure(document=document, net_id=request.net_id)
-        result = compute_on(
-            definition=find_operation(name=request.operation),
-            structure=structure,
+        performed = perform(
+            operation=request.operation,
+            document=document,
+            net_id=request.net_id,
             parameters=request.parameters,
         )
         report = EngineOperationReport(
             tool_name=engine,
             tool_version="1.0",
             status="ok",
-            result=result.model_dump(mode="json"),
+            result=performed.result,
+            reduced_pnml=(
+                None if performed.reduced is None else render_pnml(document=performed.reduced)
+            ),
             elapsed_s=0.01,
         )
         return self.tamper(report) if self.tamper else report
@@ -234,12 +236,15 @@ class InProcessNative:
 def make_analysis_tools(*, store, path, engines=None):
     """The analysis tools of the agent over a store, with the native engine as a function call."""
     from app.application.analysis_tools import AnalysisTools
+    from app.application.nets import NetService
     from app.application.operations import OperationService
+    from app.domain.net_validation import DocumentLimits
     from app.infrastructure.sqlite_operations import SqliteOperations
 
     return AnalysisTools(
         operations=OperationService(
             nets=store,
+            net_service=NetService(nets=store, max_upload_bytes=1_000_000, limits=DocumentLimits()),
             runs=SqliteOperations(path=path),
             engines=engines or InProcessNative(),
             lease_seconds=60,

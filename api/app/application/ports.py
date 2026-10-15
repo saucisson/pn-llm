@@ -22,7 +22,7 @@ from app.domain.models import (
 )
 from app.domain.net_document import NetDocument
 from app.domain.nets import NetReferences, NetSummary, SavedNet, StoredNet
-from app.domain.operations import OperationOutcome, OperationRun, RunSubmission
+from app.domain.operations import Lineage, OperationOutcome, OperationRun, RunSubmission
 from app.domain.sessions import (
     Session,
     SessionEvent,
@@ -375,4 +375,12 @@ class OperationRepository(Protocol):
 
     def purge_finished_runs(self, *, older_than_s: float) -> int:
         """Delete finished runs not touched for that long; return the count."""
+        ...
+
+    def save_lineage(self, *, lineage: Lineage) -> None:
+        """Record that a net was derived from another by a rule; saving it again is a no-op."""
+        ...
+
+    def lineage_of(self, *, net_id: str) -> tuple[Lineage, ...]:
+        """Return the ways a net was derived from other nets (none for an uploaded net)."""
         ...

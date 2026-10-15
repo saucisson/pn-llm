@@ -15,6 +15,9 @@ DOMAIN = ROOT / "api" / "app" / "domain"
 DIGEST_FILE = ROOT / "engines" / "native" / "DIGEST"
 SOURCES = (
     *sorted((DOMAIN / "analyses").glob("*.py")),
+    *sorted((DOMAIN / "reductions").glob("*.py")),
+    DOMAIN / "catalog.py",
+    DOMAIN / "perform.py",
     DOMAIN / "operations.py",
     DOMAIN / "net_structure.py",
     DOMAIN / "inspection.py",

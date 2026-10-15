@@ -4,8 +4,8 @@ import pytest
 
 from app.application.nets import NetService
 from app.application.operations import OperationService
-from app.domain.analyses import OPERATIONS
 from app.domain.analyses.p_invariants import PInvariantsParameters
+from app.domain.catalog import OPERATIONS
 from app.domain.contract import ElementRef
 from app.domain.engine_contract import EngineOperationReport
 from app.domain.errors import InvalidRequestError, NotFoundError
@@ -34,6 +34,7 @@ def engines():
 def operations(store, settings, engines):
     return OperationService(
         nets=store,
+        net_service=NetService(nets=store, max_upload_bytes=1_000_000, limits=DocumentLimits()),
         runs=SqliteOperations(path=settings.database_path),
         engines=engines,
         lease_seconds=60,
@@ -64,6 +65,7 @@ def test_the_catalog_describes_every_operation_with_the_engines_that_perform_it(
 def test_a_catalog_lists_no_engine_whose_image_is_missing(store, settings):
     service = OperationService(
         nets=store,
+        net_service=NetService(nets=store, max_upload_bytes=1_000_000, limits=DocumentLimits()),
         runs=SqliteOperations(path=settings.database_path),
         engines=InProcessNative(available=False),
         lease_seconds=60,
@@ -178,6 +180,7 @@ def test_an_engine_that_cites_an_element_not_in_the_net_fails_the_run(store, set
 
     service = OperationService(
         nets=store,
+        net_service=NetService(nets=store, max_upload_bytes=1_000_000, limits=DocumentLimits()),
         runs=SqliteOperations(path=settings.database_path),
         engines=InProcessNative(tamper=lie),
         lease_seconds=60,
@@ -199,6 +202,7 @@ def test_a_crash_of_the_runner_ends_the_run_failed_with_the_reason(store, settin
 
     service = OperationService(
         nets=store,
+        net_service=NetService(nets=store, max_upload_bytes=1_000_000, limits=DocumentLimits()),
         runs=SqliteOperations(path=settings.database_path),
         engines=InProcessNative(tamper=crash),
         lease_seconds=60,
@@ -255,7 +259,7 @@ def report(*, result, **fields):
 
 
 def test_a_result_of_the_wrong_shape_is_refused(operations, net_id, store):
-    from app.domain.analyses import find_operation
+    from app.domain.catalog import find_operation
     from app.domain.net_structure import build_structure
 
     structure = build_structure(document=store.load_net(net_id=net_id).document, net_id=net_id)
@@ -270,7 +274,7 @@ def test_a_result_of_the_wrong_shape_is_refused(operations, net_id, store):
 
 
 def test_a_different_name_for_a_real_id_is_refused_and_a_different_version_is_noted(store, net_id):
-    from app.domain.analyses import find_operation
+    from app.domain.catalog import find_operation
     from app.domain.net_structure import build_structure
 
     structure = build_structure(document=store.load_net(net_id=net_id).document, net_id=net_id)
@@ -303,7 +307,7 @@ def test_a_different_name_for_a_real_id_is_refused_and_a_different_version_is_no
 
 
 def test_a_failed_report_is_a_failed_outcome_with_its_code(store, net_id):
-    from app.domain.analyses import find_operation
+    from app.domain.catalog import find_operation
     from app.domain.net_structure import build_structure
 
     structure = build_structure(document=store.load_net(net_id=net_id).document, net_id=net_id)

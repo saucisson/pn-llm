@@ -9,7 +9,13 @@ from pydantic import JsonValue, TypeAdapter
 
 from app.domain.errors import NotFoundError
 from app.domain.models import Limits
-from app.domain.operations import OperationOutcome, OperationRun, RunState, RunSubmission
+from app.domain.operations import (
+    Lineage,
+    OperationOutcome,
+    OperationRun,
+    RunState,
+    RunSubmission,
+)
 
 from .sqlite_database import SqliteDatabase
 
@@ -146,3 +152,20 @@ class SqliteOperations(SqliteDatabase):
                 "'interrupted') AND updated_at < ?",
                 (time.time() - older_than_s,),
             ).rowcount
+
+    def save_lineage(self, *, lineage: Lineage) -> None:
+        """Record that a net was derived from another by a rule; saving it again is a no-op."""
+        with self._connection() as conn:
+            conn.execute(
+                "INSERT OR REPLACE INTO net_lineage(net_id, parent_id, rule, lineage)"
+                " VALUES (?,?,?,?)",
+                (lineage.net_id, lineage.parent_id, lineage.rule, lineage.model_dump_json()),
+            )
+
+    def lineage_of(self, *, net_id: str) -> tuple[Lineage, ...]:
+        """Return the ways a net was derived from other nets."""
+        with self._connection() as conn:
+            rows = conn.execute(
+                "SELECT lineage FROM net_lineage WHERE net_id=? ORDER BY parent_id, rule", (net_id,)
+            ).fetchall()
+        return tuple(Lineage.model_validate_json(row["lineage"]) for row in rows)

@@ -2674,6 +2674,89 @@
         "title": "Envelope[PlaceBoundsResult]",
         "type": "object"
       },
+      "Envelope_ReductionResult_": {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReductionResult"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "elapsed_s": {
+            "minimum": 0.0,
+            "title": "Elapsed S",
+            "type": "number"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorInfo"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "net_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Net Id"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "default": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "partial",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "tool": {
+            "$ref": "#/components/schemas/ToolInfo"
+          },
+          "truncated": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Page"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "warnings": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "tool",
+          "status",
+          "elapsed_s"
+        ],
+        "title": "Envelope[ReductionResult]",
+        "type": "object"
+      },
       "Envelope_ReplayResult_": {
         "properties": {
           "data": {
@@ -6073,6 +6156,27 @@
         "title": "MccSize",
         "type": "object"
       },
+      "MergedElements": {
+        "description": "Elements replaced by one of them, which stays.",
+        "properties": {
+          "into": {
+            "$ref": "#/components/schemas/ElementRef"
+          },
+          "merged": {
+            "items": {
+              "$ref": "#/components/schemas/ElementRef"
+            },
+            "title": "Merged",
+            "type": "array"
+          }
+        },
+        "required": [
+          "merged",
+          "into"
+        ],
+        "title": "MergedElements",
+        "type": "object"
+      },
       "MessageRequest": {
         "description": "Body of ``POST /v1/sessions/{id}/messages``.",
         "properties": {
@@ -6868,6 +6972,26 @@
         "title": "OperationRequest[PlaceBoundsParameters]",
         "type": "object"
       },
+      "OperationRequest_ReductionParameters_": {
+        "properties": {
+          "engine": {
+            "default": "auto",
+            "title": "Engine",
+            "type": "string"
+          },
+          "limits": {
+            "$ref": "#/components/schemas/Limits"
+          },
+          "parameters": {
+            "$ref": "#/components/schemas/ReductionParameters"
+          }
+        },
+        "required": [
+          "parameters"
+        ],
+        "title": "OperationRequest[ReductionParameters]",
+        "type": "object"
+      },
       "OperationRequest_TInvariantsParameters_": {
         "properties": {
           "engine": {
@@ -7385,6 +7509,123 @@
           "text"
         ],
         "title": "Question",
+        "type": "object"
+      },
+      "ReductionParameters": {
+        "description": "Options common to every rule.",
+        "properties": {
+          "max_applications": {
+            "anyOf": [
+              {
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Applications"
+          },
+          "protected": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Protected",
+            "type": "array"
+          }
+        },
+        "title": "ReductionParameters",
+        "type": "object"
+      },
+      "ReductionResult": {
+        "description": "The answer of a reduction. The two ids are filled by the platform once the net is stored.",
+        "properties": {
+          "applications": {
+            "minimum": 0.0,
+            "title": "Applications",
+            "type": "integer"
+          },
+          "changed": {
+            "title": "Changed",
+            "type": "boolean"
+          },
+          "expansions": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/TransitionExpansion"
+            },
+            "title": "Expansions",
+            "type": "array"
+          },
+          "merged": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/MergedElements"
+            },
+            "title": "Merged",
+            "type": "array"
+          },
+          "new_net_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "New Net Id"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "parent_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Id"
+          },
+          "preserves": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Preserves",
+            "type": "array"
+          },
+          "removed": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/ElementRef"
+            },
+            "title": "Removed",
+            "type": "array"
+          },
+          "rule": {
+            "title": "Rule",
+            "type": "string"
+          }
+        },
+        "required": [
+          "rule",
+          "changed",
+          "applications"
+        ],
+        "title": "ReductionResult",
         "type": "object"
       },
       "ReplayFailure": {
@@ -8407,6 +8648,27 @@
           "transition"
         ],
         "title": "TraceStep",
+        "type": "object"
+      },
+      "TransitionExpansion": {
+        "description": "What a firing of a transition of the reduced net stands for in the net it came from.\n\nA trace of the reduced net is lifted to the parent by replacing each firing with this sequence\n(docs/adding-a-reduction.md); transitions not listed stand for themselves.",
+        "properties": {
+          "original": {
+            "items": {
+              "$ref": "#/components/schemas/ElementRef"
+            },
+            "title": "Original",
+            "type": "array"
+          },
+          "transition": {
+            "$ref": "#/components/schemas/ElementRef"
+          }
+        },
+        "required": [
+          "transition",
+          "original"
+        ],
+        "title": "TransitionExpansion",
         "type": "object"
       },
       "TrapsResult": {
@@ -10691,6 +10953,258 @@
         "summary": "List Places",
         "tags": [
           "inspection"
+        ]
+      }
+    },
+    "/v1/nets/{net_id}/reductions/fuse-parallel-places": {
+      "post": {
+        "operationId": "reductions.fuse-parallel-places",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "net_id",
+            "required": true,
+            "schema": {
+              "title": "Net Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OperationRequest_ReductionParameters_"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_ReductionResult_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_RunHandle_"
+                }
+              }
+            },
+            "description": "Accepted"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Merge places with the same producers, consumers, weights and marking.",
+        "tags": [
+          "operations",
+          "reductions"
+        ]
+      }
+    },
+    "/v1/nets/{net_id}/reductions/fuse-parallel-transitions": {
+      "post": {
+        "operationId": "reductions.fuse-parallel-transitions",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "net_id",
+            "required": true,
+            "schema": {
+              "title": "Net Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OperationRequest_ReductionParameters_"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_ReductionResult_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_RunHandle_"
+                }
+              }
+            },
+            "description": "Accepted"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Merge transitions with the same input and output places and weights.",
+        "tags": [
+          "operations",
+          "reductions"
+        ]
+      }
+    },
+    "/v1/nets/{net_id}/reductions/remove-dead-transitions": {
+      "post": {
+        "operationId": "reductions.remove-dead-transitions",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "net_id",
+            "required": true,
+            "schema": {
+              "title": "Net Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OperationRequest_ReductionParameters_"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_ReductionResult_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_RunHandle_"
+                }
+              }
+            },
+            "description": "Accepted"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Remove the transitions that can never fire.",
+        "tags": [
+          "operations",
+          "reductions"
+        ]
+      }
+    },
+    "/v1/nets/{net_id}/reductions/remove-self-loop-transitions": {
+      "post": {
+        "operationId": "reductions.remove-self-loop-transitions",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "net_id",
+            "required": true,
+            "schema": {
+              "title": "Net Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OperationRequest_ReductionParameters_"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_ReductionResult_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_RunHandle_"
+                }
+              }
+            },
+            "description": "Accepted"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Remove the transitions that consume exactly what they produce.",
+        "tags": [
+          "operations",
+          "reductions"
         ]
       }
     },

@@ -63,6 +63,7 @@ class SqliteRetention(SqliteDatabase):
             )
             conn.execute("DELETE FROM jobs WHERE net_id=?", (net_id,))
             conn.execute("DELETE FROM operation_runs WHERE net_id=?", (net_id,))
+            conn.execute("DELETE FROM net_lineage WHERE net_id=? OR parent_id=?", (net_id, net_id))
             conn.execute("DELETE FROM mcc_nets WHERE net_id=?", (net_id,))
             conn.execute("DELETE FROM mcc_properties WHERE net_id=?", (net_id,))
             conn.execute(

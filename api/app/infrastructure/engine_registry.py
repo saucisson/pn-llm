@@ -17,7 +17,7 @@ from collections.abc import Iterator, Mapping
 from pathlib import Path
 from typing import Literal
 
-from app.domain.analyses import ANALYSES
+from app.domain.catalog import OPERATIONS
 from app.domain.contract import Envelope
 from app.domain.engine_contract import (
     EngineCheckData,
@@ -67,10 +67,10 @@ DEFAULT_ENGINES: Mapping[str, EngineSpec] = {
     # The platform's own analyses, run in a container (engines/native); bump the version, here
     # and in its Dockerfile, with every change of an algorithm: results are cached by version.
     "native": EngineSpec(
-        image="pn-llm-verif/native:1.2",
-        version="1.2",
+        image="pn-llm-verif/native:1.3",
+        version="1.3",
         logics=(),
-        operations=tuple(op.name for op in ANALYSES),
+        operations=tuple(op.name for op in OPERATIONS),
     ),
     "itstools": EngineSpec(
         image="pn-llm-verif/itstools:1.0.0.202609112134",
@@ -178,6 +178,12 @@ def read_operation_report(*, output_dir: Path, elapsed_s: float) -> EngineOperat
         return EngineOperationReport(
             status="failed", error_code="unreadable_result_json", elapsed_s=elapsed_s
         )
+    reduced_file = output_dir / "reduced.pnml"
+    reduced = (
+        reduced_file.read_bytes()
+        if reduced_file.is_file() and reduced_file.stat().st_size <= MAX_OUTPUT_FILE_BYTES
+        else None
+    )
     return EngineOperationReport(
         tool_name=envelope.tool.name,
         tool_version=envelope.tool.version,
@@ -186,6 +192,7 @@ def read_operation_report(*, output_dir: Path, elapsed_s: float) -> EngineOperat
         if envelope.error
         else ("no_data" if envelope.data is None else None),
         result=None if envelope.data is None else envelope.data.result,
+        reduced_pnml=reduced,
         warnings=envelope.warnings,
         elapsed_s=elapsed_s,
     )
