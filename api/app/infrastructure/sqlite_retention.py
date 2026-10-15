@@ -55,13 +55,16 @@ class SqliteRetention(SqliteDatabase):
         return NetReferences(jobs=jobs, sessions=sessions, live=live_jobs + live_sessions)
 
     def delete_net(self, *, net_id: str) -> bool:
-        """Delete a net with its jobs, traces, sessions, events and description links."""
+        """Delete a net with its jobs, runs, traces, sessions, events, links and contest records."""
         with self._connection() as conn:
             conn.execute(
                 "DELETE FROM traces WHERE job_id IN (SELECT job_id FROM jobs WHERE net_id=?)",
                 (net_id,),
             )
             conn.execute("DELETE FROM jobs WHERE net_id=?", (net_id,))
+            conn.execute("DELETE FROM operation_runs WHERE net_id=?", (net_id,))
+            conn.execute("DELETE FROM mcc_nets WHERE net_id=?", (net_id,))
+            conn.execute("DELETE FROM mcc_properties WHERE net_id=?", (net_id,))
             conn.execute(
                 "DELETE FROM events WHERE session_id IN"
                 " (SELECT session_id FROM sessions WHERE net_id=?)",

@@ -8,9 +8,12 @@ from jsonschema import validate
 
 from app.api.llm_tools import Operation, offered_to_llm
 from app.domain.mcc_properties import MccProperties
+from app.domain.models import Limits
 from app.domain.net_leak import contains_net
+from app.domain.operations import OperationRun, RunState
 from app.domain.splits import Split
 from app.infrastructure.sqlite_catalog import SqliteCatalog
+from app.infrastructure.sqlite_operations import SqliteOperations
 from app.infrastructure.sqlite_splits import SqliteSplits
 from tests.support import CHECK_BODY, MUTEX_DOCUMENT, MUTEX_PNML
 
@@ -77,6 +80,20 @@ def test_no_tool_declares_a_net_in_its_responses(client):
 def test_no_tool_returns_a_net_when_called(scripted_client, settings):
     client = scripted_client
     net_id = client.post("/v1/nets", content=MUTEX_PNML, headers=XML).json()["net_id"]
+    runs = SqliteOperations(path=settings.database_path)
+    runs.create_or_get_run(
+        run=OperationRun(
+            run_id="run1",
+            net_id=net_id,
+            operation="net-class",
+            engine="native",
+            tool_version="1.0",
+            parameters={},
+            limits=Limits(),
+            state=RunState.QUEUED,
+        ),
+        key="k",
+    )
     SqliteSplits(path=settings.database_path).save_split(
         split=Split(name="v1", seed="s", folds=2, test_fraction=0, assignments=())
     )
@@ -95,6 +112,7 @@ def test_no_tool_returns_a_net_when_called(scripted_client, settings):
     values = {
         **PATH_VALUES,
         "job_id": job_id,
+        "run_id": "run1",
         "description_id": description,
         "session_id": session["data"]["session_id"],
     }

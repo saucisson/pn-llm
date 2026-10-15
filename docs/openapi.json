@@ -1309,6 +1309,14 @@
             "title": "Name",
             "type": "string"
           },
+          "operations": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Operations",
+            "type": "array"
+          },
           "supports_colored": {
             "default": false,
             "title": "Supports Colored",
@@ -1909,6 +1917,89 @@
         "title": "Envelope[Neighbourhood]",
         "type": "object"
       },
+      "Envelope_NetClassResult_": {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/NetClassResult"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "elapsed_s": {
+            "minimum": 0.0,
+            "title": "Elapsed S",
+            "type": "number"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorInfo"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "net_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Net Id"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "default": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "partial",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "tool": {
+            "$ref": "#/components/schemas/ToolInfo"
+          },
+          "truncated": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Page"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "warnings": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "tool",
+          "status",
+          "elapsed_s"
+        ],
+        "title": "Envelope[NetClassResult]",
+        "type": "object"
+      },
       "Envelope_NetOverview_": {
         "properties": {
           "data": {
@@ -1992,6 +2083,89 @@
         "title": "Envelope[NetOverview]",
         "type": "object"
       },
+      "Envelope_PInvariantsResult_": {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PInvariantsResult"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "elapsed_s": {
+            "minimum": 0.0,
+            "title": "Elapsed S",
+            "type": "number"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorInfo"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "net_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Net Id"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "default": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "partial",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "tool": {
+            "$ref": "#/components/schemas/ToolInfo"
+          },
+          "truncated": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Page"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "warnings": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "tool",
+          "status",
+          "elapsed_s"
+        ],
+        "title": "Envelope[PInvariantsResult]",
+        "type": "object"
+      },
       "Envelope_ReplayResult_": {
         "properties": {
           "data": {
@@ -2073,6 +2247,172 @@
           "elapsed_s"
         ],
         "title": "Envelope[ReplayResult]",
+        "type": "object"
+      },
+      "Envelope_RunHandle_": {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RunHandle"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "elapsed_s": {
+            "minimum": 0.0,
+            "title": "Elapsed S",
+            "type": "number"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorInfo"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "net_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Net Id"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "default": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "partial",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "tool": {
+            "$ref": "#/components/schemas/ToolInfo"
+          },
+          "truncated": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Page"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "warnings": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "tool",
+          "status",
+          "elapsed_s"
+        ],
+        "title": "Envelope[RunHandle]",
+        "type": "object"
+      },
+      "Envelope_RunView_": {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RunView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "elapsed_s": {
+            "minimum": 0.0,
+            "title": "Elapsed S",
+            "type": "number"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorInfo"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "net_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Net Id"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "default": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "partial",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "tool": {
+            "$ref": "#/components/schemas/ToolInfo"
+          },
+          "truncated": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Page"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "warnings": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "tool",
+          "status",
+          "elapsed_s"
+        ],
+        "title": "Envelope[RunView]",
         "type": "object"
       },
       "Envelope_Session_": {
@@ -3014,6 +3354,93 @@
           "elapsed_s"
         ],
         "title": "Envelope[tuple[NameGroup, ...]]",
+        "type": "object"
+      },
+      "Envelope_tuple_OperationDescription__________": {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/OperationDescription"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data"
+          },
+          "elapsed_s": {
+            "minimum": 0.0,
+            "title": "Elapsed S",
+            "type": "number"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorInfo"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "net_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Net Id"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "default": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "partial",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "tool": {
+            "$ref": "#/components/schemas/ToolInfo"
+          },
+          "truncated": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Page"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "warnings": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "tool",
+          "status",
+          "elapsed_s"
+        ],
+        "title": "Envelope[tuple[OperationDescription, ...]]",
         "type": "object"
       },
       "Envelope_tuple_ResultSetInfo__________": {
@@ -4177,6 +4604,7 @@
         "title": "JobState",
         "type": "string"
       },
+      "JsonValue": {},
       "Limits": {
         "description": "Resource limits applied to one engine run.",
         "properties": {
@@ -5044,6 +5472,45 @@
         "title": "Neighbours",
         "type": "object"
       },
+      "NetClassResult": {
+        "description": "The structural classes of a net, each decided from its arcs alone.",
+        "properties": {
+          "extended_free_choice": {
+            "title": "Extended Free Choice",
+            "type": "boolean"
+          },
+          "free_choice": {
+            "title": "Free Choice",
+            "type": "boolean"
+          },
+          "marked_graph": {
+            "title": "Marked Graph",
+            "type": "boolean"
+          },
+          "ordinary": {
+            "title": "Ordinary",
+            "type": "boolean"
+          },
+          "state_machine": {
+            "title": "State Machine",
+            "type": "boolean"
+          },
+          "workflow_like": {
+            "title": "Workflow Like",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "ordinary",
+          "state_machine",
+          "marked_graph",
+          "free_choice",
+          "extended_free_choice",
+          "workflow_like"
+        ],
+        "title": "NetClassResult",
+        "type": "object"
+      },
       "NetOverview": {
         "description": "Counts and structural flags of a net: no names.",
         "properties": {
@@ -5199,6 +5666,12 @@
           "arcs"
         ],
         "title": "NetSummary",
+        "type": "object"
+      },
+      "NoParameters": {
+        "description": "Parameters of an operation that has no option.",
+        "properties": {},
+        "title": "NoParameters",
         "type": "object"
       },
       "Not-Input": {
@@ -5371,6 +5844,108 @@
           "arg"
         ],
         "title": "Not",
+        "type": "object"
+      },
+      "OperationDescription": {
+        "description": "One entry of the catalog (``GET /v1/operations``).",
+        "properties": {
+          "engines": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Engines",
+            "type": "array"
+          },
+          "kind": {
+            "enum": [
+              "analysis",
+              "reduction"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "parameters_schema": {
+            "$ref": "#/components/schemas/JsonValue"
+          },
+          "preserves": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Preserves",
+            "type": "array"
+          },
+          "result_schema": {
+            "$ref": "#/components/schemas/JsonValue"
+          },
+          "route": {
+            "title": "Route",
+            "type": "string"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          },
+          "supports_colored": {
+            "title": "Supports Colored",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "kind",
+          "summary",
+          "route",
+          "parameters_schema",
+          "result_schema",
+          "supports_colored",
+          "preserves",
+          "engines"
+        ],
+        "title": "OperationDescription",
+        "type": "object"
+      },
+      "OperationRequest_NoParameters_": {
+        "properties": {
+          "engine": {
+            "default": "auto",
+            "title": "Engine",
+            "type": "string"
+          },
+          "limits": {
+            "$ref": "#/components/schemas/Limits"
+          },
+          "parameters": {
+            "$ref": "#/components/schemas/NoParameters"
+          }
+        },
+        "required": [
+          "parameters"
+        ],
+        "title": "OperationRequest[NoParameters]",
+        "type": "object"
+      },
+      "OperationRequest_PInvariantsParameters_": {
+        "properties": {
+          "engine": {
+            "default": "auto",
+            "title": "Engine",
+            "type": "string"
+          },
+          "limits": {
+            "$ref": "#/components/schemas/Limits"
+          },
+          "parameters": {
+            "$ref": "#/components/schemas/PInvariantsParameters"
+          }
+        },
+        "required": [
+          "parameters"
+        ],
+        "title": "OperationRequest[PInvariantsParameters]",
         "type": "object"
       },
       "Or-Input": {
@@ -5551,6 +6126,85 @@
           "args"
         ],
         "title": "Or",
+        "type": "object"
+      },
+      "PInvariant": {
+        "description": "A place invariant: the weighted sum of the tokens of its places never changes.",
+        "properties": {
+          "constant": {
+            "minimum": 0.0,
+            "title": "Constant",
+            "type": "integer"
+          },
+          "elements": {
+            "items": {
+              "$ref": "#/components/schemas/WeightedElement"
+            },
+            "title": "Elements",
+            "type": "array"
+          }
+        },
+        "required": [
+          "elements",
+          "constant"
+        ],
+        "title": "PInvariant",
+        "type": "object"
+      },
+      "PInvariantsParameters": {
+        "description": "Options of the search.",
+        "properties": {
+          "max_invariants": {
+            "default": 200,
+            "maximum": 10000.0,
+            "minimum": 1.0,
+            "title": "Max Invariants",
+            "type": "integer"
+          },
+          "max_rows": {
+            "default": 20000,
+            "maximum": 1000000.0,
+            "minimum": 1.0,
+            "title": "Max Rows",
+            "type": "integer"
+          }
+        },
+        "title": "PInvariantsParameters",
+        "type": "object"
+      },
+      "PInvariantsResult": {
+        "description": "The minimal-support invariants found, and how far the search went.",
+        "properties": {
+          "complete": {
+            "title": "Complete",
+            "type": "boolean"
+          },
+          "invariants": {
+            "items": {
+              "$ref": "#/components/schemas/PInvariant"
+            },
+            "title": "Invariants",
+            "type": "array"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          },
+          "uncovered_places": {
+            "items": {
+              "$ref": "#/components/schemas/ElementRef"
+            },
+            "title": "Uncovered Places",
+            "type": "array"
+          }
+        },
+        "required": [
+          "invariants",
+          "total",
+          "complete",
+          "uncovered_places"
+        ],
+        "title": "PInvariantsResult",
         "type": "object"
       },
       "Page": {
@@ -5927,6 +6581,42 @@
         "title": "RunFinished",
         "type": "object"
       },
+      "RunHandle": {
+        "description": "The ``data`` of a ``202``: where to follow the run.",
+        "properties": {
+          "location": {
+            "title": "Location",
+            "type": "string"
+          },
+          "run_id": {
+            "title": "Run Id",
+            "type": "string"
+          },
+          "state": {
+            "$ref": "#/components/schemas/RunState"
+          }
+        },
+        "required": [
+          "run_id",
+          "state",
+          "location"
+        ],
+        "title": "RunHandle",
+        "type": "object"
+      },
+      "RunState": {
+        "description": "Lifecycle of the run of an operation, the same as a check's plus a failure.",
+        "enum": [
+          "queued",
+          "running",
+          "done",
+          "failed",
+          "cancelled",
+          "interrupted"
+        ],
+        "title": "RunState",
+        "type": "string"
+      },
       "RunStatistics": {
         "description": "How a tool did on an examination over the instances of a family.",
         "properties": {
@@ -5986,6 +6676,42 @@
           "median_time_ms"
         ],
         "title": "RunStatistics",
+        "type": "object"
+      },
+      "RunView": {
+        "description": "The ``data`` of a run being followed: its state and, once finished, its result.",
+        "properties": {
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorInfo"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "result": {
+            "$ref": "#/components/schemas/JsonValue"
+          },
+          "run_id": {
+            "title": "Run Id",
+            "type": "string"
+          },
+          "state": {
+            "$ref": "#/components/schemas/RunState"
+          }
+        },
+        "required": [
+          "run_id",
+          "operation",
+          "state"
+        ],
+        "title": "RunView",
         "type": "object"
       },
       "Session": {
@@ -6589,6 +7315,25 @@
           "type"
         ],
         "title": "ValidationError",
+        "type": "object"
+      },
+      "WeightedElement": {
+        "description": "An element of an invariant and its weight.",
+        "properties": {
+          "element": {
+            "$ref": "#/components/schemas/ElementRef"
+          },
+          "weight": {
+            "minimum": 1.0,
+            "title": "Weight",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "element",
+          "weight"
+        ],
+        "title": "WeightedElement",
         "type": "object"
       },
       "WeightedRef": {
@@ -7499,6 +8244,132 @@
         "summary": "Get Net",
         "tags": [
           "nets"
+        ]
+      }
+    },
+    "/v1/nets/{net_id}/analyses/net-class": {
+      "post": {
+        "operationId": "analyses.net-class",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "net_id",
+            "required": true,
+            "schema": {
+              "title": "Net Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OperationRequest_NoParameters_"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NetClassResult_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_RunHandle_"
+                }
+              }
+            },
+            "description": "Accepted"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Structural classes: state machine, marked graph, free choice, workflow-like.",
+        "tags": [
+          "operations",
+          "analyses"
+        ]
+      }
+    },
+    "/v1/nets/{net_id}/analyses/p-invariants": {
+      "post": {
+        "operationId": "analyses.p-invariants",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "net_id",
+            "required": true,
+            "schema": {
+              "title": "Net Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OperationRequest_PInvariantsParameters_"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_PInvariantsResult_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_RunHandle_"
+                }
+              }
+            },
+            "description": "Accepted"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Minimal-support place invariants: weighted place sets with a constant token sum.",
+        "tags": [
+          "operations",
+          "analyses"
         ]
       }
     },
@@ -8421,6 +9292,105 @@
         "summary": "List Transitions",
         "tags": [
           "inspection"
+        ]
+      }
+    },
+    "/v1/operations": {
+      "get": {
+        "description": "List the analyses and reductions: route, parameters, result and the engines that run them.",
+        "operationId": "get_operations_v1_operations_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_tuple_OperationDescription__________"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Operations",
+        "tags": [
+          "operations"
+        ]
+      }
+    },
+    "/v1/runs/{run_id}": {
+      "delete": {
+        "description": "Cancel a queued or running operation; a finished one keeps its result.",
+        "operationId": "cancel_run_v1_runs__run_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Cancel Run",
+        "tags": [
+          "operations"
+        ]
+      },
+      "get": {
+        "description": "Follow the run of an operation: its state and, once it has finished, its result.",
+        "operationId": "get_run_v1_runs__run_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_RunView_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Run",
+        "tags": [
+          "operations"
         ]
       }
     },

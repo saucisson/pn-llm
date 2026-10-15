@@ -192,9 +192,12 @@ deletion", for what each removes and when it is refused (409).
 | `connected-components` | components, as `ElementRef` lists |
 
 Each takes `{"engine": "auto", "limits": {...}, "parameters": {...}}` (parameters specific to the
-operation, possibly empty), is deterministic, and is cached by net, operation, parameters and
-tool version. Cheap operations answer `200` with the envelope; others answer `202` with a job
-that follows the same lifecycle as checks (leases, cancellation, ADR 0003).
+operation, possibly empty), is deterministic, and is cached by net, operation, parameters, engine
+and tool version (ADR 0019). The request waits briefly: if the run finishes it answers `200` with
+the envelope (`status: failed` and an `error` when the run failed, never an HTTP error); otherwise
+it answers `202` with `{"run_id", "state", "location"}` and a `Location` header. `GET
+/v1/runs/{run_id}` gives `state` (queued, running, done, failed, cancelled, interrupted), the
+`result` once done and the `error` if failed; `DELETE /v1/runs/{run_id}` cancels.
 
 ### Transformations (`POST /reductions/{rule}`, `POST /unfold`)
 One route per reduction rule; each applies that one rule, to a fixpoint unless `max_applications`

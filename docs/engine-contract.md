@@ -38,7 +38,10 @@ another one.
 
 ## Output (written to `/work/output/`)
 
-- `result.json`: the result envelope of `docs/json-contract.md`, with `data` as follows for a check.
+- `result.json`: the result envelope of `docs/json-contract.md`. For an analysis or a reduction
+  (`kind: analysis`) its `data` is `{"result": <the result model of the operation, as JSON>}`; the
+  platform validates it against the operation's model and refuses an element that is not in the
+  net (ADR 0019). For a check, `data` is as follows.
 
 ```json
 {

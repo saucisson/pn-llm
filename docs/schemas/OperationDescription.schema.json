@@ -1,0 +1,65 @@
+{
+  "$defs": {
+    "JsonValue": {}
+  },
+  "description": "One entry of the catalog (``GET /v1/operations``).",
+  "properties": {
+    "engines": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Engines",
+      "type": "array"
+    },
+    "kind": {
+      "enum": [
+        "analysis",
+        "reduction"
+      ],
+      "title": "Kind",
+      "type": "string"
+    },
+    "name": {
+      "title": "Name",
+      "type": "string"
+    },
+    "parameters_schema": {
+      "$ref": "#/$defs/JsonValue"
+    },
+    "preserves": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Preserves",
+      "type": "array"
+    },
+    "result_schema": {
+      "$ref": "#/$defs/JsonValue"
+    },
+    "route": {
+      "title": "Route",
+      "type": "string"
+    },
+    "summary": {
+      "title": "Summary",
+      "type": "string"
+    },
+    "supports_colored": {
+      "title": "Supports Colored",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "name",
+    "kind",
+    "summary",
+    "route",
+    "parameters_schema",
+    "result_schema",
+    "supports_colored",
+    "preserves",
+    "engines"
+  ],
+  "title": "OperationDescription",
+  "type": "object"
+}

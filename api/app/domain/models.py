@@ -98,4 +98,6 @@ class EngineInfo(DomainModel):
     version: str
     logics: tuple[str, ...]
     supports_colored: bool = False
+    # The analyses and reductions the engine performs, by name (ADR 0014).
+    operations: tuple[str, ...] = ()
     available: bool

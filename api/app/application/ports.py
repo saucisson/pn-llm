@@ -9,7 +9,7 @@ from collections.abc import Iterable, Iterator
 from typing import Protocol
 
 from app.domain.descriptions import Description, DescriptionOrigin, SavedDescription
-from app.domain.engine_contract import EngineReport, EngineRequest, Trace
+from app.domain.engine_contract import EngineOperationReport, EngineReport, EngineRequest, Trace
 from app.domain.llm import LlmMessage, LlmStep, ToolSpec
 from app.domain.mcc import MccFamily, MccInputNet, MccNetFile, MccNetType, ModelEntry
 from app.domain.mcc_properties import Examination, MccProperties
@@ -22,6 +22,7 @@ from app.domain.models import (
 )
 from app.domain.net_document import NetDocument
 from app.domain.nets import NetReferences, NetSummary, SavedNet, StoredNet
+from app.domain.operations import OperationOutcome, OperationRun, RunSubmission
 from app.domain.sessions import (
     Session,
     SessionEvent,
@@ -212,6 +213,24 @@ class EngineGateway(Protocol):
         """Run an engine on a net for a job; report what it produced (to be checked)."""
         ...
 
+    def choose_for(self, *, operation: str, requested: str) -> str:
+        """Return the engine that will perform an operation ("auto" lets the gateway decide).
+
+        Raises:
+            InvalidRequestError: if no suitable engine is available.
+        """
+        ...
+
+    def version_of(self, *, engine: str) -> str:
+        """Return the pinned version of an engine."""
+        ...
+
+    def run_operation(
+        self, *, engine: str, pnml: bytes, request: EngineRequest, job_id: str
+    ) -> EngineOperationReport:
+        """Run an analysis or a reduction in an engine; report what it produced (to be checked)."""
+        ...
+
     def stop(self, *, job_id: str) -> None:
         """Kill the engine run of a job, if one is in progress (cancellation)."""
         ...
@@ -320,4 +339,40 @@ class SplitRepository(Protocol):
 
     def split_names(self) -> tuple[str, ...]:
         """Return the names of the stored splits."""
+        ...
+
+
+class OperationRepository(Protocol):
+    """Persistent storage of the runs of operations; a finished run is the cache of its key."""
+
+    def create_or_get_run(self, *, run: OperationRun, key: str) -> RunSubmission:
+        """Insert ``run`` unless a queued, running or finished run has the same key."""
+        ...
+
+    def claim_next_run(self, *, lease_seconds: float) -> OperationRun | None:
+        """Atomically claim the oldest queued run; None if the queue is empty."""
+        ...
+
+    def load_run(self, *, run_id: str) -> OperationRun:
+        """Return a run, or raise NotFoundError."""
+        ...
+
+    def renew_lease(self, *, run_id: str, lease_seconds: float) -> bool:
+        """Extend a running run's lease; False if it is no longer running."""
+        ...
+
+    def finish_run(self, *, run_id: str, outcome: OperationOutcome) -> None:
+        """Store the outcome and end the run (done if ok, failed otherwise), if still running."""
+        ...
+
+    def cancel_run(self, *, run_id: str) -> None:
+        """Cancel a queued or running run; finished runs are left untouched."""
+        ...
+
+    def recover_interrupted_runs(self) -> int:
+        """Mark running runs whose lease expired as interrupted."""
+        ...
+
+    def purge_finished_runs(self, *, older_than_s: float) -> int:
+        """Delete finished runs not touched for that long; return the count."""
         ...
