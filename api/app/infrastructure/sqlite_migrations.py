@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import hashlib
 import sqlite3
+import time
 import zlib
 from pathlib import Path
 
@@ -75,6 +76,8 @@ MIGRATIONS = (
     ),
 )
 LATEST_VERSION = MIGRATIONS[-1].version
+WAL_ATTEMPTS = 50
+WAL_RETRY_DELAY_S = 0.1
 
 
 def convert_legacy_nets(*, conn: sqlite3.Connection) -> None:
@@ -148,7 +151,16 @@ def migrate(*, path: Path) -> int:
     conn = sqlite3.connect(path, timeout=30, isolation_level=None)
     conn.row_factory = sqlite3.Row
     try:
-        conn.execute("PRAGMA journal_mode=WAL")
+        # Switching to WAL needs an exclusive lock and SQLite may refuse at once, whatever the
+        # timeout, when processes start together: retry, the winner leaves the file in WAL.
+        for attempt in range(WAL_ATTEMPTS):
+            try:
+                conn.execute("PRAGMA journal_mode=WAL")
+                break
+            except sqlite3.OperationalError:
+                if attempt == WAL_ATTEMPTS - 1:
+                    raise
+                time.sleep(WAL_RETRY_DELAY_S)
         conn.execute("PRAGMA foreign_keys=OFF")  # table swaps below must not be refused
         conn.execute("BEGIN IMMEDIATE")  # another process may be migrating: look inside the lock
         version = int(conn.execute("PRAGMA user_version").fetchone()[0])
