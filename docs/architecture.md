@@ -113,6 +113,15 @@ the CI fail when either is stale, so an API change that breaks the UI fails the 
 by the API when `PNVERIF_UI_DIR` points to them; the API image builds them in a first stage.
 Event data is rendered as React text, never as HTML.
 
+The chat has two screens, chosen by the address (`#/session/<id>` keeps its place): the **start
+form** (upload the net, which shows what the platform understood; an optional description typed or
+from a `.txt`/`.md` file; the goal) and the **conversation** (`SessionView`). The conversation
+follows `GET /v1/sessions/{id}/events` with a `fetch`-based client that reconnects by itself and
+resumes after the last event (`Last-Event-ID`); the state of the session is derived from the events
+alone, so the page needs no polling. Verdicts are shown with their words, their engine and its
+version, never by colour alone; the assistant's text is labelled as written by the language model;
+a question opens an answer box; the user can cancel.
+
 ## Dependency rules (enforced)
 
 1. Layers: `main` > `api` | `infrastructure` > `application` > `domain`. Imports go downward only.
