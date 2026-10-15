@@ -21,126 +21,16 @@ from pathlib import Path
 
 from pydantic import TypeAdapter
 
-from app.domain.canonical import canonical_bytes, net_id_of
+from app.domain.canonical import canonical_bytes
 from app.domain.engine_contract import Trace
-from app.domain.errors import InvalidNetError, NotFoundError
+from app.domain.errors import NotFoundError
 from app.domain.models import CheckRequest, FormulaResult, Job, JobState, JobSubmission
 from app.domain.net_document import NetDocument
-from app.domain.net_validation import DocumentLimits
-from app.domain.nets import NetSummary, SavedNet, StoredNet, summarize_document
-from app.domain.pnml_import import import_pnml
+from app.domain.nets import NetSummary, SavedNet, StoredNet
 
-SCHEMA = """
-CREATE TABLE IF NOT EXISTS nets (
-    net_id     TEXT PRIMARY KEY,
-    summary    TEXT NOT NULL,          -- NetSummary as JSON
-    document   BLOB NOT NULL,          -- canonical NetDocument JSON, zlib-compressed, immutable
-    created_at REAL NOT NULL
-);
-CREATE TABLE IF NOT EXISTS jobs (
-    job_id     TEXT PRIMARY KEY,
-    net_id     TEXT NOT NULL REFERENCES nets(net_id),
-    job_key    TEXT NOT NULL,          -- idempotency key: hash(net_id, request)
-    state      TEXT NOT NULL,
-    request    TEXT NOT NULL,          -- CheckRequest as JSON
-    results    TEXT NOT NULL DEFAULT '[]',
-    lease_expires_at REAL NOT NULL,    -- a live job whose lease expired belongs to a dead process
-    created_at REAL NOT NULL,
-    updated_at REAL NOT NULL
-);
-CREATE INDEX IF NOT EXISTS jobs_net ON jobs(net_id);
-CREATE TABLE IF NOT EXISTS traces (
-    job_id     TEXT NOT NULL REFERENCES jobs(job_id),
-    formula_id TEXT NOT NULL,
-    trace      BLOB NOT NULL,          -- Trace as JSON, zlib-compressed
-    PRIMARY KEY (job_id, formula_id)
-);
--- At most one live job per idempotency key, even under concurrent submissions.
-CREATE UNIQUE INDEX IF NOT EXISTS jobs_live_key ON jobs(job_key)
-    WHERE state IN ('queued', 'running', 'done');
-"""
+from .sqlite_migrations import migrate
 
 _RESULTS = TypeAdapter(tuple[FormulaResult, ...])
-
-
-class StoreMigrationError(Exception):
-    """Stored data cannot be migrated to the current schema; the database was left unchanged."""
-
-
-def migrate_legacy_nets(*, path: Path) -> int:
-    """Re-import the nets of a first-schema database as canonical documents; return how many.
-
-    The first schema kept the uploaded PNML bytes under a hash of the file. Each net is imported
-    again, gets its canonical id, and the jobs that point to it follow. All or nothing: a net that
-    no longer imports (the rules are stricter now) aborts the migration and nothing changes.
-    Migrated jobs get a fresh idempotency key, so two nets that collapse into one cannot collide.
-
-    Raises:
-        StoreMigrationError: if a stored net cannot be imported.
-    """
-    conn = sqlite3.connect(path, timeout=30, isolation_level=None)
-    conn.row_factory = sqlite3.Row
-    try:
-        conn.execute("PRAGMA foreign_keys=OFF")  # jobs reference nets while we swap the table
-        conn.execute("BEGIN IMMEDIATE")  # another process may be migrating: re-check inside
-        columns = {row["name"] for row in conn.execute("PRAGMA table_info(nets)")}
-        if "pnml" not in columns:
-            conn.execute("ROLLBACK")
-            return 0
-        limits = DocumentLimits()
-        new_id_of: dict[str, str] = {}
-        new_rows: list[tuple[str, str, bytes, float]] = []
-        failures: list[str] = []
-        for row in conn.execute("SELECT net_id, pnml, created_at FROM nets").fetchall():
-            try:
-                document = import_pnml(payload=bytes(row["pnml"]), limits=limits)
-                new_id = net_id_of(document=document)
-                summary = summarize_document(document=document, net_id=new_id)
-            except InvalidNetError as exc:
-                failures.append(f"{row['net_id']}: {exc}")
-                continue
-            new_id_of[row["net_id"]] = new_id
-            new_rows.append(
-                (
-                    new_id,
-                    summary.model_dump_json(),
-                    zlib.compress(canonical_bytes(document=document)),
-                    row["created_at"],
-                )
-            )
-        if failures:
-            conn.execute("ROLLBACK")
-            raise StoreMigrationError(
-                "These stored nets no longer import, nothing was migrated: " + "; ".join(failures)
-            )
-        conn.execute(
-            "CREATE TABLE nets_new (net_id TEXT PRIMARY KEY, summary TEXT NOT NULL,"
-            " document BLOB NOT NULL, created_at REAL NOT NULL)"
-        )
-        conn.executemany("INSERT OR IGNORE INTO nets_new VALUES (?,?,?,?)", new_rows)
-        has_jobs = conn.execute(
-            "SELECT 1 FROM sqlite_master WHERE type='table' AND name='jobs'"
-        ).fetchone()
-        if has_jobs:
-            for job in conn.execute("SELECT job_id, net_id, request FROM jobs").fetchall():
-                new_id = new_id_of[job["net_id"]]
-                key = hashlib.sha256(
-                    f"{new_id}|{job['request']}|{job['job_id']}".encode()
-                ).hexdigest()
-                conn.execute(
-                    "UPDATE jobs SET net_id=?, job_key=? WHERE job_id=?",
-                    (new_id, key, job["job_id"]),
-                )
-        conn.execute("DROP TABLE nets")
-        conn.execute("ALTER TABLE nets_new RENAME TO nets")
-        conn.execute("COMMIT")
-    except BaseException:
-        if conn.in_transaction:
-            conn.execute("ROLLBACK")
-        raise
-    finally:
-        conn.close()
-    return len(new_rows)
 
 
 class SqliteStore:
@@ -150,9 +40,7 @@ class SqliteStore:
         """Open (and create if needed) the database at ``path``."""
         self._path = path
         path.parent.mkdir(parents=True, exist_ok=True)
-        migrate_legacy_nets(path=path)
-        with self._connection() as conn:
-            conn.executescript(SCHEMA)
+        migrate(path=path)
 
     @contextlib.contextmanager
     def _connection(self) -> Iterator[sqlite3.Connection]:
@@ -316,6 +204,26 @@ class SqliteStore:
         if row is None:
             raise NotFoundError(f"No trace for formula {formula_id!r} of job {job_id}")
         return Trace.model_validate_json(zlib.decompress(row["trace"]))
+
+    def purge_finished_jobs(self, *, older_than_s: float) -> int:
+        """Delete finished jobs (and their traces) not touched for ``older_than_s`` seconds.
+
+        Queued and running jobs are never deleted, and nets are never deleted: they are immutable
+        and may be used again.
+        """
+        cutoff = time.time() - older_than_s
+        with self._connection() as conn:
+            conn.execute(
+                "DELETE FROM traces WHERE job_id IN (SELECT job_id FROM jobs"
+                " WHERE state IN ('done','cancelled','interrupted') AND updated_at < ?)",
+                (cutoff,),
+            )
+            cursor = conn.execute(
+                "DELETE FROM jobs WHERE state IN ('done','cancelled','interrupted')"
+                " AND updated_at < ?",
+                (cutoff,),
+            )
+            return cursor.rowcount
 
     def recover_interrupted(self) -> int:
         """Mark live jobs whose lease expired as interrupted; return their count.

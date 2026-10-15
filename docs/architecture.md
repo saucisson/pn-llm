@@ -58,6 +58,8 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/application/checks.py` | application | `CheckService`: submit, execute, read and cancel checks |
 | `app/application/engines.py` | application | `EngineService`: list engines |
 | `app/infrastructure/sqlite_store.py` | infrastructure | SQLite implementation of `NetRepository` and `JobRepository` |
+| `app/infrastructure/sqlite_migrations.py` | infrastructure | Numbered schema migrations (`PRAGMA user_version`), including the conversion of first-schema databases |
+| `app/infrastructure/sqlite_backup.py` | infrastructure | Online backup and offline restore of the database |
 | `app/infrastructure/docker_runner.py` | infrastructure | The only module that talks to Docker (SDK): isolated, labelled, always-removed engine containers (ADR 0016) |
 | `app/infrastructure/engine_registry.py` | infrastructure | Engine specs and `EngineGateway` implementation |
 | `app/api/deps.py` | api | FastAPI dependencies giving routes their services |
@@ -102,6 +104,21 @@ SQLite file, WAL mode. Table `nets` holds the summary and the canonical net docu
 (zlib); nets are immutable and identified by the hash of that document, whatever
 format they were uploaded in. Table `jobs` holds state, request, results
 and an idempotency key; a unique index guarantees one live job per key.
+
+**Schema versions.** The version is `PRAGMA user_version`; migrations are numbered, applied in
+order at start-up in one `BEGIN IMMEDIATE` transaction (so several processes starting together
+migrate once), and never edited after release. A database from a newer software version is
+refused, not damaged. A change of schema is a new migration in `sqlite_migrations.py`.
+
+**Retention.** `PNVERIF_JOB_RETENTION_DAYS` (unset: keep everything) makes the lease sweeper delete
+finished jobs, with their counterexamples, not touched for that long. Queued and running jobs are
+kept; nets are never deleted (they are immutable and may be used again).
+
+**Backups.** `python3 scripts/db_backup.py backup data/pnverif.sqlite backups/<date>.sqlite` uses
+SQLite's online backup API: consistent while the API runs. To restore, stop every API process, then
+`python3 scripts/db_backup.py restore backups/<date>.sqlite data/pnverif.sqlite` (it checks the
+backup, removes the old write-ahead files and copies it). If the database grows too large, net
+documents can move to content-addressed files without changing the ports.
 
 **Migration of a first-schema database** (nets stored as raw PNML under a file hash): opening the
 database re-imports every stored net, stores its canonical document under the new id, repoints
@@ -152,6 +169,5 @@ and reductions (milestone M4) are not implemented yet.
 
 - Jobs run in the API process that received them (background tasks); cancelling a job stops its
   container at once, but a crashed API process leaves its job to the lease sweeper (issue #6).
-- No schema migrations yet (see the storage issue).
 - Mounting the Docker socket gives the API near-root access to the host: local use only. Risk
   analysis and the deployment plan: `docs/security-container-launching.md`.

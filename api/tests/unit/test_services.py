@@ -148,3 +148,17 @@ def test_cancelling_an_unknown_job_raises(checks):
 def test_engine_service_lists_the_registry(registry):
     names = {engine.name for engine in EngineService(engines=registry).list_engines()}
     assert "dummy" in names
+
+
+def test_old_finished_jobs_are_purged_through_the_service(checks, net_id, store):
+    import sqlite3
+
+    job_id = checks.submit(net_id=net_id, request=make_request()).job.job_id
+    checks.execute(job_id=job_id)
+    conn = sqlite3.connect(store._path)
+    conn.execute("UPDATE jobs SET updated_at=0")
+    conn.commit()
+    conn.close()
+    assert checks.purge_old_jobs(retention_s=86_400) == 1
+    with pytest.raises(NotFoundError):
+        checks.get(job_id=job_id)

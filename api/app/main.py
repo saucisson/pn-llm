@@ -29,6 +29,8 @@ from app.infrastructure.engine_registry import DEFAULT_ENGINES, EngineRegistry
 from app.infrastructure.sqlite_store import SqliteStore
 from app.settings import Settings
 
+SECONDS_PER_DAY = 86_400
+
 
 def create_app(
     *, settings: Settings | None = None, engine_gateway: EngineGateway | None = None
@@ -52,6 +54,11 @@ def create_app(
         async def sweep() -> None:
             while True:
                 await run_in_threadpool(checks.recover_interrupted)
+                if config.job_retention_days is not None:
+                    await run_in_threadpool(
+                        checks.purge_old_jobs,
+                        retention_s=config.job_retention_days * SECONDS_PER_DAY,
+                    )
                 await asyncio.sleep(config.job_lease_seconds / 2)
 
         sweeper = asyncio.create_task(sweep())

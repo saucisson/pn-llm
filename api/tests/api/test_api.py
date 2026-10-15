@@ -193,3 +193,28 @@ def test_settings_come_from_the_environment(tmp_path, monkeypatch):
     monkeypatch.setenv("PNVERIF_DATABASE_PATH", str(target))
     create_app()
     assert target.exists()
+
+
+def test_the_sweeper_purges_old_finished_jobs_when_retention_is_set(tmp_path):
+    import sqlite3
+
+    settings = Settings(
+        database_path=tmp_path / "retention.sqlite", job_lease_seconds=0.2, job_retention_days=1
+    )
+    app = create_app(settings=settings)
+    client = TestClient(app)
+    net_id = upload(client)["net_id"]
+    job_id = start(client, net_id).json()["data"]["job_id"]
+    conn = sqlite3.connect(settings.database_path)
+    conn.execute("UPDATE jobs SET updated_at=0")
+    conn.commit()
+    conn.close()
+
+    with TestClient(app) as running:  # runs the lifespan sweeper
+        deadline = time.monotonic() + 5
+        while time.monotonic() < deadline:
+            if running.get(f"/v1/jobs/{job_id}").status_code == 404:
+                break
+            time.sleep(0.05)
+        assert running.get(f"/v1/jobs/{job_id}").status_code == 404
+        assert running.get(f"/v1/nets/{net_id}").status_code == 200

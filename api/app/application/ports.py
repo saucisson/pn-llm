@@ -66,6 +66,10 @@ class JobRepository(Protocol):
         """Return the counterexample stored for a formula of a job, or raise NotFoundError."""
         ...
 
+    def purge_finished_jobs(self, *, older_than_s: float) -> int:
+        """Delete finished jobs and their traces older than ``older_than_s``; return the count."""
+        ...
+
     def recover_interrupted(self) -> int:
         """Mark live jobs whose lease expired as interrupted; safe to call from any process."""
         ...
