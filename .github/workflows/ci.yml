@@ -27,6 +27,24 @@ jobs:
       - name: Known vulnerabilities in dependencies
         run: cd api && pip-audit --skip-editable
 
+  ui:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: ui/.nvmrc
+          cache: npm
+          cache-dependency-path: ui/package-lock.json
+      - name: Install
+        run: cd ui && npm ci
+      - name: Generated API types are current
+        run: cd ui && npm run check:api
+      - name: Biome, strict TypeScript and tests
+        run: cd ui && npm run check
+      - name: Build
+        run: cd ui && npm run build
+
   docker:
     runs-on: ubuntu-latest
     steps:
@@ -39,7 +57,7 @@ jobs:
       - run: pip install -e "api[dev]"
       - name: Build images
         run: |
-          docker build -t pn-llm-verif/api:ci api
+          docker build -f api/Dockerfile -t pn-llm-verif/api:ci .
           docker build -f engines/dummy/Dockerfile -t pn-llm-verif/dummy:latest .
       - name: Integration tests against the real dummy engine image
         run: cd api && pytest -q -m docker

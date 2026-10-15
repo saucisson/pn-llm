@@ -2,7 +2,9 @@
 # (ephemeral docker run), not as permanent services.
 services:
   api:
-    build: ./api
+    build:
+      context: .
+      dockerfile: api/Dockerfile
     ports: ["8000:8000"]
     environment:
       PNVERIF_DATABASE_PATH: /data/pnverif.sqlite
