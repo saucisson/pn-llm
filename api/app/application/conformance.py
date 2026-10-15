@@ -33,7 +33,12 @@ class ConformanceService:
         )
 
     def run(
-        self, *, cases: tuple[ConformanceCase, ...], engines: tuple[str, ...], limits: Limits
+        self,
+        *,
+        cases: tuple[ConformanceCase, ...],
+        engines: tuple[str, ...],
+        limits: Limits,
+        reduce: bool = True,
     ) -> ConformanceMatrix:
         """Run every case on every engine; cases on the same net share one engine run.
 
@@ -47,7 +52,10 @@ class ConformanceService:
         for engine in engines:
             for net, group in by_net.items():
                 request = EngineRequest(
-                    net_id=net, formulas=tuple(case.formula for case in group), limits=limits
+                    net_id=net,
+                    formulas=tuple(case.formula for case in group),
+                    limits=limits,
+                    reduce=reduce,
                 )
                 report = self._engines.run(
                     engine=engine, pnml=group[0].pnml, request=request, job_id=f"conf-{engine}"

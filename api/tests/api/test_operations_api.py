@@ -372,3 +372,61 @@ def test_deleting_a_net_removes_the_lineage_of_its_children(client, settings):
         net_id=answered.json()["data"]["new_net_id"]
     )
     assert query(path=settings.database_path, sql="SELECT count(*) FROM net_lineage") == [(0,)]
+
+
+class ChecksAndOperations:
+    """One gateway for both paths: the scripted engine for checks, the native one for operations."""
+
+    def __init__(self):
+        from tests.support import ScriptedEngines
+
+        self._checks = ScriptedEngines(trace_steps=("x", "y"))
+        self._operations = InProcessNative()
+
+    def __getattr__(self, name):
+        if name in {"choose_for", "version_of", "run_operation"}:
+            return getattr(self._operations, name)
+        return getattr(self._checks, name)
+
+    def list_engines(self):
+        return self._operations.list_engines()
+
+
+def test_the_trace_of_a_check_on_a_reduced_net_is_given_on_the_original_unless_asked(settings):
+    app = create_app(
+        settings=settings.model_copy(update={"operation_wait_seconds": 0}),
+        engine_gateway=ChecksAndOperations(),
+    )
+    client = TestClient(app)
+    loop = pnml_of(
+        places=["a", "mid", "q"],
+        transitions=["x", "t", "y"],
+        arcs=[("a", "x"), ("x", "mid"), ("mid", "t"), ("t", "q"), ("q", "y"), ("y", "a")],
+        marking={"a": 1},
+    )
+    parent = client.post("/v1/nets", content=loop, headers=XML).json()["net_id"]
+    ask(client, parent, "fuse-series-places", {"parameters": {"max_applications": 1}})
+    app.state.operations.drain()
+    child = ask(
+        client, parent, "fuse-series-places", {"parameters": {"max_applications": 1}}
+    ).json()["data"]["new_net_id"]
+    body = {
+        "formulas": [
+            {
+                "id": "f1",
+                "logic": "state",
+                "ast": {"op": "tokens", "place": "q", "cmp": ">=", "value": 1},
+            }
+        ],
+        "engine": "scripted",
+    }
+    job = client.post(f"/v1/nets/{child}/checks", json=body).json()["data"]["job_id"]
+    app.state.checks.drain()
+    url = f"/v1/jobs/{job}/results/0/trace"
+    original = client.get(url).json()
+    assert original["net_id"] == parent
+    assert [s["transition"]["id"] for s in original["data"]["steps"]] == ["x", "t", "y"]
+    reduced = client.get(url, params={"net": "reduced"}).json()
+    assert reduced["net_id"] == child
+    assert [s["transition"]["id"] for s in reduced["data"]["steps"]] == ["x", "y"]
+    assert client.get(url, params={"net": "nowhere"}).status_code == 422

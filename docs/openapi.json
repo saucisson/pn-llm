@@ -434,6 +434,11 @@
           },
           "limits": {
             "$ref": "#/components/schemas/Limits"
+          },
+          "reduce": {
+            "default": true,
+            "title": "Reduce",
+            "type": "boolean"
           }
         },
         "required": [
@@ -460,6 +465,11 @@
           },
           "limits": {
             "$ref": "#/components/schemas/Limits"
+          },
+          "reduce": {
+            "default": true,
+            "title": "Reduce",
+            "type": "boolean"
           }
         },
         "required": [
@@ -9159,7 +9169,7 @@
     },
     "/v1/jobs/{job_id}/results/{result_index}/trace": {
       "get": {
-        "description": "Return the counterexample of one result: the transitions fired, on the original net.",
+        "description": "Return the counterexample of one result: the transitions fired.\n\nFor a check run on a reduced net the trace is lifted to the original net unless\n``?net=reduced`` asks for the net it was found on.",
         "operationId": "get_trace_v1_jobs__job_id__results__result_index__trace_get",
         "parameters": [
           {
@@ -9178,6 +9188,20 @@
             "schema": {
               "title": "Result Index",
               "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "net",
+            "required": false,
+            "schema": {
+              "default": "original",
+              "enum": [
+                "original",
+                "reduced"
+              ],
+              "title": "Net",
+              "type": "string"
             }
           }
         ],

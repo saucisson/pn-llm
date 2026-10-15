@@ -78,6 +78,7 @@ def conformance_main() -> None:
     parser.add_argument("--timeout", type=int, default=300)
     parser.add_argument("--memory", type=int, default=4096)
     parser.add_argument("--markdown", action="store_true")
+    parser.add_argument("--no-reduce", action="store_true", help="ask engines not to reduce")
     arguments = parser.parse_args()
 
     config = Settings()
@@ -89,6 +90,7 @@ def conformance_main() -> None:
         cases=load_cases(path=arguments.cases),
         engines=tuple(arguments.engines) if arguments.engines else service.available_engines(),
         limits=Limits(timeout_s=arguments.timeout, memory_mb=arguments.memory),
+        reduce=not arguments.no_reduce,
     )
     sys.stdout.write(
         render_markdown(matrix=matrix)

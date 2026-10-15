@@ -7,11 +7,12 @@ from http import HTTPStatus
 
 from fastapi import APIRouter, Response
 
+from app.application.traces import TraceView
 from app.domain.contract import Envelope
 from app.domain.engine_contract import Trace
 from app.domain.models import CheckRequest, Job
 
-from .deps import ChecksDep
+from .deps import ChecksDep, TracesDep
 from .envelopes import wrap
 
 router = APIRouter(prefix="/v1", tags=["checks"])
@@ -37,10 +38,16 @@ def get_job(*, job_id: str, checks: ChecksDep) -> Envelope[Job]:
 
 
 @router.get("/jobs/{job_id}/results/{result_index}/trace")
-def get_trace(*, job_id: str, result_index: int, checks: ChecksDep) -> Envelope[Trace]:
-    """Return the counterexample of one result: the transitions fired, on the original net."""
+def get_trace(
+    *, job_id: str, result_index: int, traces: TracesDep, net: TraceView = "original"
+) -> Envelope[Trace]:
+    """Return the counterexample of one result: the transitions fired.
+
+    For a check run on a reduced net the trace is lifted to the original net unless
+    ``?net=reduced`` asks for the net it was found on.
+    """
     started = time.perf_counter()
-    trace = checks.trace(job_id=job_id, result_index=result_index)
+    trace = traces.get(job_id=job_id, result_index=result_index, view=net)
     return wrap(tool="check.trace", net_id=trace.net_id, started=started, data=trace)
 
 

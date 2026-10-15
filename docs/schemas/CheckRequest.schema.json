@@ -1277,6 +1277,11 @@
     },
     "limits": {
       "$ref": "#/$defs/Limits"
+    },
+    "reduce": {
+      "default": true,
+      "title": "Reduce",
+      "type": "boolean"
     }
   },
   "required": [

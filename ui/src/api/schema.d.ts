@@ -101,7 +101,10 @@ export interface paths {
         };
         /**
          * Get Trace
-         * @description Return the counterexample of one result: the transitions fired, on the original net.
+         * @description Return the counterexample of one result: the transitions fired.
+         *
+         *     For a check run on a reduced net the trace is lifted to the original net unless
+         *     ``?net=reduced`` asks for the net it was found on.
          */
         get: operations["get_trace_v1_jobs__job_id__results__result_index__trace_get"];
         put?: never;
@@ -1285,6 +1288,11 @@ export interface components {
             /** Formulas */
             formulas: components["schemas"]["Formula-Input"][];
             limits?: components["schemas"]["Limits"];
+            /**
+             * Reduce
+             * @default true
+             */
+            reduce: boolean;
         };
         /**
          * CheckRequest
@@ -1299,6 +1307,11 @@ export interface components {
             /** Formulas */
             formulas: components["schemas"]["Formula-Output"][];
             limits?: components["schemas"]["Limits"];
+            /**
+             * Reduce
+             * @default true
+             */
+            reduce: boolean;
         };
         /**
          * CheckSubmitted
@@ -4339,7 +4352,9 @@ export interface operations {
     };
     get_trace_v1_jobs__job_id__results__result_index__trace_get: {
         parameters: {
-            query?: never;
+            query?: {
+                net?: "original" | "reduced";
+            };
             header?: never;
             path: {
                 job_id: string;

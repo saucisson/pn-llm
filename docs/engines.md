@@ -21,6 +21,7 @@ How to add one: `docs/adding-an-engine.md` (the path) and `docs/engine-integrati
   writes it with `app/domain/mcc_xml.py` (tested by reading back every contest formula of the
   corpus unchanged). One process per formula: each gets an equal share of the remaining time and
   its own trace. The rendered XML is kept in `rendered`.
+- **Reductions.** verifypn reduces by default; a request with `reduce: false` runs it with `-r 0`.
 - **Answers.** `Query is satisfied.` is TRUE, `Query is NOT satisfied.` FALSE, anything else
   UNKNOWN; a timeout is TIMEOUT; a process killed by SIGKILL is OOM. Never FALSE by default.
 - **Traces.** verifypn prints transitions with `-t`. They are given as is on P/T nets, with
@@ -59,6 +60,8 @@ How to add one: `docs/adding-an-engine.md` (the path) and `docs/engine-integrati
 - **Answers.** `FORMULA <id> TRUE|FALSE` lines. A formula the tool left unsolved is UNKNOWN. When
   the time is over the process is killed, TIMEOUT is given to the formulas without a line, and what
   was solved before the kill is kept. SIGKILL is OOM.
+- **Reductions.** The tool always reduces: a request with `reduce: false` is run as usual and
+  each answer carries the warning `reductions_cannot_be_disabled`.
 - **Traces.** None: in this mode the tool gives no counterexample, and each answer says so
   (`no_counterexample_from_its_tools`).
 - **Conformance** (same protocol as Tapaal, 120 s per examination, 2 GB): 44 of 48 answers equal

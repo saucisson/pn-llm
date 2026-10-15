@@ -240,6 +240,10 @@ the final marking (`state_formula_holds`).
 Asynchronous verification of structured formulas (batch semantics, ADR 0014 point 7):
 `check.submit` (`POST /v1/nets/{id}/checks`, 202), `check.get` (`GET /v1/jobs/{id}`), `check.cancel`
 (`DELETE /v1/jobs/{id}`) and `check.trace` (`GET /v1/jobs/{id}/results/{k}/trace`: the counterexample
-of the `k`-th result, steps citing transitions, on the original net). A result carries the engine,
+of the `k`-th result, steps citing transitions, on the original net). For a check run on a net
+obtained by reductions the trace is lifted through each reduction to the original net (each
+firing replaced by what it stands for, `expansions` of the reduction); `?net=reduced` gives the
+trace on the net the check ran on. `reduce` (default `true`) lets the engine reduce the net
+internally; `false` asks it not to, for comparison, and an engine that cannot say so in a warning. A result carries the engine,
 its pinned version, the formula in the engine's syntax (`rendered`) and `trace_url` when there is a
 counterexample.

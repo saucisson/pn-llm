@@ -56,6 +56,30 @@
   "logic": "state"
  },
  {
+  "id": "mutex-ltl-next-true",
+  "net": "hand/mutex.pnml",
+  "expected": "TRUE",
+  "source": "by hand: two processes share one lock, so the critical section holds at most one token (neXt: the first step is the only one possible, then the way back)",
+  "formula_text": "X \"crit1\" >= 1",
+  "logic": "ltl"
+ },
+ {
+  "id": "mutex-ltl-next-false",
+  "net": "hand/mutex.pnml",
+  "expected": "FALSE",
+  "source": "by hand: two processes share one lock, so the critical section holds at most one token (neXt: the first step is the only one possible, then the way back)",
+  "formula_text": "X \"crit1\" < 1",
+  "logic": "ltl"
+ },
+ {
+  "id": "mutex-ltl-next-twice",
+  "net": "hand/mutex.pnml",
+  "expected": "TRUE",
+  "source": "by hand: two processes share one lock, so the critical section holds at most one token (neXt: the first step is the only one possible, then the way back)",
+  "formula_text": "X X \"lock\" >= 1",
+  "logic": "ltl"
+ },
+ {
   "id": "PGCD-COL-D04N050-ReachabilityCardinality-00",
   "net": "mcc/PGCD-COL-D04N050/model.pnml",
   "expected": "TRUE",

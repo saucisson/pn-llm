@@ -1312,6 +1312,11 @@
       "title": "Protected",
       "type": "array"
     },
+    "reduce": {
+      "default": true,
+      "title": "Reduce",
+      "type": "boolean"
+    },
     "schema_version": {
       "const": "1.0",
       "default": "1.0",

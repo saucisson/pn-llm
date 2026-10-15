@@ -18,6 +18,7 @@ from app.application.operations import OperationService
 from app.application.results import ResultsService
 from app.application.retention import RetentionService
 from app.application.splits import SplitService
+from app.application.traces import TraceService
 
 
 def get_nets(*, request: Request) -> NetService:
@@ -80,6 +81,11 @@ def get_operations(*, request: Request) -> OperationService:
     return cast("OperationService", request.app.state.operations)
 
 
+def get_traces(*, request: Request) -> TraceService:
+    """Return the trace service of the running application."""
+    return cast("TraceService", request.app.state.traces)
+
+
 NetsDep = Annotated[NetService, Depends(get_nets)]
 ChecksDep = Annotated[CheckService, Depends(get_checks)]
 EnginesDep = Annotated[EngineService, Depends(get_engines)]
@@ -92,3 +98,4 @@ ModelsDep = Annotated[ModelCatalogService, Depends(get_models)]
 ResultsDep = Annotated[ResultsService, Depends(get_results)]
 SplitsDep = Annotated[SplitService, Depends(get_splits)]
 OperationsDep = Annotated[OperationService, Depends(get_operations)]
+TracesDep = Annotated[TraceService, Depends(get_traces)]

@@ -107,6 +107,7 @@ class CheckService:
                         net_id=job.net_id,
                         formulas=job.request.formulas,
                         limits=job.request.limits,
+                        reduce=job.request.reduce,
                     ),
                     job_id=job_id,
                 )
