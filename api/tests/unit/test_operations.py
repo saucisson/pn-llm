@@ -4,6 +4,7 @@ import pytest
 
 from app.application.nets import NetService
 from app.application.operations import OperationService
+from app.domain.analyses import OPERATIONS
 from app.domain.analyses.p_invariants import PInvariantsParameters
 from app.domain.contract import ElementRef
 from app.domain.engine_contract import EngineOperationReport
@@ -52,7 +53,7 @@ def invariants(*, engine="auto", **parameters):
 
 def test_the_catalog_describes_every_operation_with_the_engines_that_perform_it(operations):
     catalog = {entry.name: entry for entry in operations.catalog()}
-    assert set(catalog) == {"net-class", "p-invariants"}
+    assert set(catalog) == {definition.name for definition in OPERATIONS}
     entry = catalog["p-invariants"]
     assert entry.route == "/v1/nets/{net_id}/analyses/p-invariants"
     assert entry.engines == ("native",)

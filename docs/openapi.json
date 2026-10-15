@@ -562,6 +562,152 @@
         "title": "Compare",
         "type": "object"
       },
+      "Component": {
+        "description": "A weakly connected component.",
+        "properties": {
+          "elements": {
+            "items": {
+              "$ref": "#/components/schemas/ElementRef"
+            },
+            "title": "Elements",
+            "type": "array"
+          },
+          "places": {
+            "title": "Places",
+            "type": "integer"
+          },
+          "transitions": {
+            "title": "Transitions",
+            "type": "integer"
+          },
+          "truncated": {
+            "title": "Truncated",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "places",
+          "transitions",
+          "elements",
+          "truncated"
+        ],
+        "title": "Component",
+        "type": "object"
+      },
+      "ConflictSet": {
+        "description": "Transitions linked, directly or through others, by a shared input place.",
+        "properties": {
+          "shared_places": {
+            "items": {
+              "$ref": "#/components/schemas/ElementRef"
+            },
+            "title": "Shared Places",
+            "type": "array"
+          },
+          "transitions": {
+            "items": {
+              "$ref": "#/components/schemas/ElementRef"
+            },
+            "title": "Transitions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "transitions",
+          "shared_places"
+        ],
+        "title": "ConflictSet",
+        "type": "object"
+      },
+      "ConflictSetsParameters": {
+        "description": "Options of the analysis.",
+        "properties": {
+          "max_groups": {
+            "default": 200,
+            "maximum": 100000.0,
+            "minimum": 1.0,
+            "title": "Max Groups",
+            "type": "integer"
+          }
+        },
+        "title": "ConflictSetsParameters",
+        "type": "object"
+      },
+      "ConflictSetsResult": {
+        "description": "The groups of at least two transitions in structural conflict.",
+        "properties": {
+          "groups": {
+            "items": {
+              "$ref": "#/components/schemas/ConflictSet"
+            },
+            "title": "Groups",
+            "type": "array"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          },
+          "transitions_in_conflict": {
+            "title": "Transitions In Conflict",
+            "type": "integer"
+          },
+          "transitions_without_conflict": {
+            "title": "Transitions Without Conflict",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "groups",
+          "total",
+          "transitions_in_conflict",
+          "transitions_without_conflict"
+        ],
+        "title": "ConflictSetsResult",
+        "type": "object"
+      },
+      "ConnectedComponentsParameters": {
+        "description": "Options of the analysis.",
+        "properties": {
+          "max_components": {
+            "default": 50,
+            "maximum": 10000.0,
+            "minimum": 1.0,
+            "title": "Max Components",
+            "type": "integer"
+          },
+          "max_elements": {
+            "default": 100,
+            "maximum": 100000.0,
+            "minimum": 1.0,
+            "title": "Max Elements",
+            "type": "integer"
+          }
+        },
+        "title": "ConnectedComponentsParameters",
+        "type": "object"
+      },
+      "ConnectedComponentsResult": {
+        "description": "The components, largest first.",
+        "properties": {
+          "components": {
+            "items": {
+              "$ref": "#/components/schemas/Component"
+            },
+            "title": "Components",
+            "type": "array"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "components",
+          "total"
+        ],
+        "title": "ConnectedComponentsResult",
+        "type": "object"
+      },
       "Constant": {
         "description": "A term: a non-negative integer.",
         "properties": {
@@ -1089,6 +1235,36 @@
         "title": "CtlUntil",
         "type": "object"
       },
+      "DeadTransitionsResult": {
+        "description": "Transitions proven dead, and the places that can never hold a token.",
+        "properties": {
+          "dead_transitions": {
+            "items": {
+              "$ref": "#/components/schemas/ElementRef"
+            },
+            "title": "Dead Transitions",
+            "type": "array"
+          },
+          "never_marked_places": {
+            "items": {
+              "$ref": "#/components/schemas/ElementRef"
+            },
+            "title": "Never Marked Places",
+            "type": "array"
+          },
+          "note": {
+            "default": "A transition not listed is not proven live.",
+            "title": "Note",
+            "type": "string"
+          }
+        },
+        "required": [
+          "dead_transitions",
+          "never_marked_places"
+        ],
+        "title": "DeadTransitionsResult",
+        "type": "object"
+      },
       "Deadlock": {
         "description": "Atom: no transition can fire.",
         "properties": {
@@ -1334,6 +1510,255 @@
           "available"
         ],
         "title": "EngineInfo",
+        "type": "object"
+      },
+      "Envelope_ConflictSetsResult_": {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ConflictSetsResult"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "elapsed_s": {
+            "minimum": 0.0,
+            "title": "Elapsed S",
+            "type": "number"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorInfo"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "net_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Net Id"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "default": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "partial",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "tool": {
+            "$ref": "#/components/schemas/ToolInfo"
+          },
+          "truncated": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Page"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "warnings": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "tool",
+          "status",
+          "elapsed_s"
+        ],
+        "title": "Envelope[ConflictSetsResult]",
+        "type": "object"
+      },
+      "Envelope_ConnectedComponentsResult_": {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ConnectedComponentsResult"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "elapsed_s": {
+            "minimum": 0.0,
+            "title": "Elapsed S",
+            "type": "number"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorInfo"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "net_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Net Id"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "default": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "partial",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "tool": {
+            "$ref": "#/components/schemas/ToolInfo"
+          },
+          "truncated": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Page"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "warnings": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "tool",
+          "status",
+          "elapsed_s"
+        ],
+        "title": "Envelope[ConnectedComponentsResult]",
+        "type": "object"
+      },
+      "Envelope_DeadTransitionsResult_": {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DeadTransitionsResult"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "elapsed_s": {
+            "minimum": 0.0,
+            "title": "Elapsed S",
+            "type": "number"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorInfo"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "net_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Net Id"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "default": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "partial",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "tool": {
+            "$ref": "#/components/schemas/ToolInfo"
+          },
+          "truncated": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Page"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "warnings": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "tool",
+          "status",
+          "elapsed_s"
+        ],
+        "title": "Envelope[DeadTransitionsResult]",
         "type": "object"
       },
       "Envelope_Description_": {
@@ -2166,6 +2591,89 @@
         "title": "Envelope[PInvariantsResult]",
         "type": "object"
       },
+      "Envelope_PlaceBoundsResult_": {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PlaceBoundsResult"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "elapsed_s": {
+            "minimum": 0.0,
+            "title": "Elapsed S",
+            "type": "number"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorInfo"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "net_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Net Id"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "default": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "partial",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "tool": {
+            "$ref": "#/components/schemas/ToolInfo"
+          },
+          "truncated": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Page"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "warnings": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "tool",
+          "status",
+          "elapsed_s"
+        ],
+        "title": "Envelope[PlaceBoundsResult]",
+        "type": "object"
+      },
       "Envelope_ReplayResult_": {
         "properties": {
           "data": {
@@ -2498,6 +3006,89 @@
         "title": "Envelope[Session]",
         "type": "object"
       },
+      "Envelope_SiphonsResult_": {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SiphonsResult"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "elapsed_s": {
+            "minimum": 0.0,
+            "title": "Elapsed S",
+            "type": "number"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorInfo"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "net_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Net Id"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "default": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "partial",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "tool": {
+            "$ref": "#/components/schemas/ToolInfo"
+          },
+          "truncated": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Page"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "warnings": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "tool",
+          "status",
+          "elapsed_s"
+        ],
+        "title": "Envelope[SiphonsResult]",
+        "type": "object"
+      },
       "Envelope_Split_": {
         "properties": {
           "data": {
@@ -2664,6 +3255,89 @@
         "title": "Envelope[StoredEvent]",
         "type": "object"
       },
+      "Envelope_TInvariantsResult_": {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TInvariantsResult"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "elapsed_s": {
+            "minimum": 0.0,
+            "title": "Elapsed S",
+            "type": "number"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorInfo"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "net_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Net Id"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "default": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "partial",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "tool": {
+            "$ref": "#/components/schemas/ToolInfo"
+          },
+          "truncated": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Page"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "warnings": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "tool",
+          "status",
+          "elapsed_s"
+        ],
+        "title": "Envelope[TInvariantsResult]",
+        "type": "object"
+      },
       "Envelope_Trace_": {
         "properties": {
           "data": {
@@ -2745,6 +3419,89 @@
           "elapsed_s"
         ],
         "title": "Envelope[Trace]",
+        "type": "object"
+      },
+      "Envelope_TrapsResult_": {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TrapsResult"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "elapsed_s": {
+            "minimum": 0.0,
+            "title": "Elapsed S",
+            "type": "number"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorInfo"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "net_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Net Id"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "default": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "partial",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "tool": {
+            "$ref": "#/components/schemas/ToolInfo"
+          },
+          "truncated": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Page"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "warnings": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "tool",
+          "status",
+          "elapsed_s"
+        ],
+        "title": "Envelope[TrapsResult]",
         "type": "object"
       },
       "Envelope_tuple_ArcView__________": {
@@ -3755,6 +4512,27 @@
           "role"
         ],
         "title": "FamilyAssignment",
+        "type": "object"
+      },
+      "FiniteBound": {
+        "description": "A bound known to be a number.",
+        "properties": {
+          "kind": {
+            "const": "finite",
+            "default": "finite",
+            "title": "Kind",
+            "type": "string"
+          },
+          "value": {
+            "minimum": 0.0,
+            "title": "Value",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "value"
+        ],
+        "title": "FiniteBound",
         "type": "object"
       },
       "Formula-Input": {
@@ -5311,6 +6089,48 @@
         "title": "MessageRequest",
         "type": "object"
       },
+      "MinimalSiphonsParameters": {
+        "description": "Options of the search for minimal siphons.",
+        "properties": {
+          "max_results": {
+            "default": 100,
+            "maximum": 10000.0,
+            "minimum": 1.0,
+            "title": "Max Results",
+            "type": "integer"
+          },
+          "max_steps": {
+            "default": 200000,
+            "maximum": 100000000.0,
+            "minimum": 1.0,
+            "title": "Max Steps",
+            "type": "integer"
+          }
+        },
+        "title": "MinimalSiphonsParameters",
+        "type": "object"
+      },
+      "MinimalTrapsParameters": {
+        "description": "Options of the search for minimal traps.",
+        "properties": {
+          "max_results": {
+            "default": 100,
+            "maximum": 10000.0,
+            "minimum": 1.0,
+            "title": "Max Results",
+            "type": "integer"
+          },
+          "max_steps": {
+            "default": 200000,
+            "maximum": 100000000.0,
+            "minimum": 1.0,
+            "title": "Max Steps",
+            "type": "integer"
+          }
+        },
+        "title": "MinimalTrapsParameters",
+        "type": "object"
+      },
       "MissingTokens": {
         "description": "A place that holds fewer tokens than a firing needs.",
         "properties": {
@@ -5908,6 +6728,86 @@
         "title": "OperationDescription",
         "type": "object"
       },
+      "OperationRequest_ConflictSetsParameters_": {
+        "properties": {
+          "engine": {
+            "default": "auto",
+            "title": "Engine",
+            "type": "string"
+          },
+          "limits": {
+            "$ref": "#/components/schemas/Limits"
+          },
+          "parameters": {
+            "$ref": "#/components/schemas/ConflictSetsParameters"
+          }
+        },
+        "required": [
+          "parameters"
+        ],
+        "title": "OperationRequest[ConflictSetsParameters]",
+        "type": "object"
+      },
+      "OperationRequest_ConnectedComponentsParameters_": {
+        "properties": {
+          "engine": {
+            "default": "auto",
+            "title": "Engine",
+            "type": "string"
+          },
+          "limits": {
+            "$ref": "#/components/schemas/Limits"
+          },
+          "parameters": {
+            "$ref": "#/components/schemas/ConnectedComponentsParameters"
+          }
+        },
+        "required": [
+          "parameters"
+        ],
+        "title": "OperationRequest[ConnectedComponentsParameters]",
+        "type": "object"
+      },
+      "OperationRequest_MinimalSiphonsParameters_": {
+        "properties": {
+          "engine": {
+            "default": "auto",
+            "title": "Engine",
+            "type": "string"
+          },
+          "limits": {
+            "$ref": "#/components/schemas/Limits"
+          },
+          "parameters": {
+            "$ref": "#/components/schemas/MinimalSiphonsParameters"
+          }
+        },
+        "required": [
+          "parameters"
+        ],
+        "title": "OperationRequest[MinimalSiphonsParameters]",
+        "type": "object"
+      },
+      "OperationRequest_MinimalTrapsParameters_": {
+        "properties": {
+          "engine": {
+            "default": "auto",
+            "title": "Engine",
+            "type": "string"
+          },
+          "limits": {
+            "$ref": "#/components/schemas/Limits"
+          },
+          "parameters": {
+            "$ref": "#/components/schemas/MinimalTrapsParameters"
+          }
+        },
+        "required": [
+          "parameters"
+        ],
+        "title": "OperationRequest[MinimalTrapsParameters]",
+        "type": "object"
+      },
       "OperationRequest_NoParameters_": {
         "properties": {
           "engine": {
@@ -5946,6 +6846,46 @@
           "parameters"
         ],
         "title": "OperationRequest[PInvariantsParameters]",
+        "type": "object"
+      },
+      "OperationRequest_PlaceBoundsParameters_": {
+        "properties": {
+          "engine": {
+            "default": "auto",
+            "title": "Engine",
+            "type": "string"
+          },
+          "limits": {
+            "$ref": "#/components/schemas/Limits"
+          },
+          "parameters": {
+            "$ref": "#/components/schemas/PlaceBoundsParameters"
+          }
+        },
+        "required": [
+          "parameters"
+        ],
+        "title": "OperationRequest[PlaceBoundsParameters]",
+        "type": "object"
+      },
+      "OperationRequest_TInvariantsParameters_": {
+        "properties": {
+          "engine": {
+            "default": "auto",
+            "title": "Engine",
+            "type": "string"
+          },
+          "limits": {
+            "$ref": "#/components/schemas/Limits"
+          },
+          "parameters": {
+            "$ref": "#/components/schemas/TInvariantsParameters"
+          }
+        },
+        "required": [
+          "parameters"
+        ],
+        "title": "OperationRequest[TInvariantsParameters]",
         "type": "object"
       },
       "Or-Input": {
@@ -6152,7 +7092,7 @@
         "type": "object"
       },
       "PInvariantsParameters": {
-        "description": "Options of the search.",
+        "description": "Options of the search for place invariants.",
         "properties": {
           "max_invariants": {
             "default": 200,
@@ -6262,6 +7202,127 @@
           }
         },
         "title": "PageRequest",
+        "type": "object"
+      },
+      "PlaceBound": {
+        "description": "The bound of one place.",
+        "properties": {
+          "bound": {
+            "discriminator": {
+              "mapping": {
+                "finite": "#/components/schemas/FiniteBound",
+                "unbounded": "#/components/schemas/UnboundedBound",
+                "unknown": "#/components/schemas/UnknownBound"
+              },
+              "propertyName": "kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/FiniteBound"
+              },
+              {
+                "$ref": "#/components/schemas/UnboundedBound"
+              },
+              {
+                "$ref": "#/components/schemas/UnknownBound"
+              }
+            ],
+            "title": "Bound"
+          },
+          "place": {
+            "$ref": "#/components/schemas/ElementRef"
+          }
+        },
+        "required": [
+          "place",
+          "bound"
+        ],
+        "title": "PlaceBound",
+        "type": "object"
+      },
+      "PlaceBoundsParameters": {
+        "description": "Options of the analysis.",
+        "properties": {
+          "max_places": {
+            "default": 500,
+            "maximum": 100000.0,
+            "minimum": 1.0,
+            "title": "Max Places",
+            "type": "integer"
+          },
+          "max_rows": {
+            "default": 20000,
+            "maximum": 1000000.0,
+            "minimum": 1.0,
+            "title": "Max Rows",
+            "type": "integer"
+          }
+        },
+        "title": "PlaceBoundsParameters",
+        "type": "object"
+      },
+      "PlaceBoundsResult": {
+        "description": "Bounds from the P-invariants: a place in an invariant holds at most constant / weight.",
+        "properties": {
+          "bounds": {
+            "items": {
+              "$ref": "#/components/schemas/PlaceBound"
+            },
+            "title": "Bounds",
+            "type": "array"
+          },
+          "complete": {
+            "title": "Complete",
+            "type": "boolean"
+          },
+          "finite": {
+            "title": "Finite",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          },
+          "unbounded": {
+            "title": "Unbounded",
+            "type": "integer"
+          },
+          "unknown": {
+            "title": "Unknown",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "bounds",
+          "total",
+          "finite",
+          "unbounded",
+          "unknown",
+          "complete"
+        ],
+        "title": "PlaceBoundsResult",
+        "type": "object"
+      },
+      "PlaceSet": {
+        "description": "A set of places, and whether it holds a token in the initial marking.",
+        "properties": {
+          "initially_marked": {
+            "title": "Initially Marked",
+            "type": "boolean"
+          },
+          "places": {
+            "items": {
+              "$ref": "#/components/schemas/ElementRef"
+            },
+            "title": "Places",
+            "type": "array"
+          }
+        },
+        "required": [
+          "places",
+          "initially_marked"
+        ],
+        "title": "PlaceSet",
         "type": "object"
       },
       "PropertyProposed": {
@@ -6861,6 +7922,33 @@
         "title": "SessionState",
         "type": "string"
       },
+      "SiphonsResult": {
+        "description": "The minimal siphons found.",
+        "properties": {
+          "complete": {
+            "title": "Complete",
+            "type": "boolean"
+          },
+          "sets": {
+            "items": {
+              "$ref": "#/components/schemas/PlaceSet"
+            },
+            "title": "Sets",
+            "type": "array"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "sets",
+          "total",
+          "complete"
+        ],
+        "title": "SiphonsResult",
+        "type": "object"
+      },
       "Split": {
         "description": "A frozen assignment of families. Once stored under a name it is never changed.",
         "properties": {
@@ -7032,6 +8120,79 @@
           "event"
         ],
         "title": "StoredEvent",
+        "type": "object"
+      },
+      "TInvariant": {
+        "description": "A transition invariant: firing these transitions, that many times, returns to the marking.",
+        "properties": {
+          "elements": {
+            "items": {
+              "$ref": "#/components/schemas/WeightedElement"
+            },
+            "title": "Elements",
+            "type": "array"
+          }
+        },
+        "required": [
+          "elements"
+        ],
+        "title": "TInvariant",
+        "type": "object"
+      },
+      "TInvariantsParameters": {
+        "description": "Options of the search for transition invariants.",
+        "properties": {
+          "max_invariants": {
+            "default": 200,
+            "maximum": 10000.0,
+            "minimum": 1.0,
+            "title": "Max Invariants",
+            "type": "integer"
+          },
+          "max_rows": {
+            "default": 20000,
+            "maximum": 1000000.0,
+            "minimum": 1.0,
+            "title": "Max Rows",
+            "type": "integer"
+          }
+        },
+        "title": "TInvariantsParameters",
+        "type": "object"
+      },
+      "TInvariantsResult": {
+        "description": "The minimal-support invariants found, and how far the search went.",
+        "properties": {
+          "complete": {
+            "title": "Complete",
+            "type": "boolean"
+          },
+          "invariants": {
+            "items": {
+              "$ref": "#/components/schemas/TInvariant"
+            },
+            "title": "Invariants",
+            "type": "array"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          },
+          "uncovered_transitions": {
+            "items": {
+              "$ref": "#/components/schemas/ElementRef"
+            },
+            "title": "Uncovered Transitions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "invariants",
+          "total",
+          "complete",
+          "uncovered_transitions"
+        ],
+        "title": "TInvariantsResult",
         "type": "object"
       },
       "TokenCount": {
@@ -7236,6 +8397,33 @@
         "title": "TraceStep",
         "type": "object"
       },
+      "TrapsResult": {
+        "description": "The minimal traps found.",
+        "properties": {
+          "complete": {
+            "title": "Complete",
+            "type": "boolean"
+          },
+          "sets": {
+            "items": {
+              "$ref": "#/components/schemas/PlaceSet"
+            },
+            "title": "Sets",
+            "type": "array"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "sets",
+          "total",
+          "complete"
+        ],
+        "title": "TrapsResult",
+        "type": "object"
+      },
       "Truth": {
         "description": "The constants true and false.",
         "properties": {
@@ -7254,6 +8442,32 @@
           "value"
         ],
         "title": "Truth",
+        "type": "object"
+      },
+      "UnboundedBound": {
+        "description": "A place proven unbounded.",
+        "properties": {
+          "kind": {
+            "const": "unbounded",
+            "default": "unbounded",
+            "title": "Kind",
+            "type": "string"
+          }
+        },
+        "title": "UnboundedBound",
+        "type": "object"
+      },
+      "UnknownBound": {
+        "description": "The tool could not decide; never encoded as null or a magic number.",
+        "properties": {
+          "kind": {
+            "const": "unknown",
+            "default": "unknown",
+            "title": "Kind",
+            "type": "string"
+          }
+        },
+        "title": "UnknownBound",
         "type": "object"
       },
       "UserMessage": {
@@ -8247,6 +9461,321 @@
         ]
       }
     },
+    "/v1/nets/{net_id}/analyses/conflict-sets": {
+      "post": {
+        "operationId": "analyses.conflict-sets",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "net_id",
+            "required": true,
+            "schema": {
+              "title": "Net Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OperationRequest_ConflictSetsParameters_"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_ConflictSetsResult_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_RunHandle_"
+                }
+              }
+            },
+            "description": "Accepted"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Groups of transitions that compete for the same input places.",
+        "tags": [
+          "operations",
+          "analyses"
+        ]
+      }
+    },
+    "/v1/nets/{net_id}/analyses/connected-components": {
+      "post": {
+        "operationId": "analyses.connected-components",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "net_id",
+            "required": true,
+            "schema": {
+              "title": "Net Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OperationRequest_ConnectedComponentsParameters_"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_ConnectedComponentsResult_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_RunHandle_"
+                }
+              }
+            },
+            "description": "Accepted"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Parts of the net not linked by any arc, largest first.",
+        "tags": [
+          "operations",
+          "analyses"
+        ]
+      }
+    },
+    "/v1/nets/{net_id}/analyses/dead-transitions": {
+      "post": {
+        "operationId": "analyses.dead-transitions",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "net_id",
+            "required": true,
+            "schema": {
+              "title": "Net Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OperationRequest_NoParameters_"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_DeadTransitionsResult_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_RunHandle_"
+                }
+              }
+            },
+            "description": "Accepted"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Transitions that can never fire, from the structure and the initial marking.",
+        "tags": [
+          "operations",
+          "analyses"
+        ]
+      }
+    },
+    "/v1/nets/{net_id}/analyses/minimal-siphons": {
+      "post": {
+        "operationId": "analyses.minimal-siphons",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "net_id",
+            "required": true,
+            "schema": {
+              "title": "Net Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OperationRequest_MinimalSiphonsParameters_"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_SiphonsResult_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_RunHandle_"
+                }
+              }
+            },
+            "description": "Accepted"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Minimal siphons: place sets that, once empty, stay empty.",
+        "tags": [
+          "operations",
+          "analyses"
+        ]
+      }
+    },
+    "/v1/nets/{net_id}/analyses/minimal-traps": {
+      "post": {
+        "operationId": "analyses.minimal-traps",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "net_id",
+            "required": true,
+            "schema": {
+              "title": "Net Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OperationRequest_MinimalTrapsParameters_"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_TrapsResult_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_RunHandle_"
+                }
+              }
+            },
+            "description": "Accepted"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Minimal traps: place sets that, once marked, stay marked.",
+        "tags": [
+          "operations",
+          "analyses"
+        ]
+      }
+    },
     "/v1/nets/{net_id}/analyses/net-class": {
       "post": {
         "operationId": "analyses.net-class",
@@ -8367,6 +9896,132 @@
           }
         },
         "summary": "Minimal-support place invariants: weighted place sets with a constant token sum.",
+        "tags": [
+          "operations",
+          "analyses"
+        ]
+      }
+    },
+    "/v1/nets/{net_id}/analyses/place-bounds": {
+      "post": {
+        "operationId": "analyses.place-bounds",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "net_id",
+            "required": true,
+            "schema": {
+              "title": "Net Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OperationRequest_PlaceBoundsParameters_"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_PlaceBoundsResult_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_RunHandle_"
+                }
+              }
+            },
+            "description": "Accepted"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Bound of each place that the structure shows: finite, unbounded or unknown.",
+        "tags": [
+          "operations",
+          "analyses"
+        ]
+      }
+    },
+    "/v1/nets/{net_id}/analyses/t-invariants": {
+      "post": {
+        "operationId": "analyses.t-invariants",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "net_id",
+            "required": true,
+            "schema": {
+              "title": "Net Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OperationRequest_TInvariantsParameters_"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_TInvariantsResult_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_RunHandle_"
+                }
+              }
+            },
+            "description": "Accepted"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Minimal-support transition invariants: firing counts that return to the marking.",
         "tags": [
           "operations",
           "analyses"

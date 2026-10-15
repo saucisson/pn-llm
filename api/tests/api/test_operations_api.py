@@ -14,6 +14,13 @@ XML = {"Content-Type": "application/pnml+xml"}
 KNOWN_ANSWERS = {
     "net-class": ({}, lambda data: data["marked_graph"] is True and data["state_machine"] is False),
     "p-invariants": ({}, lambda data: data["total"] == 2 and data["complete"] is True),
+    "t-invariants": ({}, lambda data: data["total"] == 1 and data["uncovered_transitions"] == []),
+    "place-bounds": ({}, lambda data: data["finite"] == 3 and data["complete"] is True),
+    "minimal-siphons": ({}, lambda data: data["total"] == 2 and data["complete"] is True),
+    "minimal-traps": ({}, lambda data: data["total"] == 2 and data["complete"] is True),
+    "dead-transitions": ({}, lambda data: data["dead_transitions"] == []),
+    "conflict-sets": ({}, lambda data: data["total"] == 0),
+    "connected-components": ({}, lambda data: data["total"] == 1),
 }
 
 
