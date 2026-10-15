@@ -60,6 +60,12 @@ repos:
         language: system
         pass_filenames: false
         files: ^(api/app/.*\.py|docs/architecture\.md)$
+      - id: json-schemas
+        name: committed JSON Schemas in sync with the models
+        entry: python3 scripts/export_schemas.py --check
+        language: system
+        pass_filenames: false
+        files: ^(api/app/domain/.*\.py|docs/schemas/.*|scripts/export_schemas\.py)$
       - id: tests
         name: tests with coverage threshold
         entry: bash -c 'cd api && pytest -q --cov=app --cov-branch'

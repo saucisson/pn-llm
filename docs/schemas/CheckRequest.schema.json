@@ -1,0 +1,90 @@
+{
+  "$defs": {
+    "Formula": {
+      "description": "A property to check, with its origin for later evaluation.",
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "origin": {
+          "default": "user",
+          "enum": [
+            "user",
+            "llm",
+            "template"
+          ],
+          "title": "Origin",
+          "type": "string"
+        },
+        "syntax": {
+          "default": "ltl",
+          "enum": [
+            "ltl",
+            "ctl",
+            "reachability",
+            "deadlock",
+            "bounds"
+          ],
+          "title": "Syntax",
+          "type": "string"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "text"
+      ],
+      "title": "Formula",
+      "type": "object"
+    },
+    "Limits": {
+      "description": "Resource limits applied to one engine run.",
+      "properties": {
+        "memory_mb": {
+          "default": 4096,
+          "maximum": 65536,
+          "minimum": 64,
+          "title": "Memory Mb",
+          "type": "integer"
+        },
+        "timeout_s": {
+          "default": 300,
+          "maximum": 3600,
+          "minimum": 1,
+          "title": "Timeout S",
+          "type": "integer"
+        }
+      },
+      "title": "Limits",
+      "type": "object"
+    }
+  },
+  "description": "Body of ``POST /v1/nets/{id}/checks``.",
+  "properties": {
+    "engine": {
+      "default": "auto",
+      "title": "Engine",
+      "type": "string"
+    },
+    "formulas": {
+      "items": {
+        "$ref": "#/$defs/Formula"
+      },
+      "minItems": 1,
+      "title": "Formulas",
+      "type": "array"
+    },
+    "limits": {
+      "$ref": "#/$defs/Limits"
+    }
+  },
+  "required": [
+    "formulas"
+  ],
+  "title": "CheckRequest",
+  "type": "object"
+}

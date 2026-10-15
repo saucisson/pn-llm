@@ -4,7 +4,7 @@ export PATH := $(CURDIR)/api/.venv/bin:$(PATH)
 RUFF_CONFIG := --config api/pyproject.toml
 
 .DEFAULT_GOAL := help
-.PHONY: help setup format lint typecheck arch docs-check test cov audit check hooks
+.PHONY: help setup format lint typecheck arch docs-check schemas schemas-check test cov audit check hooks
 
 help:  ## List the targets
 	@grep -E '^[a-z-]+:.*##' $(MAKEFILE_LIST) | sed 's/:.*## /\t/'
@@ -31,6 +31,12 @@ arch:  ## Architecture rules (import-linter)
 docs-check:  ## Architecture document in sync with the modules
 	python3 scripts/check_architecture_doc.py
 
+schemas:  ## Export the JSON Schemas to docs/schemas/
+	python3 scripts/export_schemas.py
+
+schemas-check:  ## Committed JSON Schemas in sync with the models
+	python3 scripts/export_schemas.py --check
+
 test:  ## Fast tests
 	cd api && pytest -q
 
@@ -40,7 +46,7 @@ cov:  ## Tests with branch coverage and the minimum threshold
 audit:  ## Known vulnerabilities in dependencies
 	cd api && pip-audit --skip-editable
 
-check: lint typecheck arch docs-check cov  ## Everything the CI runs on the Python code
+check: lint typecheck arch docs-check schemas-check cov  ## Everything the CI runs on the Python code
 
 hooks:  ## Run every git hook on all files (commit and push stages)
 	pre-commit run --all-files

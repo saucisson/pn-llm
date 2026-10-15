@@ -1,0 +1,71 @@
+{
+  "$defs": {
+    "ElementRef": {
+      "description": "Cite a place or a transition by id; the name is kept exactly as in the net.",
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "place",
+            "transition"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Name"
+        }
+      },
+      "required": [
+        "id",
+        "kind"
+      ],
+      "title": "ElementRef",
+      "type": "object"
+    },
+    "MarkingEntry": {
+      "description": "A place holding at least one token.",
+      "properties": {
+        "place": {
+          "$ref": "#/$defs/ElementRef"
+        },
+        "tokens": {
+          "minimum": 1,
+          "title": "Tokens",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "place",
+        "tokens"
+      ],
+      "title": "MarkingEntry",
+      "type": "object"
+    }
+  },
+  "description": "A sparse marking: places holding no token are omitted; entries are sorted by place id.",
+  "properties": {
+    "entries": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/MarkingEntry"
+      },
+      "title": "Entries",
+      "type": "array"
+    }
+  },
+  "title": "Marking",
+  "type": "object"
+}
