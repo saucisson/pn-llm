@@ -1,24 +1,29 @@
-"""Worker threads that run the queued jobs (docs/architecture.md, "Several processes").
+"""Worker threads that run queued check jobs and agent runs (ADR 0018).
 
-The queue is the ``jobs`` table: a worker claims the oldest queued job with one atomic UPDATE, so
-any number of workers in any number of processes can share it. API processes embed a few workers;
+The queues are database tables: a worker claims the oldest queued item with one atomic UPDATE, so
+any number of workers in any number of processes can share them. API processes embed a few workers;
 ``python -m app.main`` starts a process that only runs workers.
 """
 
 from __future__ import annotations
 
 import threading
+from collections.abc import Callable
 from types import TracebackType
-
-from .checks import CheckService
 
 
 class WorkerPool:
     """Context manager running ``size`` worker threads that poll the job queue."""
 
-    def __init__(self, *, checks: CheckService, size: int, poll_seconds: float) -> None:
-        """Prepare the pool; nothing runs until the ``with`` block is entered."""
-        self._checks = checks
+    def __init__(
+        self, *, runners: tuple[Callable[[], bool], ...], size: int, poll_seconds: float
+    ) -> None:
+        """Prepare the pool; nothing runs until the ``with`` block is entered.
+
+        Each runner does one unit of work if there is one (a check job, a session run) and says
+        whether it did.
+        """
+        self._runners = runners
         self._poll_seconds = poll_seconds
         self._stop = threading.Event()
         self._threads = [
@@ -28,8 +33,11 @@ class WorkerPool:
 
     def _work(self) -> None:
         while not self._stop.is_set():
-            # Run jobs back to back while there are some, then wait for the next poll.
-            if not self._checks.run_next():
+            # Work back to back while there is some, then wait for the next poll.
+            worked = False
+            for runner in self._runners:
+                worked = runner() or worked
+            if not worked:
                 self._stop.wait(timeout=self._poll_seconds)
 
     def __enter__(self) -> WorkerPool:

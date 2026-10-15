@@ -412,6 +412,129 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Start Session
+         * @description Open a session on a net; the agent starts working at once.
+         */
+        post: operations["start_session_v1_sessions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/sessions/{session_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Session
+         * @description The state of a session.
+         */
+        get: operations["get_session_v1_sessions__session_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/sessions/{session_id}/answers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Post Answer
+         * @description Answer the question the agent is waiting on.
+         */
+        post: operations["post_answer_v1_sessions__session_id__answers_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/sessions/{session_id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Cancel Session
+         * @description Cancel a session: the run stops and a check in progress is cancelled.
+         */
+        post: operations["cancel_session_v1_sessions__session_id__cancel_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/sessions/{session_id}/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Events
+         * @description The events of a session: JSON, or a stream with ``Accept: text/event-stream``.
+         *
+         *     A stream resumes after ``after`` or after the ``Last-Event-ID`` header; without ``follow`` it
+         *     ends when there is nothing more to send.
+         */
+        get: operations["get_events_v1_sessions__session_id__events_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/sessions/{session_id}/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Post Message
+         * @description Add a message once the agent has finished its turn.
+         */
+        post: operations["post_message_v1_sessions__session_id__messages_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -443,6 +566,31 @@ export interface components {
             op: "and";
         };
         /**
+         * Answer
+         * @description The answer of the user to an open question.
+         */
+        Answer: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "answer";
+            /** Question Id */
+            question_id: string;
+            /** Text */
+            text: string;
+        };
+        /**
+         * AnswerRequest
+         * @description Body of ``POST /v1/sessions/{id}/answers``: the open question and the answer.
+         */
+        AnswerRequest: {
+            /** Question Id */
+            question_id: string;
+            /** Text */
+            text: string;
+        };
+        /**
          * ArcView
          * @description An arc with both ends cited by reference.
          */
@@ -455,6 +603,25 @@ export interface components {
             weight?: number | null;
         };
         /**
+         * AssistantMessage
+         * @description Text written by the LLM. It is labelled as such: never a verdict, never a fact of the net.
+         */
+        AssistantMessage: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "assistant_message";
+            /**
+             * Source
+             * @default llm
+             * @constant
+             */
+            source: "llm";
+            /** Text */
+            text: string;
+        };
+        /**
          * AtomKinds
          * @description Which classes of atom a formula uses; the MCC keeps two classes apart.
          */
@@ -465,6 +632,22 @@ export interface components {
             deadlock: boolean;
             /** Fireability */
             fireability: boolean;
+        };
+        /**
+         * BudgetExhausted
+         * @description The run stopped because it reached a budget.
+         */
+        BudgetExhausted: {
+            /**
+             * Budget
+             * @enum {string}
+             */
+            budget: "steps" | "tool_calls" | "tokens" | "wall_time";
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "budget_exhausted";
         };
         /**
          * CheckRequest
@@ -493,6 +676,21 @@ export interface components {
             /** Formulas */
             formulas: components["schemas"]["Formula-Output"][];
             limits?: components["schemas"]["Limits"];
+        };
+        /**
+         * CheckSubmitted
+         * @description A check was queued on the platform for some formulas.
+         */
+        CheckSubmitted: {
+            /** Formula Ids */
+            formula_ids: string[];
+            /** Job Id */
+            job_id: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "check_submitted";
         };
         /**
          * Compare
@@ -898,6 +1096,60 @@ export interface components {
              */
             warnings: string[];
         };
+        /** Envelope[Session] */
+        Envelope_Session_: {
+            data?: components["schemas"]["Session"] | null;
+            /** Elapsed S */
+            elapsed_s: number;
+            error?: components["schemas"]["ErrorInfo"] | null;
+            /** Net Id */
+            net_id?: string | null;
+            /**
+             * Schema Version
+             * @default 1.0
+             * @constant
+             */
+            schema_version: "1.0";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ok" | "partial" | "failed";
+            tool: components["schemas"]["ToolInfo"];
+            truncated?: components["schemas"]["Page"] | null;
+            /**
+             * Warnings
+             * @default []
+             */
+            warnings: string[];
+        };
+        /** Envelope[StoredEvent] */
+        Envelope_StoredEvent_: {
+            data?: components["schemas"]["StoredEvent"] | null;
+            /** Elapsed S */
+            elapsed_s: number;
+            error?: components["schemas"]["ErrorInfo"] | null;
+            /** Net Id */
+            net_id?: string | null;
+            /**
+             * Schema Version
+             * @default 1.0
+             * @constant
+             */
+            schema_version: "1.0";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ok" | "partial" | "failed";
+            tool: components["schemas"]["ToolInfo"];
+            truncated?: components["schemas"]["Page"] | null;
+            /**
+             * Warnings
+             * @default []
+             */
+            warnings: string[];
+        };
         /** Envelope[Trace] */
         Envelope_Trace_: {
             data?: components["schemas"]["Trace"] | null;
@@ -1174,7 +1426,7 @@ export interface components {
             time_s: number;
             /** Trace Url */
             trace_url?: string | null;
-            verdict: components["schemas"]["Verdict"];
+            verdict: components["schemas"]["app__domain__models__Verdict"];
             /**
              * Warnings
              * @default []
@@ -1387,6 +1639,14 @@ export interface components {
             tokens: number;
         };
         /**
+         * MessageRequest
+         * @description Body of ``POST /v1/sessions/{id}/messages``.
+         */
+        MessageRequest: {
+            /** Text */
+            text: string;
+        };
+        /**
          * MissingTokens
          * @description A place that holds fewer tokens than a firing needs.
          */
@@ -1587,6 +1847,38 @@ export interface components {
             limit: number;
         };
         /**
+         * PropertyProposed
+         * @description A property the LLM proposes to check, with its reason.
+         */
+        PropertyProposed: {
+            formula: components["schemas"]["Formula-Output"];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "property_proposed";
+            /**
+             * Rationale
+             * @default
+             */
+            rationale: string;
+        };
+        /**
+         * Question
+         * @description The LLM asks the user something; the session waits for the answer.
+         */
+        Question: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "question";
+            /** Question Id */
+            question_id: string;
+            /** Text */
+            text: string;
+        };
+        /**
          * ReplayFailure
          * @description Where a replay stopped: the firing that was not enabled and what was missing.
          */
@@ -1635,6 +1927,116 @@ export interface components {
             valid: boolean;
         };
         /**
+         * RunFinished
+         * @description The agent ended its turn.
+         */
+        RunFinished: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "run_finished";
+            /**
+             * Reason
+             * @enum {string}
+             */
+            reason: "completed" | "waiting_for_user" | "budget_exhausted" | "error" | "cancelled";
+        };
+        /**
+         * Session
+         * @description A conversation about one net, with an optional description and the goal of the user.
+         */
+        Session: {
+            /** Created At */
+            created_at: number;
+            /** Description Id */
+            description_id?: string | null;
+            /** Net Id */
+            net_id: string;
+            /** Session Id */
+            session_id: string;
+            state: components["schemas"]["SessionState"];
+            /** Updated At */
+            updated_at: number;
+        };
+        /**
+         * SessionCancelled
+         * @description The user cancelled the session.
+         */
+        SessionCancelled: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "session_cancelled";
+        };
+        /**
+         * SessionError
+         * @description The run failed for a reason that is not the user's.
+         */
+        SessionError: {
+            /** Code */
+            code: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "session_error";
+            /** Message */
+            message: string;
+        };
+        /**
+         * SessionStarted
+         * @description The inputs of the user: the net, an optional description and the goal.
+         */
+        SessionStarted: {
+            /** Description Id */
+            description_id?: string | null;
+            /** Description Origin */
+            description_origin?: ("user" | "mcc" | "llm") | null;
+            /** Goal */
+            goal: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "session_started";
+            /** Net Id */
+            net_id: string;
+        };
+        /**
+         * SessionState
+         * @description Where a session is in its life.
+         * @enum {string}
+         */
+        SessionState: "queued" | "running" | "waiting_for_user" | "idle" | "cancelled";
+        /**
+         * StartSessionRequest
+         * @description Body of ``POST /v1/sessions``: the net, an optional description and the goal.
+         */
+        StartSessionRequest: {
+            /** Description Id */
+            description_id?: string | null;
+            /** Goal */
+            goal: string;
+            /** Net Id */
+            net_id: string;
+        };
+        /**
+         * StoredEvent
+         * @description An event with its place in the session: numbers start at 1 and only grow by one.
+         */
+        StoredEvent: {
+            /** At */
+            at: number;
+            /** Event */
+            event: components["schemas"]["SessionStarted"] | components["schemas"]["UserMessage"] | components["schemas"]["AssistantMessage"] | components["schemas"]["ToolCall"] | components["schemas"]["ToolResult"] | components["schemas"]["PropertyProposed"] | components["schemas"]["CheckSubmitted"] | components["schemas"]["app__domain__sessions__Verdict"] | components["schemas"]["Question"] | components["schemas"]["Answer"] | components["schemas"]["BudgetExhausted"] | components["schemas"]["SessionError"] | components["schemas"]["RunFinished"] | components["schemas"]["SessionCancelled"];
+            /** Number */
+            number: number;
+            /** Session Id */
+            session_id: string;
+        };
+        /**
          * TokenCount
          * @description A term: the sum of the tokens held by some places.
          */
@@ -1668,6 +2070,23 @@ export interface components {
             value: number;
         };
         /**
+         * ToolCall
+         * @description The LLM asked for a tool; ``arguments`` is the JSON text it gave.
+         */
+        ToolCall: {
+            /** Arguments */
+            arguments: string;
+            /** Call Id */
+            call_id: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "tool_call";
+            /** Tool */
+            tool: string;
+        };
+        /**
          * ToolInfo
          * @description The tool and pinned version that produced a result.
          */
@@ -1676,6 +2095,25 @@ export interface components {
             name: string;
             /** Version */
             version: string;
+        };
+        /**
+         * ToolResult
+         * @description What a tool answered, as text, exactly as the model saw it (ADR 0017).
+         */
+        ToolResult: {
+            /** Call Id */
+            call_id: string;
+            /** Content */
+            content: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "tool_result";
+            /** Ok */
+            ok: boolean;
+            /** Tool */
+            tool: string;
         };
         /**
          * Trace
@@ -1712,6 +2150,19 @@ export interface components {
             /** Value */
             value: boolean;
         };
+        /**
+         * UserMessage
+         * @description A message of the user.
+         */
+        UserMessage: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "user_message";
+            /** Text */
+            text: string;
+        };
         /** ValidationError */
         ValidationError: {
             /** Context */
@@ -1726,12 +2177,6 @@ export interface components {
             type: string;
         };
         /**
-         * Verdict
-         * @description Outcome of one verification. UNKNOWN must never be confused with FALSE.
-         * @enum {string}
-         */
-        Verdict: "TRUE" | "FALSE" | "UNKNOWN" | "TIMEOUT" | "OOM" | "ERROR";
-        /**
          * WeightedRef
          * @description A neighbour of an element, and the arc that links them.
          */
@@ -1741,6 +2186,42 @@ export interface components {
             element: components["schemas"]["ElementRef"];
             /** Weight */
             weight?: number | null;
+        };
+        /**
+         * Verdict
+         * @description Outcome of one verification. UNKNOWN must never be confused with FALSE.
+         * @enum {string}
+         */
+        app__domain__models__Verdict: "TRUE" | "FALSE" | "UNKNOWN" | "TIMEOUT" | "OOM" | "ERROR";
+        /**
+         * Verdict
+         * @description The verdict an engine gave: the only way a verdict enters a conversation (ADR 0006).
+         *
+         *     It refers to the job and the result of the engine that produced it, and names the engine and
+         *     its version. It cannot be built without them.
+         */
+        app__domain__sessions__Verdict: {
+            /** Engine */
+            engine: string;
+            /** Engine Version */
+            engine_version: string;
+            /** Formula Id */
+            formula_id: string;
+            /**
+             * Has Trace
+             * @default false
+             */
+            has_trace: boolean;
+            /** Job Id */
+            job_id: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "verdict";
+            /** Result Index */
+            result_index: number;
+            verdict: components["schemas"]["app__domain__models__Verdict"];
         };
     };
     responses: never;
@@ -2449,6 +2930,208 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Envelope_tuple_ElementRef__________"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    start_session_v1_sessions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StartSessionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_Session_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_session_v1_sessions__session_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_Session_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    post_answer_v1_sessions__session_id__answers_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AnswerRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_StoredEvent_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    cancel_session_v1_sessions__session_id__cancel_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_Session_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_events_v1_sessions__session_id__events_get: {
+        parameters: {
+            query?: {
+                /** @description Events after this number */
+                after?: number | null;
+                limit?: number;
+                /** @description Stream: keep the connection open */
+                follow?: boolean;
+            };
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    post_message_v1_sessions__session_id__messages_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MessageRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_StoredEvent_"];
                 };
             };
             /** @description Validation Error */

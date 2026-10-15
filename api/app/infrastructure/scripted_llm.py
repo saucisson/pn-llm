@@ -6,7 +6,9 @@ without any key or network. It records what it was asked, so a test can check wh
 
 from __future__ import annotations
 
-from app.domain.llm import LlmMessage, LlmStep, ToolSpec
+import json
+
+from app.domain.llm import LlmMessage, LlmStep, LlmToolCall, ToolSpec
 from app.domain.models import DomainModel
 
 
@@ -42,3 +44,44 @@ class ScriptedLlm:
         if not self._steps:
             raise ScriptExhaustedError(f"The script has no step {len(self.requests)}")
         return self._steps.pop(0)
+
+
+class DemoLlm:
+    """A stateless offline demonstration of the agent: look at the net, test deadlock, conclude.
+
+    It decides from the conversation alone, so any number of sessions can use it at once. It makes
+    no claim of its own: the conclusion repeats what the tools returned.
+    """
+
+    def next_step(
+        self, *, system: str, messages: tuple[LlmMessage, ...], tools: tuple[ToolSpec, ...]
+    ) -> LlmStep:
+        """Return the next step of the demonstration."""
+        answers = [message for message in messages if message.role == "tool"]
+        if not answers:
+            call = LlmToolCall(call_id="demo-1", tool="net_summary", arguments="{}")
+            return LlmStep(text="I start by looking at the size of the net.", tool_calls=(call,))
+        if len(answers) == 1:
+            arguments = json.dumps(
+                {
+                    "formulas": [
+                        {
+                            "id": "no_deadlock",
+                            "text": "deadlock",
+                            "logic": "state",
+                            "gloss": "Some reachable marking blocks every transition.",
+                        }
+                    ],
+                    "timeout_s": 30,
+                }
+            )
+            call = LlmToolCall(call_id="demo-2", tool="check_formulas", arguments=arguments)
+            return LlmStep(
+                text="Let me ask an engine whether the net can block.", tool_calls=(call,)
+            )
+        return LlmStep(
+            text=(
+                "This is the offline demonstration: the engine's answer is in the verdict above. "
+                "Configure a language model (PNVERIF_LLM_PROVIDER) for a real analysis."
+            )
+        )

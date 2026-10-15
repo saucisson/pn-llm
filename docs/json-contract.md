@@ -153,6 +153,15 @@ Reference places and transitions are resolved: arcs always join real nodes.
 stored exactly as sent, idempotent: 201 the first time, 200 after), `GET /v1/nets/{id}/descriptions`
 and `GET /v1/descriptions/{id}` (one entry per net and origin). The id is a hash of the text.
 
+### Sessions (ADR 0008)
+`POST /v1/sessions` (`net_id`, optional `description_id`, `goal`) opens a session and queues the first
+run. `POST /v1/sessions/{id}/messages` (409 unless the agent finished its turn),
+`POST /v1/sessions/{id}/answers` (`question_id`, `text`; 409 unless a question is open, 422 for
+another id), `POST /v1/sessions/{id}/cancel`, `GET /v1/sessions/{id}`. `GET /v1/sessions/{id}/events`
+returns the events as JSON (`after`, `limit`) or, with `Accept: text/event-stream`, as server-sent
+events (`id` is the event number, `event` its kind, `data` the `StoredEvent`), resumable with
+`Last-Event-ID` or `after`; `follow=false` ends the stream when it is caught up.
+
 ### Analyses (`POST /analyses/{operation}`, one per operation)
 | Operation | Result `data` |
 |---|---|

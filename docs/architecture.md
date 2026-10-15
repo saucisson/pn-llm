@@ -52,6 +52,7 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/domain/sessions.py` | domain | `Session`, the frozen event vocabulary (`SessionEvent`) and `StoredEvent`; a verdict cannot be built without an engine result |
 | `app/domain/llm.py` | domain | What the LLM port exchanges: `LlmMessage`, `LlmToolCall`, `ToolSpec`, `LlmStep` |
 | `app/domain/tool_inputs.py` | domain | The arguments of each tool offered to the LLM (their JSON Schemas are what the model sees) |
+| `app/domain/conversation.py` | domain | The system prompt, the quoting of untrusted text and the messages the LLM sees, built from the events |
 | `app/domain/errors.py` | domain | Domain errors, the failures that are part of the API contract |
 | `app/domain/contract.py` | domain | Shared JSON contract: `Envelope`, `ElementRef`, `Marking`, `Bound`, `Page` (docs/json-contract.md) |
 | `app/application/ports.py` | application | Protocols the use cases need: `NetRepository`, `JobRepository`, `EngineGateway` |
@@ -61,13 +62,15 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/application/workers.py` | application | `WorkerPool`: threads that claim and run queued jobs |
 | `app/application/descriptions.py` | application | `DescriptionService`: add and read net descriptions |
 | `app/application/tools.py` | application | `ToolFacade`: the tools of the agent over the use cases; trimmed JSON answers (ADR 0017), events for checks and questions |
+| `app/application/agent.py` | application | `AgentService`: sessions, user messages and answers, and the agent run (budgets, resumable, cancellable) |
 | `app/application/leases.py` | application | `LeaseKeeper`: renews a running job's lease so other processes know its owner is alive |
 | `app/application/checks.py` | application | `CheckService`: submit, execute, read and cancel checks |
 | `app/application/engines.py` | application | `EngineService`: list engines |
 | `app/infrastructure/sqlite_store.py` | infrastructure | SQLite implementation of `NetRepository` and `JobRepository` |
 | `app/infrastructure/sqlite_migrations.py` | infrastructure | Numbered schema migrations (`PRAGMA user_version`), including the conversion of first-schema databases |
 | `app/infrastructure/sqlite_backup.py` | infrastructure | Online backup and offline restore of the database |
-| `app/infrastructure/scripted_llm.py` | infrastructure | `ScriptedLlm`, the double of the LLM port (tests, offline demo) |
+| `app/infrastructure/scripted_llm.py` | infrastructure | `ScriptedLlm`, the double of the LLM port, and `DemoLlm`, an offline demonstration |
+| `app/infrastructure/unavailable_llm.py` | infrastructure | The LLM gateway when none is configured: refuses with the setting to change |
 | `app/infrastructure/docker_runner.py` | infrastructure | The only module that talks to Docker (SDK): isolated, labelled, always-removed engine containers (ADR 0016) |
 | `app/infrastructure/engine_registry.py` | infrastructure | Engine specs and `EngineGateway` implementation |
 | `app/api/deps.py` | api | FastAPI dependencies giving routes their services |
@@ -79,10 +82,26 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/api/inspection.py` | api | Read-only inspection routes under `/v1/nets/{id}` |
 | `app/api/formulas.py` | api | Route `POST /v1/formulas/validate` |
 | `app/api/descriptions.py` | api | Routes for net descriptions |
+| `app/api/sessions.py` | api | Sessions: start, messages, answers, cancel, events (JSON or server-sent events) |
 | `app/api/envelopes.py` | api | Build the shared result envelope |
 | `app/api/llm_tools.py` | api | Which routes may be offered to the LLM (all but the net itself) |
 | `app/settings.py` | (config) | Pydantic settings from `PNVERIF_*` environment variables |
 | `app/main.py` | main | Composition root: `create_app(settings=...)` |
+
+## The chat workflow
+A session is a conversation about one net (ADR 0008). Its log is the `events` table; the state is
+`queued`, `running`, `waiting_for_user`, `idle` or `cancelled`. A user message or an answer queues a
+run; a worker (the same pool that runs checks) claims it atomically and keeps a lease. The run
+rebuilds what the model sees from the events (`domain/conversation.py`), asks the LLM port for the
+next step, runs the tools of the facade (`application/tools.py`) and records everything as events.
+It ends when the model stops calling tools, asks the user a question, or reaches a budget
+(`PNVERIF_AGENT_*`). A worker that dies leaves the run to the sweeper, which queues it again: it
+resumes from its events. The only verdict events come from tools that took them from engine results.
+Clients read `GET /v1/sessions/{id}/events` as JSON or as server-sent events (resumable with
+`Last-Event-ID`), from the database, so any process can serve any session.
+
+The language model is `PNVERIF_LLM_PROVIDER`: `none` (sessions end with an explanatory error),
+`scripted` (an offline demonstration with no key) or, later, `anthropic`.
 
 ## The UI
 `ui/` is a TypeScript (strict), React and Vite project (ADR 0010), a thin client of the REST API:

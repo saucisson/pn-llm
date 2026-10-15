@@ -102,6 +102,10 @@ class SessionRepository(Protocol):
         """Queue again the running sessions whose lease expired: a run resumes from its events."""
         ...
 
+    def expire_waiting_sessions(self, *, older_than_s: float) -> tuple[str, ...]:
+        """Cancel the sessions waiting for the user for longer than this; return their ids."""
+        ...
+
 
 class JobRepository(Protocol):
     """Persistent storage of jobs."""

@@ -311,6 +311,17 @@ class SqliteStore:
             )
             return int(cursor.rowcount)
 
+    def expire_waiting_sessions(self, *, older_than_s: float) -> tuple[str, ...]:
+        """Cancel the sessions waiting for the user for longer than this; return their ids."""
+        now = time.time()
+        with self._connection() as conn:
+            rows = conn.execute(
+                "UPDATE sessions SET state='cancelled', updated_at=?"
+                " WHERE state='waiting_for_user' AND updated_at < ? RETURNING session_id",
+                (now, now - older_than_s),
+            ).fetchall()
+        return tuple(row["session_id"] for row in rows)
+
     # ---- JobRepository --------------------------------------------------------------------
 
     def create_or_get_job(self, *, job: Job) -> JobSubmission:
