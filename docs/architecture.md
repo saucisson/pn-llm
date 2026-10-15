@@ -50,6 +50,8 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/domain/replay.py` | domain | Replay firings on a P/T net; evaluate a state condition on a marking |
 | `app/domain/descriptions.py` | domain | `Description`: immutable text identified by its hash, linked to a net with an origin |
 | `app/domain/sessions.py` | domain | `Session`, the frozen event vocabulary (`SessionEvent`) and `StoredEvent`; a verdict cannot be built without an engine result |
+| `app/domain/llm.py` | domain | What the LLM port exchanges: `LlmMessage`, `LlmToolCall`, `ToolSpec`, `LlmStep` |
+| `app/domain/tool_inputs.py` | domain | The arguments of each tool offered to the LLM (their JSON Schemas are what the model sees) |
 | `app/domain/errors.py` | domain | Domain errors, the failures that are part of the API contract |
 | `app/domain/contract.py` | domain | Shared JSON contract: `Envelope`, `ElementRef`, `Marking`, `Bound`, `Page` (docs/json-contract.md) |
 | `app/application/ports.py` | application | Protocols the use cases need: `NetRepository`, `JobRepository`, `EngineGateway` |
@@ -58,12 +60,14 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/application/formulas.py` | application | `FormulaService`: parse and validate a formula against a net |
 | `app/application/workers.py` | application | `WorkerPool`: threads that claim and run queued jobs |
 | `app/application/descriptions.py` | application | `DescriptionService`: add and read net descriptions |
+| `app/application/tools.py` | application | `ToolFacade`: the tools of the agent over the use cases; trimmed JSON answers (ADR 0017), events for checks and questions |
 | `app/application/leases.py` | application | `LeaseKeeper`: renews a running job's lease so other processes know its owner is alive |
 | `app/application/checks.py` | application | `CheckService`: submit, execute, read and cancel checks |
 | `app/application/engines.py` | application | `EngineService`: list engines |
 | `app/infrastructure/sqlite_store.py` | infrastructure | SQLite implementation of `NetRepository` and `JobRepository` |
 | `app/infrastructure/sqlite_migrations.py` | infrastructure | Numbered schema migrations (`PRAGMA user_version`), including the conversion of first-schema databases |
 | `app/infrastructure/sqlite_backup.py` | infrastructure | Online backup and offline restore of the database |
+| `app/infrastructure/scripted_llm.py` | infrastructure | `ScriptedLlm`, the double of the LLM port (tests, offline demo) |
 | `app/infrastructure/docker_runner.py` | infrastructure | The only module that talks to Docker (SDK): isolated, labelled, always-removed engine containers (ADR 0016) |
 | `app/infrastructure/engine_registry.py` | infrastructure | Engine specs and `EngineGateway` implementation |
 | `app/api/deps.py` | api | FastAPI dependencies giving routes their services |
