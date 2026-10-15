@@ -92,7 +92,7 @@ repos:
         files: ^(ui/.*|docs/openapi\.json)$
       - id: tests
         name: tests with coverage threshold
-        entry: bash -c 'cd api && pytest -q --cov=app --cov-branch'
+        entry: bash -c 'cd api && pytest -q -m "not docker" --cov=app --cov-branch'
         language: system
         pass_filenames: false
         always_run: true

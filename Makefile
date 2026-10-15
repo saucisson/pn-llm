@@ -4,7 +4,7 @@ export PATH := $(CURDIR)/api/.venv/bin:$(PATH)
 RUFF_CONFIG := --config api/pyproject.toml
 
 .DEFAULT_GOAL := help
-.PHONY: help setup lock format lint typecheck arch docs-check schemas schemas-check budgets openapi openapi-check ui-check test cov mutation changelog audit check hooks
+.PHONY: help setup lock format lint typecheck arch docs-check schemas schemas-check budgets openapi openapi-check ui-check test cov docker-test mutation changelog audit check hooks
 
 help:  ## List the targets
 	@grep -E '^[a-z-]+:.*##' $(MAKEFILE_LIST) | sed 's/:.*## /\t/'
@@ -59,7 +59,10 @@ test:  ## Fast tests
 	cd api && pytest -q
 
 cov:  ## Tests with branch coverage and the minimum threshold
-	cd api && pytest -q --cov=app --cov-branch --cov-report=term-missing
+	cd api && pytest -q -m 'not docker' --cov=app --cov-branch --cov-report=term-missing
+
+docker-test:  ## Tests against the engine images built here (slow; build them first, docs/engines.md)
+	cd api && pytest -q -m docker
 
 mutation:  ## Mutation testing of domain and application (slow; one module: scripts/mutation.sh 'app.domain.canonical*')
 	scripts/mutation.sh

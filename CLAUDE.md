@@ -55,7 +55,7 @@ make lint       # ruff check
 make typecheck  # mypy --strict
 make arch       # import-linter: the onion rules
 make docs-check # architecture doc in sync with the modules
-make cov        # tests with branch coverage (minimum 95 %)
+make cov        # tests with branch coverage (minimum 95 %); Docker tests: make docker-test
 ```
 
 | When | What runs |

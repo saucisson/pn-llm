@@ -41,7 +41,8 @@
 
 ```bash
 make test          # fast tests
-make cov           # tests with branch coverage and the threshold
+make cov           # tests with branch coverage and the threshold (not the Docker ones)
+make docker-test   # tests against the engine images built here: slow, run before shipping an engine
 make check         # everything the CI runs
 ```
 
