@@ -1886,6 +1886,8 @@ export interface components {
         NetSummary: {
             /** Arcs */
             arcs: number;
+            /** Behaviour Id */
+            behaviour_id?: string | null;
             /** Initial Tokens */
             initial_tokens?: number | null;
             /**
