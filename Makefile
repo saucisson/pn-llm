@@ -4,7 +4,7 @@ export PATH := $(CURDIR)/api/.venv/bin:$(PATH)
 RUFF_CONFIG := --config api/pyproject.toml
 
 .DEFAULT_GOAL := help
-.PHONY: help setup lock format lint typecheck arch docs-check schemas schemas-check budgets openapi openapi-check ui-check test cov audit check hooks
+.PHONY: help setup lock format lint typecheck arch docs-check schemas schemas-check budgets openapi openapi-check ui-check test cov mutation changelog audit check hooks
 
 help:  ## List the targets
 	@grep -E '^[a-z-]+:.*##' $(MAKEFILE_LIST) | sed 's/:.*## /\t/'
@@ -60,6 +60,12 @@ test:  ## Fast tests
 
 cov:  ## Tests with branch coverage and the minimum threshold
 	cd api && pytest -q --cov=app --cov-branch --cov-report=term-missing
+
+mutation:  ## Mutation testing of domain and application (slow; one module: scripts/mutation.sh 'app.domain.canonical*')
+	scripts/mutation.sh
+
+changelog:  ## Regenerate CHANGELOG.md from the conventional commits (needs git-cliff)
+	git cliff --output CHANGELOG.md
 
 audit:  ## Known vulnerabilities in dependencies
 	cd api && pip-audit --require-hashes -r requirements-dev.txt

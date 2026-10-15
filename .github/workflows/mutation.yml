@@ -1,0 +1,38 @@
+name: Mutation testing
+
+# Slow, so not on every pull request: weekly, and on demand. The counts are kept as an artifact
+# and shown in the run summary, so the trend can be followed over time (docs/testing.md).
+on:
+  schedule:
+    - cron: "0 3 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  mutation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+          cache: pip
+          cache-dependency-path: api/requirements-dev.txt
+      - run: |
+          pip install --require-hashes -r api/requirements-dev.txt
+          pip install --no-deps --no-build-isolation -e api
+      - name: Mutants of the domain and application layers
+        run: scripts/mutation.sh | tee mutation-stats.json
+      - name: Summary
+        run: |
+          echo '### Mutation testing' >> "$GITHUB_STEP_SUMMARY"
+          echo '```json' >> "$GITHUB_STEP_SUMMARY"
+          cat mutation-stats.json >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mutation-stats
+          path: mutation-stats.json

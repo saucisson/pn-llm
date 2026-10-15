@@ -45,3 +45,7 @@ Runtime and development dependencies are locked with hashes: `api/requirements.t
 `make setup`, the CI and the Docker images install exactly these. After changing the dependencies in
 `api/pyproject.toml` (or `engines/common/requirements.in`), run `make lock` and commit the result.
 Dependabot proposes updates; `make audit` runs `pip-audit` against the lock.
+
+## Other setups and rules
+- Development container: `.devcontainer/` (see its README for the Docker socket it uses).
+- Compatibility of the API: `docs/api-versioning.md`. Releases and the changelog: `docs/releasing.md`.
