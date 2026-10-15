@@ -1,0 +1,216 @@
+<?xml version="1.0"?>
+<pnml xmlns="http://www.pnml.org/version-2009/grammar/pnml">
+	<!-- Written by GreatSPN Editor. -->
+	<net id="TwoPhaseLocking-PT-nC00004vN" type="http://www.pnml.org/version-2009/grammar/ptnet">
+		<name>
+			<text>2PhLockVParam</text>
+		</name>
+		<page id="page0">
+			<name>
+				<text>DefaultPage</text>
+			</name>
+			<!-- List of places -->
+			<place id="resB">
+				<name>
+					<graphics>
+						<offset x="10" y="-15"/>
+					</graphics>
+					<text>resB</text>
+				</name>
+				<graphics>
+					<position x="240" y="120"/>
+				</graphics>
+				<initialMarking>
+					<text>3</text>
+				</initialMarking>
+			</place>
+			<place id="haveA">
+				<name>
+					<graphics>
+						<offset x="0" y="-15"/>
+					</graphics>
+					<text>haveA</text>
+				</name>
+				<graphics>
+					<position x="130" y="50"/>
+				</graphics>
+			</place>
+			<place id="haveA2">
+				<name>
+					<graphics>
+						<offset x="0" y="-15"/>
+					</graphics>
+					<text>haveA2</text>
+				</name>
+				<graphics>
+					<position x="130" y="190"/>
+				</graphics>
+			</place>
+			<place id="resA">
+				<name>
+					<graphics>
+						<offset x="0" y="-15"/>
+					</graphics>
+					<text>resA</text>
+				</name>
+				<graphics>
+					<position x="160" y="120"/>
+				</graphics>
+				<initialMarking>
+					<text>2</text>
+				</initialMarking>
+			</place>
+			<place id="haveB">
+				<name>
+					<graphics>
+						<offset x="-25" y="0"/>
+					</graphics>
+					<text>haveB</text>
+				</name>
+				<graphics>
+					<position x="340" y="120"/>
+				</graphics>
+			</place>
+			<place id="Clients">
+				<name>
+					<graphics>
+						<offset x="25" y="0"/>
+					</graphics>
+					<text>Clients</text>
+				</name>
+				<graphics>
+					<position x="60" y="120"/>
+				</graphics>
+				<initialMarking>
+					<text>4</text>
+				</initialMarking>
+			</place>
+			<place id="haveAandB">
+				<name>
+					<graphics>
+						<offset x="0" y="-15"/>
+					</graphics>
+					<text>haveAandB</text>
+				</name>
+				<graphics>
+					<position x="270" y="50"/>
+				</graphics>
+			</place>
+			<place id="haveA2andB">
+				<name>
+					<graphics>
+						<offset x="-5" y="-15"/>
+					</graphics>
+					<text>haveA2andB</text>
+				</name>
+				<graphics>
+					<position x="270" y="190"/>
+				</graphics>
+			</place>
+			<!-- List of transitions -->
+			<transition id="relB">
+				<name>
+					<graphics>
+						<offset x="0" y="15"/>
+					</graphics>
+					<text>relB</text>
+				</name>
+				<graphics>
+					<position x="205" y="190"/>
+				</graphics>
+			</transition>
+			<transition id="lockB">
+				<name>
+					<graphics>
+						<offset x="0" y="-15"/>
+					</graphics>
+					<text>lockB</text>
+				</name>
+				<graphics>
+					<position x="205" y="50"/>
+				</graphics>
+			</transition>
+			<transition id="lockA">
+				<name>
+					<graphics>
+						<offset x="0" y="-15"/>
+					</graphics>
+					<text>lockA</text>
+				</name>
+				<graphics>
+					<position x="65" y="50"/>
+				</graphics>
+			</transition>
+			<transition id="relA2">
+				<name>
+					<graphics>
+						<offset x="0" y="15"/>
+					</graphics>
+					<text>relA2</text>
+				</name>
+				<graphics>
+					<position x="65" y="190"/>
+				</graphics>
+			</transition>
+			<transition id="relA">
+				<name>
+					<graphics>
+						<offset x="0" y="-15"/>
+					</graphics>
+					<text>relA</text>
+				</name>
+				<graphics>
+					<position x="345" y="50"/>
+				</graphics>
+			</transition>
+			<transition id="lockA2">
+				<name>
+					<graphics>
+						<offset x="0" y="15"/>
+					</graphics>
+					<text>lockA2</text>
+				</name>
+				<graphics>
+					<position x="345" y="190"/>
+				</graphics>
+			</transition>
+			<!-- List of arcs -->
+			<arc id="id1" source="relB" target="resB">
+			</arc>
+			<arc id="id2" source="resB" target="lockB">
+			</arc>
+			<arc id="id3" source="lockA" target="haveA">
+			</arc>
+			<arc id="id4" source="resA" target="lockA2">
+			</arc>
+			<arc id="id5" source="haveB" target="lockA2">
+			</arc>
+			<arc id="id6" source="relA" target="resA">
+			</arc>
+			<arc id="id7" source="relA2" target="Clients">
+			</arc>
+			<arc id="id8" source="relA2" target="resA">
+			</arc>
+			<arc id="id9" source="resA" target="lockA">
+			</arc>
+			<arc id="id10" source="relB" target="haveA2">
+			</arc>
+			<arc id="id11" source="Clients" target="lockA">
+			</arc>
+			<arc id="id12" source="haveA2" target="relA2">
+			</arc>
+			<arc id="id13" source="haveA" target="lockB">
+			</arc>
+			<arc id="id14" source="relA" target="haveB">
+			</arc>
+			<arc id="id15" source="lockB" target="haveAandB">
+			</arc>
+			<arc id="id16" source="haveAandB" target="relA">
+			</arc>
+			<arc id="id17" source="lockA2" target="haveA2andB">
+			</arc>
+			<arc id="id18" source="haveA2andB" target="relB">
+			</arc>
+		</page>
+	</net>
+</pnml>

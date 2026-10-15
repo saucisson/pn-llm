@@ -1,0 +1,412 @@
+<?xml version="1.0"?>
+<pnml xmlns="http://www.pnml.org/version-2009/grammar/pnml">
+  <net id="PGCD-COL-D04N050" type="http://www.pnml.org/version-2009/grammar/symmetricnet">
+    <name>
+      <text>PGCD-COL-D04N050</text>
+    </name>
+    <page id="page">
+      <place id="p0">
+        <name>
+          <text>p0</text>
+        </name>
+        <type>
+          <text>CD</text>
+          <structure>
+            <usersort declaration="CD"/>
+          </structure>
+        </type>
+        <hlinitialMarking>
+          <text>{1'CD.all}</text>
+          <structure>
+            <numberof>
+              <subterm>
+                <numberconstant value="1">
+                  <positive/>
+                </numberconstant>
+              </subterm>
+              <subterm>
+                <all>
+                  <usersort declaration="CD"/>
+                </all>
+              </subterm>
+            </numberof>
+          </structure>
+        </hlinitialMarking>
+      </place>
+      <place id="p1">
+        <name>
+          <text>p1</text>
+        </name>
+        <type>
+          <text>CD</text>
+          <structure>
+            <usersort declaration="CD"/>
+          </structure>
+        </type>
+        <hlinitialMarking>
+          <text>{50'CD.all}</text>
+          <structure>
+            <numberof>
+              <subterm>
+                <numberconstant value="50">
+                  <positive/>
+                </numberconstant>
+              </subterm>
+              <subterm>
+                <all>
+                  <usersort declaration="CD"/>
+                </all>
+              </subterm>
+            </numberof>
+          </structure>
+        </hlinitialMarking>
+      </place>
+      <place id="p2">
+        <name>
+          <text>p2</text>
+        </name>
+        <type>
+          <text>CD</text>
+          <structure>
+            <usersort declaration="CD"/>
+          </structure>
+        </type>
+        <hlinitialMarking>
+          <text>{1'CD.all}</text>
+          <structure>
+            <numberof>
+              <subterm>
+                <numberconstant value="1">
+                  <positive/>
+                </numberconstant>
+              </subterm>
+              <subterm>
+                <all>
+                  <usersort declaration="CD"/>
+                </all>
+              </subterm>
+            </numberof>
+          </structure>
+        </hlinitialMarking>
+      </place>
+      <transition id="A">
+        <name>
+          <text>A</text>
+        </name>
+      </transition>
+      <arc id="a1" source="p1" target="A">
+        <name>
+          <text>a1</text>
+        </name>
+        <hlinscription>
+          <text>1'(x)</text>
+          <structure>
+            <numberof>
+              <subterm>
+                <numberconstant value="1">
+                  <positive/>
+                </numberconstant>
+              </subterm>
+              <subterm>
+                <variable refvariable="x"/>
+              </subterm>
+            </numberof>
+          </structure>
+        </hlinscription>
+      </arc>
+      <arc id="a2" source="A" target="p2">
+        <name>
+          <text>a2</text>
+        </name>
+        <hlinscription>
+          <text>1'(x)</text>
+          <structure>
+            <numberof>
+              <subterm>
+                <numberconstant value="1">
+                  <positive/>
+                </numberconstant>
+              </subterm>
+              <subterm>
+                <variable refvariable="x"/>
+              </subterm>
+            </numberof>
+          </structure>
+        </hlinscription>
+      </arc>
+      <arc id="a3" source="A" target="p0">
+        <name>
+          <text>a3</text>
+        </name>
+        <hlinscription>
+          <text>2'(x)</text>
+          <structure>
+            <numberof>
+              <subterm>
+                <numberconstant value="2">
+                  <positive/>
+                </numberconstant>
+              </subterm>
+              <subterm>
+                <variable refvariable="x"/>
+              </subterm>
+            </numberof>
+          </structure>
+        </hlinscription>
+      </arc>
+      <arc id="a4" source="p0" target="A">
+        <name>
+          <text>a4</text>
+        </name>
+        <hlinscription>
+          <text>1'(x)</text>
+          <structure>
+            <numberof>
+              <subterm>
+                <numberconstant value="1">
+                  <positive/>
+                </numberconstant>
+              </subterm>
+              <subterm>
+                <variable refvariable="x"/>
+              </subterm>
+            </numberof>
+          </structure>
+        </hlinscription>
+      </arc>
+      <transition id="B">
+        <name>
+          <text>B</text>
+        </name>
+      </transition>
+      <arc id="a5" source="p2" target="B">
+        <name>
+          <text>a5</text>
+        </name>
+        <hlinscription>
+          <text>1'(x)</text>
+          <structure>
+            <numberof>
+              <subterm>
+                <numberconstant value="1">
+                  <positive/>
+                </numberconstant>
+              </subterm>
+              <subterm>
+                <variable refvariable="x"/>
+              </subterm>
+            </numberof>
+          </structure>
+        </hlinscription>
+      </arc>
+      <arc id="a6" source="B" target="p1">
+        <name>
+          <text>a6</text>
+        </name>
+        <hlinscription>
+          <text>1'(x)</text>
+          <structure>
+            <numberof>
+              <subterm>
+                <numberconstant value="1">
+                  <positive/>
+                </numberconstant>
+              </subterm>
+              <subterm>
+                <variable refvariable="x"/>
+              </subterm>
+            </numberof>
+          </structure>
+        </hlinscription>
+      </arc>
+      <arc id="a7" source="B" target="p0">
+        <name>
+          <text>a7</text>
+        </name>
+        <hlinscription>
+          <text>2'(x)</text>
+          <structure>
+            <numberof>
+              <subterm>
+                <numberconstant value="2">
+                  <positive/>
+                </numberconstant>
+              </subterm>
+              <subterm>
+                <variable refvariable="x"/>
+              </subterm>
+            </numberof>
+          </structure>
+        </hlinscription>
+      </arc>
+      <arc id="a8" source="p0" target="B">
+        <name>
+          <text>a8</text>
+        </name>
+        <hlinscription>
+          <text>3'(x)</text>
+          <structure>
+            <numberof>
+              <subterm>
+                <numberconstant value="3">
+                  <positive/>
+                </numberconstant>
+              </subterm>
+              <subterm>
+                <variable refvariable="x"/>
+              </subterm>
+            </numberof>
+          </structure>
+        </hlinscription>
+      </arc>
+      <transition id="C">
+        <name>
+          <text>C</text>
+        </name>
+      </transition>
+      <arc id="a9" source="p0" target="C">
+        <name>
+          <text>a9</text>
+        </name>
+        <hlinscription>
+          <text>1'(x)</text>
+          <structure>
+            <numberof>
+              <subterm>
+                <numberconstant value="1">
+                  <positive/>
+                </numberconstant>
+              </subterm>
+              <subterm>
+                <variable refvariable="x"/>
+              </subterm>
+            </numberof>
+          </structure>
+        </hlinscription>
+      </arc>
+      <arc id="a10" source="p1" target="C">
+        <name>
+          <text>a10</text>
+        </name>
+        <hlinscription>
+          <text>1'(x)</text>
+          <structure>
+            <numberof>
+              <subterm>
+                <numberconstant value="1">
+                  <positive/>
+                </numberconstant>
+              </subterm>
+              <subterm>
+                <variable refvariable="x"/>
+              </subterm>
+            </numberof>
+          </structure>
+        </hlinscription>
+      </arc>
+      <arc id="a11" source="p2" target="C">
+        <name>
+          <text>a11</text>
+        </name>
+        <hlinscription>
+          <text>1'(x)</text>
+          <structure>
+            <numberof>
+              <subterm>
+                <numberconstant value="1">
+                  <positive/>
+                </numberconstant>
+              </subterm>
+              <subterm>
+                <variable refvariable="x"/>
+              </subterm>
+            </numberof>
+          </structure>
+        </hlinscription>
+      </arc>
+      <arc id="a12" source="C" target="p0">
+        <name>
+          <text>a12</text>
+        </name>
+        <hlinscription>
+          <text>1'(x++)</text>
+          <structure>
+            <numberof>
+              <subterm>
+                <numberconstant value="1">
+                  <positive/>
+                </numberconstant>
+              </subterm>
+              <subterm>
+                <successor>
+                  <subterm>
+                    <variable refvariable="x"/>
+                  </subterm>
+                </successor>
+              </subterm>
+            </numberof>
+          </structure>
+        </hlinscription>
+      </arc>
+      <arc id="a13" source="C" target="p1">
+        <name>
+          <text>a13</text>
+        </name>
+        <hlinscription>
+          <text>1'(x++)</text>
+          <structure>
+            <numberof>
+              <subterm>
+                <numberconstant value="1">
+                  <positive/>
+                </numberconstant>
+              </subterm>
+              <subterm>
+                <successor>
+                  <subterm>
+                    <variable refvariable="x"/>
+                  </subterm>
+                </successor>
+              </subterm>
+            </numberof>
+          </structure>
+        </hlinscription>
+      </arc>
+      <arc id="a14" source="C" target="p2">
+        <name>
+          <text>a14</text>
+        </name>
+        <hlinscription>
+          <text>1'(x++)</text>
+          <structure>
+            <numberof>
+              <subterm>
+                <numberconstant value="1">
+                  <positive/>
+                </numberconstant>
+              </subterm>
+              <subterm>
+                <successor>
+                  <subterm>
+                    <variable refvariable="x"/>
+                  </subterm>
+                </successor>
+              </subterm>
+            </numberof>
+          </structure>
+        </hlinscription>
+      </arc>
+    </page>
+    <declaration>
+      <structure>
+        <declarations>
+          <namedsort id="CD" name="CD"><cyclicenumeration><feconstant id="c0" name="0"/><feconstant id="c1" name="1"/><feconstant id="c2" name="2"/><feconstant id="c3" name="3"/><feconstant id="c4" name="4"/></cyclicenumeration>$
+                    </namedsort>
+          <variabledecl id="x" name="x">
+            <usersort declaration="CD"/>
+          </variabledecl>
+        </declarations>
+      </structure>
+    </declaration>
+  </net>
+</pnml>
