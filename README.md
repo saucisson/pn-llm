@@ -13,24 +13,36 @@ integrate).
 
 ## Quick start (WSL2 / Ubuntu, in your Linux home)
 
+Python 3.14 and Node 22 are needed (`uv python install 3.14`; `nvm use` reads `ui/.nvmrc`).
+
 ```bash
 make setup                        # virtualenv api/.venv, dependencies, git hooks
 source api/.venv/bin/activate
 make check                        # lint, format, types, architecture, docs sync, tests + coverage
-cd api && uvicorn app.main:create_app --factory --reload   # interactive docs: http://localhost:8000/docs
+make ui-check                     # the UI: biome, strict TypeScript, tests
+```
+
+Try the chat without any key (an offline demonstration of the agent) with the built UI:
+
+```bash
+(cd ui && npm ci && npm run build)
+cd api && PNVERIF_LLM_PROVIDER=scripted PNVERIF_UI_DIR=../ui/dist \
+  uvicorn app.main:create_app --factory --reload
+# the chat: http://localhost:8000/ui/   interactive API docs: http://localhost:8000/docs
 ```
 
 The database file defaults to `data/pnverif.sqlite`; override with
-`PNVERIF_DATABASE_PATH=/path/to/file`. Several API processes can share the file (job leases,
-`PNVERIF_JOB_LEASE_SECONDS`).
-
-Current implementation (v0): PNML only. The target API (JSON by default, PNML through `Content-Type`
-and `Accept`) is described in `docs/net-document.md`.
+`PNVERIF_DATABASE_PATH=/path/to/file`. Several API processes and worker processes can share the
+file (`python -m app.main` runs workers only). Without `PNVERIF_LLM_PROVIDER` a session ends with
+an error that says so.
 
 ```bash
-curl -X POST localhost:8000/v1/nets -H 'Content-Type: application/xml' --data-binary @my_net.pnml
+curl -X POST localhost:8000/v1/nets -H 'Content-Type: application/pnml+xml' --data-binary @my_net.pnml
+curl localhost:8000/v1/nets/<net_id>/places                     # inspect, never the net itself
+curl -X POST localhost:8000/v1/formulas/validate -H 'Content-Type: application/json' \
+  -d '{"net_id":"<net_id>","text":"G !(p1 >= 1 && p2 >= 1)"}'
 curl -X POST localhost:8000/v1/nets/<net_id>/checks -H 'Content-Type: application/json' \
-  -d '{"formulas":[{"id":"f1","syntax":"ltl","text":"G(p -> F q)"}],"engine":"dummy"}'
+  -d '{"formulas":[{"id":"f1","logic":"state","ast":{"op":"deadlock"}}],"engine":"dummy"}'
 curl localhost:8000/v1/jobs/<job_id>
 ```
 

@@ -1,49 +1,29 @@
 import { render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { App } from "./App";
-
-function answer({ status, body }: { readonly status: number; readonly body: unknown }) {
-  vi.stubGlobal(
-    "fetch",
-    vi.fn(async () => new Response(JSON.stringify(body), { status })),
-  );
-}
+import { streamOf } from "./test-helpers";
 
 describe("App", () => {
+  beforeEach(() => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => streamOf({ chunks: [] })),
+    );
+  });
   afterEach(() => {
     vi.unstubAllGlobals();
+    window.location.hash = "";
   });
 
-  it("lists the engines with their availability", async () => {
-    answer({
-      status: 200,
-      body: {
-        data: [
-          {
-            name: "dummy",
-            version: "0.1",
-            logics: ["ltl"],
-            supports_colored: false,
-            available: true,
-          },
-          {
-            name: "tapaal",
-            version: "tbd",
-            logics: ["ctl"],
-            supports_colored: true,
-            available: false,
-          },
-        ],
-      },
-    });
+  it("offers to start a conversation", () => {
     render(<App />);
-    expect(await screen.findByText(/dummy 0.1 — available/)).toBeInTheDocument();
-    expect(screen.getByText(/tapaal tbd — not installed/)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "New conversation" })).toBeInTheDocument();
   });
 
-  it("says so when the API cannot be reached", async () => {
-    answer({ status: 503, body: { detail: "down for maintenance" } });
+  it("follows the session named by the address", () => {
+    window.location.hash = "#/session/abc123";
     render(<App />);
-    expect(await screen.findByRole("alert")).toHaveTextContent("down for maintenance");
+    expect(screen.getByRole("status")).toHaveTextContent("Session abc123");
+    expect(screen.getByRole("link", { name: "New conversation" })).toBeInTheDocument();
   });
 });

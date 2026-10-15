@@ -1,0 +1,83 @@
+:root {
+  font-family: system-ui, sans-serif;
+  line-height: 1.45;
+  color-scheme: light dark;
+}
+main {
+  max-width: 52rem;
+  margin: 0 auto;
+  padding: 1rem;
+}
+label {
+  display: block;
+  margin: 0.8rem 0;
+}
+textarea {
+  display: block;
+  width: 100%;
+  min-height: 5rem;
+  box-sizing: border-box;
+}
+.text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  margin: 0.2rem 0;
+}
+.event {
+  margin: 0.6rem 0;
+  padding: 0.5rem 0.8rem;
+  border-left: 4px solid #8884;
+}
+.event h3 {
+  margin: 0;
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+.user {
+  border-color: #2a6ed8;
+}
+.assistant {
+  border-color: #7b4fd6;
+}
+.question {
+  border-color: #d8a02a;
+  background: #d8a02a18;
+}
+.error {
+  border-color: #c0392b;
+}
+.note {
+  opacity: 0.75;
+  font-size: 0.9rem;
+}
+.tool {
+  font-size: 0.85rem;
+}
+.failed summary {
+  color: #c0392b;
+}
+.verdict {
+  padding: 0.15rem 0.5rem;
+  border-radius: 0.3rem;
+  border: 1px solid;
+}
+.verdict-true {
+  color: #1e7e34;
+}
+.verdict-false {
+  color: #c0392b;
+}
+.verdict-unknown,
+.verdict-timeout,
+.verdict-oom,
+.verdict-error {
+  color: #8a6d00;
+}
+.session-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.composer {
+  margin-top: 1rem;
+}

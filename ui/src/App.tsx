@@ -1,44 +1,39 @@
 import { useEffect, useState } from "react";
-import { type EngineInfo, fetchEngines } from "./api/client";
+import { SessionView } from "./components/SessionView";
+import { StartForm } from "./components/StartForm";
 
-type EnginesState =
-  | { readonly kind: "loading" }
-  | { readonly kind: "ready"; readonly engines: readonly EngineInfo[] }
-  | { readonly kind: "failed"; readonly message: string };
+/** The session named by the address (`#/session/<id>`), if any. */
+function sessionFromHash({ hash }: { readonly hash: string }): string | undefined {
+  const match = /^#\/session\/(.+)$/.exec(hash);
+  return match?.[1] === undefined ? undefined : decodeURIComponent(match[1]);
+}
 
-/** The root of the UI: for now it shows which engines the platform can run. */
+/** The root of the UI: start a conversation, or follow one (the address keeps its place). */
 export function App() {
-  const [state, setState] = useState<EnginesState>({ kind: "loading" });
+  const [sessionId, setSessionId] = useState(() => sessionFromHash({ hash: window.location.hash }));
 
   useEffect(() => {
-    const controller = new AbortController();
-    fetchEngines({ signal: controller.signal })
-      .then((engines) => setState({ kind: "ready", engines }))
-      .catch((error: unknown) => {
-        if (controller.signal.aborted) {
-          return;
-        }
-        setState({
-          kind: "failed",
-          message: error instanceof Error ? error.message : String(error),
-        });
-      });
-    return () => controller.abort();
+    const onChange = () => setSessionId(sessionFromHash({ hash: window.location.hash }));
+    window.addEventListener("hashchange", onChange);
+    return () => window.removeEventListener("hashchange", onChange);
   }, []);
 
   return (
     <main>
       <h1>pn-llm-verif</h1>
-      {state.kind === "loading" && <p>Loading engines…</p>}
-      {state.kind === "failed" && <p role="alert">Cannot reach the API: {state.message}</p>}
-      {state.kind === "ready" && (
-        <ul aria-label="Engines">
-          {state.engines.map((engine) => (
-            <li key={engine.name}>
-              {engine.name} {engine.version} — {engine.available ? "available" : "not installed"}
-            </li>
-          ))}
-        </ul>
+      {sessionId === undefined ? (
+        <StartForm
+          onStarted={({ sessionId: started }) => {
+            window.location.hash = `#/session/${encodeURIComponent(started)}`;
+          }}
+        />
+      ) : (
+        <>
+          <p>
+            <a href="#/">New conversation</a>
+          </p>
+          <SessionView sessionId={sessionId} />
+        </>
       )}
     </main>
   );

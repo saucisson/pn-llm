@@ -1,29 +1,106 @@
-import type { components } from "./schema";
+import { callApi, type Enveloped } from "./http";
+import type { NetRegistration, Session, StoredEvent } from "./types";
 
-/** An engine as reported by `GET /v1/engines`, typed from the OpenAPI document. */
-export type EngineInfo = components["schemas"]["EngineInfo"];
-
-/** Thrown when the API answers with an error status; carries the RFC 9457 problem text. */
-export class ApiError extends Error {
-  readonly status: number;
-
-  constructor({ status, detail }: { readonly status: number; readonly detail: string }) {
-    super(detail);
-    this.status = status;
-  }
+/** Upload a net: PNML by default, a JSON net document when the file says so. */
+export function registerNet({
+  text,
+  isJson,
+}: {
+  readonly text: string;
+  readonly isJson: boolean;
+}): Promise<NetRegistration> {
+  return callApi<NetRegistration>({
+    method: "POST",
+    path: "/v1/nets",
+    body: text,
+    contentType: isJson ? "application/json" : "application/pnml+xml",
+  });
 }
 
-/** Fetch the engines the platform knows, with their availability on this machine. */
-export async function fetchEngines({
-  signal,
+/** Store a description of the system for a net and return its id. */
+export async function addDescription({
+  netId,
+  text,
+  isMarkdown,
 }: {
-  readonly signal?: AbortSignal;
-}): Promise<readonly EngineInfo[]> {
-  const response = await fetch("/v1/engines", signal === undefined ? {} : { signal });
-  if (!response.ok) {
-    const problem = (await response.json().catch(() => ({}))) as { readonly detail?: string };
-    throw new ApiError({ status: response.status, detail: problem.detail ?? response.statusText });
-  }
-  const envelope = (await response.json()) as { readonly data: readonly EngineInfo[] };
+  readonly netId: string;
+  readonly text: string;
+  readonly isMarkdown: boolean;
+}): Promise<string> {
+  const envelope = await callApi<Enveloped<{ readonly description_id: string }>>({
+    method: "POST",
+    path: `/v1/nets/${encodeURIComponent(netId)}/descriptions`,
+    body: text,
+    contentType: isMarkdown ? "text/markdown" : "text/plain",
+  });
+  return envelope.data.description_id;
+}
+
+/** Open a session on a net. */
+export async function startSession({
+  netId,
+  descriptionId,
+  goal,
+}: {
+  readonly netId: string;
+  readonly descriptionId: string | undefined;
+  readonly goal: string;
+}): Promise<Session> {
+  const envelope = await callApi<Enveloped<Session>>({
+    method: "POST",
+    path: "/v1/sessions",
+    body: JSON.stringify({
+      net_id: netId,
+      goal,
+      ...(descriptionId === undefined ? {} : { description_id: descriptionId }),
+    }),
+  });
+  return envelope.data;
+}
+
+/** Send a message once the assistant has finished its turn. */
+export async function sendMessage({
+  sessionId,
+  text,
+}: {
+  readonly sessionId: string;
+  readonly text: string;
+}): Promise<StoredEvent> {
+  const envelope = await callApi<Enveloped<StoredEvent>>({
+    method: "POST",
+    path: `/v1/sessions/${encodeURIComponent(sessionId)}/messages`,
+    body: JSON.stringify({ text }),
+  });
+  return envelope.data;
+}
+
+/** Answer the question the assistant is waiting on. */
+export async function sendAnswer({
+  sessionId,
+  questionId,
+  text,
+}: {
+  readonly sessionId: string;
+  readonly questionId: string;
+  readonly text: string;
+}): Promise<StoredEvent> {
+  const envelope = await callApi<Enveloped<StoredEvent>>({
+    method: "POST",
+    path: `/v1/sessions/${encodeURIComponent(sessionId)}/answers`,
+    body: JSON.stringify({ question_id: questionId, text }),
+  });
+  return envelope.data;
+}
+
+/** Cancel a session. */
+export async function cancelSession({
+  sessionId,
+}: {
+  readonly sessionId: string;
+}): Promise<Session> {
+  const envelope = await callApi<Enveloped<Session>>({
+    method: "POST",
+    path: `/v1/sessions/${encodeURIComponent(sessionId)}/cancel`,
+  });
   return envelope.data;
 }
