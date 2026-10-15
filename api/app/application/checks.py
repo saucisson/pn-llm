@@ -135,6 +135,10 @@ class CheckService:
         """
         return self._jobs.recover_interrupted()
 
+    def purge_old_jobs(self, *, retention_s: float) -> int:
+        """Delete finished jobs older than the retention period; return how many."""
+        return self._jobs.purge_finished_jobs(older_than_s=retention_s)
+
     def get(self, *, job_id: str) -> Job:
         """Return a job.
 

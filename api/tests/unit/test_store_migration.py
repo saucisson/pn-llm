@@ -3,7 +3,8 @@ import sqlite3
 import pytest
 
 from app.domain.canonical import net_id_of
-from app.infrastructure.sqlite_store import SqliteStore, StoreMigrationError
+from app.infrastructure.sqlite_migrations import StoreMigrationError
+from app.infrastructure.sqlite_store import SqliteStore
 from tests.support import MUTEX_DOCUMENT, MUTEX_PNML, make_request
 
 LEGACY_SCHEMA = """

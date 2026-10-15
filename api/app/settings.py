@@ -25,3 +25,6 @@ class Settings(BaseSettings):
     # A running job whose owner has not renewed its lease for this long is marked interrupted.
     # Renewals happen three times per lease, so one missed beat is tolerated.
     job_lease_seconds: float = DEFAULT_JOB_LEASE_SECONDS
+    # Finished jobs (and their counterexamples) older than this many days are deleted; None keeps
+    # them for ever. Nets are never deleted.
+    job_retention_days: float | None = None
