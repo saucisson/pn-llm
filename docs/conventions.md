@@ -141,7 +141,26 @@ operations in a body. The route names the operation, not the tool; the engine is
 Enforcement: pydantic models are the single source; exported JSON Schemas are checked for
 staleness; contract tests validate every tool result; a guard test forbids the net itself in LLM tools.
 
-## 11. Small, reversible changes
+## 11. Conversations and the LLM
+The chat workflow has rules of its own (ADR 0008, 0009, 0017); they are tested, not just agreed.
+
+- **Only an engine produces a verdict.** A `verdict` event is built by a tool from an engine
+  result, with the engine and its version; the agent never copies a verdict from the model's text.
+  A non-answer (UNKNOWN, TIMEOUT, OOM, ERROR) is reported as such everywhere, including the UI and
+  the report.
+- **The LLM never reads the net.** Tools return facts through inspection, never the net in any
+  format; a detector (`net_leak`) withholds a result that would hold one.
+- **Untrusted text is data.** Names, ids, descriptions and messages are quoted in JSON strings or
+  delimited blocks (escaped so they cannot be closed from inside), never concatenated into
+  instructions. Tests keep a corpus of hostile names.
+- **One module imports the provider SDK** (import-linter). Agent tests use the scripted double of
+  the LLM port; the quality of the real model is measured in `bench/`, not in unit tests.
+- **A run is event-sourced and resumable**: everything the model saw and did is in the log, and a
+  lost run starts again from it. Budgets end a run visibly (`budget_exhausted`).
+- **The event vocabulary is a contract.** Adding a kind is easy; changing one needs an ADR. The UI
+  handles kinds with an exhaustive `switch`, so a new kind fails its build until it is shown.
+
+## 12. Small, reversible changes
 
 One concern per commit and per pull request. Conventional commit messages (`feat:`, `fix:`,
 `refactor:`, `docs:`, `test:`, `chore:`). A change that alters the architecture updates

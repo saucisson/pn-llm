@@ -53,6 +53,7 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/domain/llm.py` | domain | What the LLM port exchanges: `LlmMessage`, `LlmToolCall`, `ToolSpec`, `LlmStep` |
 | `app/domain/tool_inputs.py` | domain | The arguments of each tool offered to the LLM (their JSON Schemas are what the model sees) |
 | `app/domain/conversation.py` | domain | The system prompt, the quoting of untrusted text and the messages the LLM sees, built from the events |
+| `app/domain/report.py` | domain | The report of a session (structured and Markdown), built from the events; verdicts only from engine results |
 | `app/domain/errors.py` | domain | Domain errors, the failures that are part of the API contract |
 | `app/domain/contract.py` | domain | Shared JSON contract: `Envelope`, `ElementRef`, `Marking`, `Bound`, `Page` (docs/json-contract.md) |
 | `app/application/ports.py` | application | Protocols the use cases need: `NetRepository`, `JobRepository`, `EngineGateway` |

@@ -16,6 +16,7 @@ from .models import CheckRequest, EngineInfo, FormulaResult
 from .net_document import NetDocument
 from .nets import NetRegistration
 from .replay import ReplayRequest, ReplayResult
+from .report import SessionReport
 from .sessions import Session, StoredEvent
 
 EXPORTED_MODELS: tuple[type[BaseModel], ...] = (
@@ -44,6 +45,7 @@ EXPORTED_MODELS: tuple[type[BaseModel], ...] = (
     ReplayRequest,
     ReplayResult,
     Session,
+    SessionReport,
     StoredEvent,
     Trace,
 )

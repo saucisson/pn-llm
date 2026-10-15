@@ -10,7 +10,7 @@ import asyncio
 import time
 from collections.abc import AsyncIterator
 from http import HTTPStatus
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, File, Form, Query, Request, Response, UploadFile
 from fastapi.responses import StreamingResponse
@@ -20,6 +20,7 @@ from starlette.concurrency import run_in_threadpool
 from app.domain.contract import Envelope
 from app.domain.models import DomainModel
 from app.domain.nets import NetFormat
+from app.domain.report import SessionReport, render_markdown
 from app.domain.sessions import Session, StoredEvent
 
 from .deps import AgentDep, DescriptionsDep, NetsDep, RetentionDep
@@ -175,6 +176,31 @@ def cancel_session(*, session_id: str, agent: AgentDep) -> Envelope[Session]:
     started = time.perf_counter()
     session = agent.cancel(session_id=session_id)
     return wrap(tool="session.cancel", net_id=session.net_id, started=started, data=session)
+
+
+@router.get("/{session_id}/report", response_model=None)
+def get_report(
+    *,
+    session_id: str,
+    request: Request,
+    agent: AgentDep,
+    format: Annotated[  # noqa: A002 - the query parameter is called format
+        Literal["json", "markdown"] | None, Query(description="Instead of the Accept header")
+    ] = None,
+) -> Envelope[SessionReport] | Response:
+    """The report of a session: JSON (default), or Markdown with ``Accept: text/markdown``."""
+    started = time.perf_counter()
+    report = agent.report(session_id=session_id)
+    wants_markdown = format == "markdown" or (
+        format is None and "text/markdown" in request.headers.get("accept", "")
+    )
+    if wants_markdown:
+        return Response(
+            content=render_markdown(report=report),
+            media_type="text/markdown; charset=utf-8",
+            headers={"Content-Disposition": f'inline; filename="session-{session_id}.md"'},
+        )
+    return wrap(tool="session.report", net_id=report.net.net_id, started=started, data=report)
 
 
 @router.get("/{session_id}/events", response_model=None)

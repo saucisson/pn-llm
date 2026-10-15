@@ -61,6 +61,19 @@ describe("SessionView", () => {
     expect(screen.getByRole("status")).toHaveTextContent("the assistant is working");
   });
 
+  it("links to the report of the session in both formats", async () => {
+    stubApi({ events: [started] });
+    view();
+    expect(await screen.findByRole("link", { name: "Report (Markdown)" })).toHaveAttribute(
+      "href",
+      "/v1/sessions/s1/report?format=markdown",
+    );
+    expect(screen.getByRole("link", { name: "Report (JSON)" })).toHaveAttribute(
+      "href",
+      "/v1/sessions/s1/report",
+    );
+  });
+
   it("lets the user write only when the assistant has finished its turn", async () => {
     stubApi({ events: [started] });
     view();
