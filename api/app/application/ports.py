@@ -5,11 +5,13 @@ Defined here, implemented in ``app.infrastructure``. All parameters are keyword-
 
 from __future__ import annotations
 
+from collections.abc import Iterator
 from typing import Protocol
 
 from app.domain.descriptions import Description, DescriptionOrigin, SavedDescription
 from app.domain.engine_contract import EngineReport, EngineRequest, Trace
 from app.domain.llm import LlmMessage, LlmStep, ToolSpec
+from app.domain.mcc import MccFamily, MccNetFile, MccNetType, ModelEntry
 from app.domain.models import (
     EngineInfo,
     FormulaResult,
@@ -219,4 +221,36 @@ class LlmGateway(Protocol):
         self, *, system: str, messages: tuple[LlmMessage, ...], tools: tuple[ToolSpec, ...]
     ) -> LlmStep:
         """Return what the model does next, given the conversation so far and the tools."""
+        ...
+
+
+class MccSource(Protocol):
+    """Where the contest's catalog and archives come from."""
+
+    def catalog(self) -> tuple[MccFamily, ...]:
+        """Return the families of the contest."""
+        ...
+
+    def nets(self, *, family: MccFamily) -> Iterator[MccNetFile]:
+        """Yield the nets of a family, one at a time."""
+        ...
+
+
+class ModelCatalogRepository(Protocol):
+    """Persistent storage of the contest families and of which stored net is which instance."""
+
+    def save_family(self, *, family: MccFamily) -> None:
+        """Store a family, replacing the previous record of the same name."""
+        ...
+
+    def save_entry(self, *, entry: ModelEntry) -> None:
+        """Link a stored net to its family and instance; saving the same link twice is a no-op."""
+        ...
+
+    def families(self) -> tuple[MccFamily, ...]:
+        """Return the stored families, by name."""
+        ...
+
+    def entries(self, *, family: str | None, net_type: MccNetType | None) -> tuple[ModelEntry, ...]:
+        """Return the entries matching the filters, by family then instance."""
         ...

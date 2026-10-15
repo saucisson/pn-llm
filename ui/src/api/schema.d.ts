@@ -132,6 +132,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/models": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Models
+         * @description List the stored contest nets (net id, family, instance), filtered by family and type.
+         */
+        get: operations["get_models_v1_models_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/models/families": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Model Families
+         * @description List the contest families stored here, with their description, type and size.
+         */
+        get: operations["get_model_families_v1_models_families_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/nets": {
         parameters: {
             query?: never;
@@ -1431,6 +1471,62 @@ export interface components {
              */
             warnings: string[];
         };
+        /** Envelope[tuple[MccFamily, ...]] */
+        Envelope_tuple_MccFamily__________: {
+            /** Data */
+            data?: components["schemas"]["MccFamily"][] | null;
+            /** Elapsed S */
+            elapsed_s: number;
+            error?: components["schemas"]["ErrorInfo"] | null;
+            /** Net Id */
+            net_id?: string | null;
+            /**
+             * Schema Version
+             * @default 1.0
+             * @constant
+             */
+            schema_version: "1.0";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ok" | "partial" | "failed";
+            tool: components["schemas"]["ToolInfo"];
+            truncated?: components["schemas"]["Page"] | null;
+            /**
+             * Warnings
+             * @default []
+             */
+            warnings: string[];
+        };
+        /** Envelope[tuple[ModelEntry, ...]] */
+        Envelope_tuple_ModelEntry__________: {
+            /** Data */
+            data?: components["schemas"]["ModelEntry"][] | null;
+            /** Elapsed S */
+            elapsed_s: number;
+            error?: components["schemas"]["ErrorInfo"] | null;
+            /** Net Id */
+            net_id?: string | null;
+            /**
+             * Schema Version
+             * @default 1.0
+             * @constant
+             */
+            schema_version: "1.0";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ok" | "partial" | "failed";
+            tool: components["schemas"]["ToolInfo"];
+            truncated?: components["schemas"]["Page"] | null;
+            /**
+             * Warnings
+             * @default []
+             */
+            warnings: string[];
+        };
         /** Envelope[tuple[NameGroup, ...]] */
         Envelope_tuple_NameGroup__________: {
             /** Data */
@@ -1781,6 +1877,49 @@ export interface components {
             tokens: number;
         };
         /**
+         * MccFamily
+         * @description One model family: instances of the same model at different scales.
+         */
+        MccFamily: {
+            /** Archive Path */
+            archive_path: string;
+            /** Description */
+            description: string;
+            /** Form Path */
+            form_path: string;
+            /** Name */
+            name: string;
+            net_type: components["schemas"]["MccNetType"];
+            /** Scalable */
+            scalable: boolean;
+            size: components["schemas"]["MccSize"];
+            /** Title */
+            title: string;
+        };
+        /**
+         * MccNetType
+         * @description How the contest classifies a family.
+         * @enum {string}
+         */
+        MccNetType: "pt" | "colored_with_pt" | "colored";
+        /**
+         * MccSize
+         * @description Largest size announced for a family: ``None`` when the page does not give it.
+         */
+        MccSize: {
+            /** Arcs */
+            arcs?: number | null;
+            /**
+             * Is Upper Bound
+             * @default false
+             */
+            is_upper_bound: boolean;
+            /** Places */
+            places?: number | null;
+            /** Transitions */
+            transitions?: number | null;
+        };
+        /**
          * MessageRequest
          * @description Body of ``POST /v1/sessions/{id}/messages``.
          */
@@ -1798,6 +1937,21 @@ export interface components {
             /** Needed */
             needed: number;
             place: components["schemas"]["ElementRef"];
+        };
+        /**
+         * ModelEntry
+         * @description A stored net that comes from the contest, with where it comes from.
+         */
+        ModelEntry: {
+            /** Family */
+            family: string;
+            /** Instance */
+            instance: string;
+            /** Member */
+            member: string;
+            /** Net Id */
+            net_id: string;
+            net_type: components["schemas"]["MccNetType"];
         };
         /**
          * NameGroup
@@ -2622,6 +2776,60 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_models_v1_models_get: {
+        parameters: {
+            query?: {
+                family?: string | null;
+                net_type?: components["schemas"]["MccNetType"] | null;
+                limit?: number;
+                cursor?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_tuple_ModelEntry__________"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_model_families_v1_models_families_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_tuple_MccFamily__________"];
                 };
             };
         };

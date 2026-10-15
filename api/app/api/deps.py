@@ -12,6 +12,7 @@ from app.application.descriptions import DescriptionService
 from app.application.engines import EngineService
 from app.application.formulas import FormulaService
 from app.application.inspection import InspectionService
+from app.application.models import ModelCatalogService
 from app.application.nets import NetService
 from app.application.retention import RetentionService
 
@@ -56,6 +57,11 @@ def get_retention(*, request: Request) -> RetentionService:
     return cast("RetentionService", request.app.state.retention)
 
 
+def get_models(*, request: Request) -> ModelCatalogService:
+    """Return the contest model catalog of the running application."""
+    return cast("ModelCatalogService", request.app.state.models)
+
+
 NetsDep = Annotated[NetService, Depends(get_nets)]
 ChecksDep = Annotated[CheckService, Depends(get_checks)]
 EnginesDep = Annotated[EngineService, Depends(get_engines)]
@@ -64,3 +70,4 @@ FormulasDep = Annotated[FormulaService, Depends(get_formulas)]
 DescriptionsDep = Annotated[DescriptionService, Depends(get_descriptions)]
 AgentDep = Annotated[AgentService, Depends(get_agent)]
 RetentionDep = Annotated[RetentionService, Depends(get_retention)]
+ModelsDep = Annotated[ModelCatalogService, Depends(get_models)]
