@@ -14,6 +14,7 @@ from collections.abc import AsyncIterator
 from fastapi import FastAPI
 from starlette.concurrency import run_in_threadpool
 
+from app import __version__
 from app.api import engines, jobs, nets
 from app.api.errors import register_error_handlers
 from app.application.checks import CheckService
@@ -51,7 +52,7 @@ def create_app(*, settings: Settings | None = None) -> FastAPI:
             with contextlib.suppress(asyncio.CancelledError):
                 await sweeper
 
-    app = FastAPI(title="pn-llm-verif", version="0.1.0", lifespan=lifespan)
+    app = FastAPI(title="pn-llm-verif", version=__version__, lifespan=lifespan)
     app.state.nets = NetService(nets=store, max_pnml_bytes=config.max_pnml_bytes)
     app.state.checks = checks
     app.state.engines = EngineService(engines=registry)

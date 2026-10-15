@@ -3,3 +3,5 @@
 Onion architecture (see docs/architecture.md; enforced by import-linter). Dependencies point
 inward only: ``main`` > (``api`` | ``infrastructure``) > ``application`` > ``domain``.
 """
+
+__version__ = "0.1.0"
