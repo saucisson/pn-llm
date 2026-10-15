@@ -10,8 +10,9 @@ from app.domain.contract import Envelope
 from app.domain.mcc import MccFamily, MccNetType, ModelEntry
 from app.domain.mcc_properties import Examination, MccProperties
 from app.domain.mcc_results import ResultSetInfo, RunStatistics
+from app.domain.splits import Split
 
-from .deps import ModelsDep, ResultsDep
+from .deps import ModelsDep, ResultsDep, SplitsDep
 from .envelopes import wrap
 from .inspection import PageDep
 
@@ -81,3 +82,17 @@ def get_result_sets(*, results: ResultsDep) -> Envelope[tuple[ResultSetInfo, ...
     return wrap(
         tool="models.results.sets", net_id=None, started=started, data=results.result_sets()
     )
+
+
+@router.get("/models/splits")
+def get_split_names(*, splits: SplitsDep) -> Envelope[tuple[str, ...]]:
+    """List the names of the frozen splits of the families."""
+    started = time.perf_counter()
+    return wrap(tool="models.splits.list", net_id=None, started=started, data=splits.names())
+
+
+@router.get("/models/splits/{name}")
+def get_split(*, name: str, splits: SplitsDep) -> Envelope[Split]:
+    """Return a frozen split: each family's role (dev fold or held-out test)."""
+    started = time.perf_counter()
+    return wrap(tool="models.splits.get", net_id=None, started=started, data=splits.get(name=name))

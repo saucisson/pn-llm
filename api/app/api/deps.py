@@ -16,6 +16,7 @@ from app.application.models import ModelCatalogService
 from app.application.nets import NetService
 from app.application.results import ResultsService
 from app.application.retention import RetentionService
+from app.application.splits import SplitService
 
 
 def get_nets(*, request: Request) -> NetService:
@@ -68,6 +69,11 @@ def get_results(*, request: Request) -> ResultsService:
     return cast("ResultsService", request.app.state.results)
 
 
+def get_splits(*, request: Request) -> SplitService:
+    """Return the family-split service of the running application."""
+    return cast("SplitService", request.app.state.splits)
+
+
 NetsDep = Annotated[NetService, Depends(get_nets)]
 ChecksDep = Annotated[CheckService, Depends(get_checks)]
 EnginesDep = Annotated[EngineService, Depends(get_engines)]
@@ -78,3 +84,4 @@ AgentDep = Annotated[AgentService, Depends(get_agent)]
 RetentionDep = Annotated[RetentionService, Depends(get_retention)]
 ModelsDep = Annotated[ModelCatalogService, Depends(get_models)]
 ResultsDep = Annotated[ResultsService, Depends(get_results)]
+SplitsDep = Annotated[SplitService, Depends(get_splits)]

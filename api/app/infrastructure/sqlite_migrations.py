@@ -179,6 +179,17 @@ MIGRATIONS = (
             "CREATE INDEX mcc_runs_lookup ON mcc_runs(tool, examination, family)",
         ),
     ),
+    Migration(
+        version=8,
+        description="frozen splits of the families into folds and a held-out test set",
+        statements=(
+            """CREATE TABLE mcc_splits (
+    name       TEXT PRIMARY KEY,
+    body       TEXT NOT NULL,          -- the Split as JSON; never updated
+    created_at REAL NOT NULL
+)""",
+        ),
+    ),
 )
 LATEST_VERSION = MIGRATIONS[-1].version
 WAL_ATTEMPTS = 50

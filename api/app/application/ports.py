@@ -29,6 +29,7 @@ from app.domain.sessions import (
     StartedSession,
     StoredEvent,
 )
+from app.domain.splits import Split
 
 
 class NetRepository(Protocol):
@@ -299,4 +300,24 @@ class ResultsRepository(Protocol):
 
     def result_sets(self) -> tuple[ResultSetInfo, ...]:
         """Return the stored result sets, by year."""
+        ...
+
+
+class SplitRepository(Protocol):
+    """Persistent storage of frozen splits of the families."""
+
+    def save_split(self, *, split: Split) -> None:
+        """Store a split under its name.
+
+        Raises:
+            ConflictError: if a split of that name exists; splits are frozen.
+        """
+        ...
+
+    def load_split(self, *, name: str) -> Split:
+        """Return a split, or raise NotFoundError."""
+        ...
+
+    def split_names(self) -> tuple[str, ...]:
+        """Return the names of the stored splits."""
         ...
