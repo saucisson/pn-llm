@@ -1,0 +1,318 @@
+{
+  "$defs": {
+    "Description": {
+      "description": "A description of a net, with the origin of the link to that net.",
+      "properties": {
+        "description_id": {
+          "title": "Description Id",
+          "type": "string"
+        },
+        "net_id": {
+          "title": "Net Id",
+          "type": "string"
+        },
+        "origin": {
+          "enum": [
+            "user",
+            "mcc",
+            "llm"
+          ],
+          "title": "Origin",
+          "type": "string"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "description_id",
+        "net_id",
+        "origin",
+        "text"
+      ],
+      "title": "Description",
+      "type": "object"
+    },
+    "NetSummary": {
+      "description": "What the API says about a stored net. Names are reached through inspection, not here.",
+      "properties": {
+        "arcs": {
+          "title": "Arcs",
+          "type": "integer"
+        },
+        "initial_tokens": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Initial Tokens"
+        },
+        "kind": {
+          "enum": [
+            "pt",
+            "symmetric",
+            "hlpn",
+            "core",
+            "other"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "net_id": {
+          "title": "Net Id",
+          "type": "string"
+        },
+        "pages": {
+          "title": "Pages",
+          "type": "integer"
+        },
+        "parent_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parent Id"
+        },
+        "places": {
+          "title": "Places",
+          "type": "integer"
+        },
+        "reductions_applied": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Reductions Applied",
+          "type": "array"
+        },
+        "source_id": {
+          "title": "Source Id",
+          "type": "string"
+        },
+        "transitions": {
+          "title": "Transitions",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "net_id",
+        "source_id",
+        "kind",
+        "pages",
+        "places",
+        "transitions",
+        "arcs"
+      ],
+      "title": "NetSummary",
+      "type": "object"
+    },
+    "ReportedExchange": {
+      "description": "A line of the conversation: who said it, and what.",
+      "properties": {
+        "text": {
+          "title": "Text",
+          "type": "string"
+        },
+        "who": {
+          "title": "Who",
+          "type": "string"
+        }
+      },
+      "required": [
+        "who",
+        "text"
+      ],
+      "title": "ReportedExchange",
+      "type": "object"
+    },
+    "ReportedVerdict": {
+      "description": "A property and the verdict an engine gave it.",
+      "properties": {
+        "engine": {
+          "title": "Engine",
+          "type": "string"
+        },
+        "engine_version": {
+          "title": "Engine Version",
+          "type": "string"
+        },
+        "formula": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Formula"
+        },
+        "formula_id": {
+          "title": "Formula Id",
+          "type": "string"
+        },
+        "gloss": {
+          "default": "",
+          "title": "Gloss",
+          "type": "string"
+        },
+        "has_counterexample": {
+          "title": "Has Counterexample",
+          "type": "boolean"
+        },
+        "job_id": {
+          "title": "Job Id",
+          "type": "string"
+        },
+        "result_index": {
+          "title": "Result Index",
+          "type": "integer"
+        },
+        "verdict": {
+          "title": "Verdict",
+          "type": "string"
+        }
+      },
+      "required": [
+        "formula_id",
+        "verdict",
+        "engine",
+        "engine_version",
+        "job_id",
+        "result_index",
+        "has_counterexample"
+      ],
+      "title": "ReportedVerdict",
+      "type": "object"
+    },
+    "Session": {
+      "description": "A conversation about one net, with an optional description and the goal of the user.",
+      "properties": {
+        "created_at": {
+          "title": "Created At",
+          "type": "number"
+        },
+        "description_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description Id"
+        },
+        "net_id": {
+          "title": "Net Id",
+          "type": "string"
+        },
+        "session_id": {
+          "title": "Session Id",
+          "type": "string"
+        },
+        "state": {
+          "$ref": "#/$defs/SessionState"
+        },
+        "updated_at": {
+          "title": "Updated At",
+          "type": "number"
+        }
+      },
+      "required": [
+        "session_id",
+        "net_id",
+        "state",
+        "created_at",
+        "updated_at"
+      ],
+      "title": "Session",
+      "type": "object"
+    },
+    "SessionState": {
+      "description": "Where a session is in its life.",
+      "enum": [
+        "queued",
+        "running",
+        "waiting_for_user",
+        "idle",
+        "cancelled"
+      ],
+      "title": "SessionState",
+      "type": "string"
+    }
+  },
+  "description": "Everything worth keeping of a session, structured.",
+  "properties": {
+    "conversation": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/ReportedExchange"
+      },
+      "title": "Conversation",
+      "type": "array"
+    },
+    "description": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Description"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "event_count": {
+      "title": "Event Count",
+      "type": "integer"
+    },
+    "goal": {
+      "title": "Goal",
+      "type": "string"
+    },
+    "net": {
+      "$ref": "#/$defs/NetSummary"
+    },
+    "problems": {
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "title": "Problems",
+      "type": "array"
+    },
+    "session": {
+      "$ref": "#/$defs/Session"
+    },
+    "verdicts": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/ReportedVerdict"
+      },
+      "title": "Verdicts",
+      "type": "array"
+    }
+  },
+  "required": [
+    "session",
+    "net",
+    "goal",
+    "event_count"
+  ],
+  "title": "SessionReport",
+  "type": "object"
+}

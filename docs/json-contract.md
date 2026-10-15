@@ -167,6 +167,12 @@ events (`id` is the event number, `event` its kind, `data` the `StoredEvent`), r
 or without the description, to compare conditions. A description proposed by the assistant
 (`description_proposed`) is stored by `POST /v1/sessions/{id}/description-proposals/{proposal_id}/accept`.
 
+### Report
+`GET /v1/sessions/{id}/report` is the report of a session: the goal, the net, the description (with its
+origin), a table of the verdicts engines gave (the only verdicts in it), the conversation with
+the model's text labelled as such, and the problems met. JSON by default; Markdown with
+`Accept: text/markdown` or `?format=markdown`.
+
 ### Deletion
 `DELETE /v1/sessions/{id}`, `DELETE /v1/nets/{id}[?cascade=true]` and
 `DELETE /v1/descriptions/{id}?net_id=` answer 204; see `docs/architecture.md`, "Retention and

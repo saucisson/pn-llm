@@ -61,6 +61,12 @@ export function SessionView({
           Session {sessionId}: {STATE_TEXT[state]}
           {status === "reconnecting" && " (reconnecting...)"}
         </p>
+        <span>
+          <a href={`/v1/sessions/${encodeURIComponent(sessionId)}/report?format=markdown`}>
+            Report (Markdown)
+          </a>{" "}
+          <a href={`/v1/sessions/${encodeURIComponent(sessionId)}/report`}>Report (JSON)</a>
+        </span>
         {isLive({ state }) && (
           <button type="button" onClick={() => cancelSession({ sessionId })}>
             Cancel

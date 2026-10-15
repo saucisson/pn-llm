@@ -24,6 +24,7 @@ from app.domain.descriptions import Description
 from app.domain.errors import ConflictError, InvalidRequestError, LlmUnavailableError
 from app.domain.llm import LlmToolCall
 from app.domain.models import DomainModel
+from app.domain.report import SessionReport, build_report
 from app.domain.sessions import (
     Answer,
     AssistantMessage,
@@ -151,6 +152,24 @@ class AgentService:
             net_id=net_id, description_id=description_id, description_origin=origin, goal=goal
         )
         return self._sessions.create_session(session=session, started=started)
+
+    def report(self, *, session_id: str) -> SessionReport:
+        """Build the report of a session from its events.
+
+        Raises:
+            NotFoundError: if the session is unknown.
+        """
+        session = self._sessions.load_session(session_id=session_id)
+        description = None
+        if session.description_id is not None:
+            links = self._descriptions.load_description(description_id=session.description_id)
+            description = next((link for link in links if link.net_id == session.net_id), None)
+        return build_report(
+            session=session,
+            net=self._nets.load_net(net_id=session.net_id).summary,
+            description=description,
+            events=self.all_events(session_id=session_id),
+        )
 
     def restart(self, *, session_id: str, with_description: bool) -> StartedSession:
         """Open a new session with the goal (and, if asked, the description) of an existing one.

@@ -304,3 +304,24 @@ def test_accepting_a_proposed_description_through_the_api(tmp_path, net_id_of):
     assert [(d["text"], d["origin"]) for d in listed] == [("A lock.", "llm")]
     assert client.post(f"/v1/sessions/{sid}/description-proposals/p1/accept").status_code == 409
     assert client.post(f"/v1/sessions/{sid}/description-proposals/zzz/accept").status_code == 422
+
+
+def test_the_report_is_json_by_default_and_markdown_on_request(tmp_path, net_id_of):
+    client = make_client(tmp_path, llm=ScriptedLlm(steps=(LlmStep(text="done"),)))
+    net_id = net_id_of(client)
+    sid = client.post("/v1/sessions", json={"net_id": net_id, "goal": "Is it safe?"}).json()[
+        "data"
+    ]["session_id"]
+    client.app.state.agent.run_next()
+
+    as_json = client.get(f"/v1/sessions/{sid}/report").json()["data"]
+    assert as_json["goal"] == "Is it safe?"
+    assert as_json["net"]["source_id"] == "mutex"
+    assert as_json["verdicts"] == []
+
+    markdown = client.get(f"/v1/sessions/{sid}/report", headers={"Accept": "text/markdown"})
+    assert markdown.headers["content-type"].startswith("text/markdown")
+    assert markdown.text.startswith(f"# Session report `{sid}`")
+    by_query = client.get(f"/v1/sessions/{sid}/report", params={"format": "markdown"})
+    assert by_query.text == markdown.text
+    assert client.get("/v1/sessions/nope/report").status_code == 404
