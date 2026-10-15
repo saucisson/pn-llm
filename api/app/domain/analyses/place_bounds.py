@@ -37,6 +37,8 @@ class PlaceBoundsResult(DomainModel):
     finite: int
     unbounded: int
     unknown: int
+    # The largest of the finite bounds over every place, listed or not.
+    largest_finite_bound: int | None
     # False when the invariant search stopped at its bound: some places may be bounded after all.
     complete: bool
 
@@ -77,5 +79,8 @@ def place_bounds(
         finite=sum(isinstance(b.bound, FiniteBound) for b in bounds),
         unbounded=sum(isinstance(b.bound, UnboundedBound) for b in bounds),
         unknown=sum(isinstance(b.bound, UnknownBound) for b in bounds),
+        largest_finite_bound=max(
+            (b.bound.value for b in bounds if isinstance(b.bound, FiniteBound)), default=None
+        ),
         complete=found.complete,
     )

@@ -63,6 +63,8 @@ class Settings(BaseSettings):
     agent_max_seconds: float = 900.0
     # Largest answer of a tool, in characters; a bigger one is refused with advice.
     tool_result_max_chars: int = 16_000
+    # Size budget of the digest of the analyses given to the model, in characters of JSON.
+    analysis_summary_max_chars: int = 4_000
     # How often a check waits for its engine to answer.
     tool_poll_seconds: float = 0.2
     # A session waiting for the user for this many days is cancelled; None waits for ever.

@@ -15,7 +15,14 @@ from app.domain.nets import summarize_document
 from app.domain.sessions import Session, SessionStarted, SessionState, UserMessage
 from app.infrastructure.scripted_llm import ScriptedLlm
 from app.infrastructure.sqlite_retention import SqliteRetention
-from tests.support import LEASE, MUTEX_DOCUMENT, ScriptedEngines, make_request, query
+from tests.support import (
+    LEASE,
+    MUTEX_DOCUMENT,
+    ScriptedEngines,
+    make_analysis_tools,
+    make_request,
+    query,
+)
 
 
 @pytest.fixture
@@ -39,6 +46,7 @@ def service(store, retention_repo):
         inspection=InspectionService(nets=store),
         formulas=FormulaService(nets=store),
         checks=checks,
+        analyses=make_analysis_tools(store=store, path=store._path),
         max_result_chars=20_000,
         poll_seconds=0.001,
     )

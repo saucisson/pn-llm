@@ -6,7 +6,7 @@ them returns the net itself.
 
 from __future__ import annotations
 
-from pydantic import Field
+from pydantic import Field, JsonValue
 
 from .formula import Logic
 from .models import DomainModel
@@ -121,3 +121,12 @@ class ProposeDescriptionArguments(DomainModel):
     """Offer a clearer description of the system to the user, who may accept it."""
 
     text: str = Field(min_length=1, max_length=8_000)
+
+
+class AnalyzeArguments(DomainModel):
+    """Run one structural analysis of the net."""
+
+    operation: str = Field(description="Name of the analysis, from the list in the description")
+    parameters: dict[str, JsonValue] = Field(
+        default_factory=dict, description="Options of that analysis; most need none"
+    )

@@ -5,14 +5,15 @@ import pytest
 from app.application.checks import CheckService
 from app.application.formulas import FormulaService
 from app.application.inspection import InspectionService
-from app.application.tools import ToolContext, ToolFacade
+from app.application.tool_kit import ToolContext
+from app.application.tools import ToolFacade
 from app.domain.canonical import net_id_of
 from app.domain.descriptions import Description
 from app.domain.llm import LlmToolCall
 from app.domain.net_document import PTNET_TYPE_URI, Annotation, NetDocument, Place, Transition
 from app.domain.nets import summarize_document
 from app.domain.sessions import Session, SessionState
-from tests.support import LEASE, MUTEX_DOCUMENT, ScriptedEngines
+from tests.support import LEASE, MUTEX_DOCUMENT, ScriptedEngines, make_analysis_tools
 
 
 def build(*, store, engines=None, max_chars=20_000):
@@ -23,6 +24,7 @@ def build(*, store, engines=None, max_chars=20_000):
         inspection=InspectionService(nets=store),
         formulas=FormulaService(nets=store),
         checks=checks,
+        analyses=make_analysis_tools(store=store, path=store._path),
         max_result_chars=max_chars,
         poll_seconds=0.001,
     ), checks
