@@ -91,6 +91,14 @@ container), namespace prefixes (namespaces are resolved, and rendered with fixed
 versus escaped text. DTDs and entities are refused, not interpreted. A file with several nets is
 refused.
 
+## Rendered PNML
+`render_pnml` writes UTF-8, structural elements without a namespace, indentation only where the
+content is not mixed, attribute white space as character references so that it is not normalized.
+A name in a namespace gets a prefix declared on its own element (`ns0` for the element, `ns1`...
+for its attributes, in sorted order of namespace URI). The root `pnml` element carries no
+attribute. Characters that XML 1.0 cannot carry are refused. High-level nets (`symmetric`, `hlpn`)
+use `hlinitialMarking` and `hlinscription`; the others use `initialMarking` and `inscription`.
+
 ## Canonical form and identity
 1. Build the document; omit absent, null and default values.
 2. Sort the children of each container by id; keep `tool_specific` and `content` order.
