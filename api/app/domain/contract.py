@@ -5,7 +5,7 @@ Reference: docs/json-contract.md (ADR 0013). Every tool result reuses these shap
 
 from __future__ import annotations
 
-from typing import Annotated, Generic, Literal, TypeVar
+from typing import Annotated, Literal, TypeVar
 
 from pydantic import Field, field_validator, model_validator
 
@@ -98,7 +98,7 @@ class ErrorInfo(DomainModel):
     message: str
 
 
-class Envelope(DomainModel, Generic[T]):
+class Envelope[T](DomainModel):
     """Result of every analysis, inspection, reduction and check, around its own ``data``."""
 
     schema_version: Literal["1.0"] = SCHEMA_VERSION

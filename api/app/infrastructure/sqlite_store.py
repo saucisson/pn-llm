@@ -45,10 +45,10 @@ class SqliteStore:
     @contextlib.contextmanager
     def _connection(self) -> Iterator[sqlite3.Connection]:
         conn = sqlite3.connect(self._path, timeout=30)
-        conn.row_factory = sqlite3.Row
-        conn.execute("PRAGMA journal_mode=WAL")
-        conn.execute("PRAGMA foreign_keys=ON")
         try:
+            conn.row_factory = sqlite3.Row
+            # The write-ahead mode is stored in the file by the migration: nothing to switch here.
+            conn.execute("PRAGMA foreign_keys=ON")
             with conn:  # commit on success, roll back on error
                 yield conn
         finally:

@@ -11,7 +11,7 @@ from app.domain.contract import Envelope, Page, ToolInfo
 T = TypeVar("T")
 
 
-def wrap(
+def wrap[T](
     *, tool: str, net_id: str | None, started: float, data: T, page: Page | None = None
 ) -> Envelope[T]:
     """Return an ``ok`` envelope for ``data``; ``page`` is set when a list was cut short.

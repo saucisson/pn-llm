@@ -15,7 +15,7 @@ RUN mkdir -p /opt/tool \
  && echo "download ${TOOL_URL} at ${TOOL_VERSION}, check ${TOOL_SHA256}, build into /opt/tool"
 
 # ---- Stage 2: the runtime image --------------------------------------------------------------
-FROM python:3.12-slim AS runtime
+FROM python:3.14-slim AS runtime
 ARG TOOL_VERSION=REPLACE_WITH_A_RELEASE_TAG_OR_COMMIT
 LABEL org.opencontainers.image.title="pn-llm-verif engine REPLACE_NAME" \
       org.opencontainers.image.version="${TOOL_VERSION}"

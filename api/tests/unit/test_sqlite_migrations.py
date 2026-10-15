@@ -10,14 +10,15 @@ from app.infrastructure.sqlite_migrations import (
     migrate,
 )
 from app.infrastructure.sqlite_store import SqliteStore
+from tests.support import query
 
 
 def version_of(path):
-    return sqlite3.connect(path).execute("PRAGMA user_version").fetchone()[0]
+    return query(path=path, sql="PRAGMA user_version")[0][0]
 
 
 def tables_of(path):
-    rows = sqlite3.connect(path).execute("SELECT name FROM sqlite_master WHERE type='table'")
+    rows = query(path=path, sql="SELECT name FROM sqlite_master WHERE type='table'")
     return {row[0] for row in rows}
 
 
@@ -59,7 +60,7 @@ def test_a_database_from_before_versioning_gets_a_version_and_what_it_lacked(tmp
 
     assert version_of(path) == LATEST_VERSION
     assert "traces" in tables_of(path)
-    assert sqlite3.connect(path).execute("SELECT net_id FROM nets").fetchall() == [("n",)]
+    assert query(path=path, sql="SELECT net_id FROM nets") == [("n",)]
 
 
 def test_a_database_from_a_newer_version_is_refused_untouched(tmp_path):

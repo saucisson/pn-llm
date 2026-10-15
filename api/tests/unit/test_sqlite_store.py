@@ -5,7 +5,7 @@ from app.domain.errors import NotFoundError
 from app.domain.models import FormulaResult, Job, JobState, Verdict
 from app.domain.nets import summarize_document
 from app.infrastructure.sqlite_store import SqliteStore
-from tests.support import LEASE, MUTEX_DOCUMENT, make_request
+from tests.support import LEASE, MUTEX_DOCUMENT, make_request, query
 
 
 def make_job(*, net_id, job_id="j1", **overrides):
@@ -46,9 +46,8 @@ def test_the_first_save_of_a_net_is_a_creation(store):
 
 
 def test_the_document_is_stored_compressed(store, net_id, settings):
-    import sqlite3
 
-    raw = sqlite3.connect(settings.database_path).execute("SELECT document FROM nets").fetchone()[0]
+    raw = query(path=settings.database_path, sql="SELECT document FROM nets")[0][0]
     assert raw[:1] == b"x"  # zlib header
     assert b"idle1" not in raw
 

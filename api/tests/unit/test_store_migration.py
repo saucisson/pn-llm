@@ -5,7 +5,7 @@ import pytest
 from app.domain.canonical import net_id_of
 from app.infrastructure.sqlite_migrations import StoreMigrationError
 from app.infrastructure.sqlite_store import SqliteStore
-from tests.support import MUTEX_DOCUMENT, MUTEX_PNML, make_request
+from tests.support import MUTEX_DOCUMENT, MUTEX_PNML, make_request, query
 
 LEGACY_SCHEMA = """
 CREATE TABLE nets (net_id TEXT PRIMARY KEY, summary TEXT NOT NULL, pnml BLOB NOT NULL,
@@ -42,9 +42,8 @@ def test_a_legacy_database_is_migrated_to_canonical_documents(tmp_path):
     assert store.load_job(job_id="j1").net_id == new_id
     with pytest.raises(Exception, match="Unknown net"):
         store.load_net(net_id="oldid")
-    conn = sqlite3.connect(path)
-    assert conn.execute("PRAGMA foreign_key_check").fetchall() == []
-    assert "pnml" not in [row[1] for row in conn.execute("PRAGMA table_info(nets)")]
+    assert query(path=path, sql="PRAGMA foreign_key_check") == []
+    assert "pnml" not in [row[1] for row in query(path=path, sql="PRAGMA table_info(nets)")]
 
 
 def test_migration_runs_once_and_a_second_open_changes_nothing(tmp_path):
@@ -62,9 +61,8 @@ def test_a_net_that_no_longer_imports_aborts_the_migration_untouched(tmp_path):
     with pytest.raises(StoreMigrationError, match="oldid"):
         SqliteStore(path=path)
 
-    conn = sqlite3.connect(path)
-    assert conn.execute("SELECT net_id FROM nets").fetchall() == [("oldid",)]
-    assert conn.execute("SELECT net_id FROM jobs").fetchall() == [("oldid",)]
+    assert query(path=path, sql="SELECT net_id FROM nets") == [("oldid",)]
+    assert query(path=path, sql="SELECT net_id FROM jobs") == [("oldid",)]
 
 
 def test_a_new_database_needs_no_migration(tmp_path):
