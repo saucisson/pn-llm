@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import logging
+import time
 import uuid
 
 from app.domain.engine_check import all_error, interpret_report
@@ -21,6 +23,8 @@ from .leases import LeaseKeeper
 from .ports import EngineGateway, JobRepository, NetRepository
 
 JOB_ID_LENGTH = 12
+
+logger = logging.getLogger("pnverif.jobs")
 
 
 class CheckService:
@@ -83,9 +87,11 @@ class CheckService:
             return False
         job = claimed
         job_id = job.job_id
+        began = time.monotonic()
         net = self._nets.load_net(net_id=job.net_id)
         structure = build_structure(document=net.document, net_id=job.net_id)
         engine = self._engines.choose(requested=job.request.engine)
+        logger.info("job_started", extra={"job_id": job_id, "net_id": job.net_id, "engine": engine})
         try:
             with LeaseKeeper(
                 renew=lambda: self._jobs.renew_lease(
@@ -131,6 +137,16 @@ class CheckService:
             for index, result in enumerate(outcome.results)
         )
         self._jobs.finish(job_id=job_id, results=results, traces=outcome.traces)
+        logger.info(
+            "job_finished",
+            extra={
+                "job_id": job_id,
+                "net_id": job.net_id,
+                "engine": engine,
+                "duration_s": round(time.monotonic() - began, 3),
+                "verdicts": [result.verdict.value for result in results],
+            },
+        )
         return True
 
     def drain(self) -> int:

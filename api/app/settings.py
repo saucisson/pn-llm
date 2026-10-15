@@ -65,3 +65,7 @@ class Settings(BaseSettings):
     )
     anthropic_model: str = "claude-opus-4-8"
     anthropic_max_tokens: int = 8_000
+
+    # Logs go to standard error, one JSON object per line unless PNVERIF_LOG_JSON is false.
+    log_level: str = "INFO"
+    log_json: bool = True

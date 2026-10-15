@@ -15,6 +15,7 @@ from starlette.concurrency import run_in_threadpool
 from app import __version__
 from app.api import descriptions, engines, formulas, inspection, jobs, nets, sessions
 from app.api.errors import register_error_handlers
+from app.api.middleware import log_requests
 from app.application.agent import AgentConfig, AgentService
 from app.application.checks import CheckService
 from app.application.descriptions import DescriptionService
@@ -29,6 +30,7 @@ from app.domain.net_validation import DocumentLimits
 from app.infrastructure.anthropic_llm import AnthropicLlm
 from app.infrastructure.docker_runner import DockerRunner
 from app.infrastructure.engine_registry import DEFAULT_ENGINES, EngineRegistry
+from app.infrastructure.json_logging import configure_logging
 from app.infrastructure.scripted_llm import DemoLlm
 from app.infrastructure.sqlite_store import SqliteStore
 from app.infrastructure.unavailable_llm import UnavailableLlm
@@ -103,6 +105,7 @@ def create_app(
     language model: the seams for tests that need a scripted answer.
     """
     config = settings or Settings()
+    configure_logging(level=config.log_level, as_json=config.log_json)
 
     store = SqliteStore(path=config.database_path)
     registry = engine_gateway or EngineRegistry(specs=DEFAULT_ENGINES, docker=DockerRunner())
@@ -160,6 +163,7 @@ def create_app(
     app.state.agent = agent
     app.state.engines = EngineService(engines=registry)
     register_error_handlers(app=app)
+    app.middleware("http")(log_requests)
     if config.ui_dir is not None and config.ui_dir.is_dir():
         app.mount("/ui", StaticFiles(directory=config.ui_dir, html=True), name="ui")
     for module in (nets, descriptions, inspection, formulas, jobs, sessions, engines):
@@ -174,6 +178,7 @@ def worker_main() -> None:
     API processes and here too, so lost work is found whichever process survives.
     """
     config = Settings()
+    configure_logging(level=config.log_level, as_json=config.log_json)
     store = SqliteStore(path=config.database_path)
     checks = CheckService(
         nets=store,

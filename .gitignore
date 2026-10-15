@@ -14,3 +14,5 @@ data/
 *.sqlite-shm
 .env
 .coverage
+coverage.xml
+htmlcov/
