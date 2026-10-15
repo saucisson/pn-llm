@@ -15,10 +15,11 @@ from fastapi import FastAPI
 from starlette.concurrency import run_in_threadpool
 
 from app import __version__
-from app.api import engines, inspection, jobs, nets
+from app.api import engines, formulas, inspection, jobs, nets
 from app.api.errors import register_error_handlers
 from app.application.checks import CheckService
 from app.application.engines import EngineService
+from app.application.formulas import FormulaService
 from app.application.inspection import InspectionService
 from app.application.nets import NetService
 from app.domain.net_validation import DocumentLimits
@@ -67,8 +68,9 @@ def create_app(*, settings: Settings | None = None) -> FastAPI:
     )
     app.state.checks = checks
     app.state.inspection = InspectionService(nets=store)
+    app.state.formulas = FormulaService(nets=store)
     app.state.engines = EngineService(engines=registry)
     register_error_handlers(app=app)
-    for module in (nets, inspection, jobs, engines):
+    for module in (nets, inspection, formulas, jobs, engines):
         app.include_router(module.router)
     return app

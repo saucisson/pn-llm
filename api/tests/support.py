@@ -25,8 +25,29 @@ MUTEX_PNML = b"""<?xml version="1.0"?>
   <arc id="a6" source="leave1" target="lock"/>
 </page></net></pnml>"""
 
+
+def make_formula(*, formula_id: str) -> dict:
+    """Return a minimal valid formula (as a request body) on the mutex net."""
+    return {
+        "id": formula_id,
+        "logic": "state",
+        "ast": {"op": "tokens", "place": "crit1", "cmp": ">=", "value": 1},
+    }
+
+
 CHECK_BODY = {
-    "formulas": [{"id": "f1", "syntax": "ltl", "text": "G(!(crit1 && crit2))", "origin": "llm"}],
+    "formulas": [
+        {
+            "id": "f1",
+            "logic": "ltl",
+            "gloss": "The critical section never holds two tokens.",
+            "origin": "llm",
+            "ast": {
+                "op": "G",
+                "arg": {"op": "tokens", "place": "crit1", "cmp": "<=", "value": 1},
+            },
+        }
+    ],
     "engine": "dummy",
 }
 

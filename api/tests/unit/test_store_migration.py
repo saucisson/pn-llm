@@ -4,7 +4,7 @@ import pytest
 
 from app.domain.canonical import net_id_of
 from app.infrastructure.sqlite_store import SqliteStore, StoreMigrationError
-from tests.support import MUTEX_DOCUMENT, MUTEX_PNML
+from tests.support import MUTEX_DOCUMENT, MUTEX_PNML, make_request
 
 LEGACY_SCHEMA = """
 CREATE TABLE nets (net_id TEXT PRIMARY KEY, summary TEXT NOT NULL, pnml BLOB NOT NULL,
@@ -15,9 +15,7 @@ CREATE TABLE jobs (job_id TEXT PRIMARY KEY, net_id TEXT NOT NULL REFERENCES nets
                    created_at REAL NOT NULL, updated_at REAL NOT NULL);
 CREATE UNIQUE INDEX jobs_live_key ON jobs(job_key) WHERE state IN ('queued', 'running', 'done');
 """
-REQUEST = (
-    '{"formulas":[{"id":"f1","syntax":"ltl","text":"G true","origin":"user"}],"engine":"dummy"}'
-)
+REQUEST = make_request().model_dump_json()
 
 
 def make_legacy_database(*, path, pnml_bytes):

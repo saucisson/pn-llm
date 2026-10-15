@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import uuid
 
-from app.domain.errors import InvalidRequestError
+from app.domain.errors import InvalidFormulaError, InvalidRequestError
+from app.domain.formula_check import check_formula
 from app.domain.models import (
     CheckRequest,
     FormulaResult,
@@ -13,6 +14,7 @@ from app.domain.models import (
     JobSubmission,
     Verdict,
 )
+from app.domain.net_structure import build_structure
 from app.domain.pnml_export import render_pnml
 
 from .leases import LeaseKeeper
@@ -46,8 +48,18 @@ class CheckService:
         Raises:
             NotFoundError: if the net is unknown.
             InvalidRequestError: if the requested engine is not registered.
+            InvalidFormulaError: if a formula cites unknown ids or misuses its logic.
         """
-        self._nets.load_net(net_id=net_id)  # raises NotFoundError
+        stored = self._nets.load_net(net_id=net_id)  # raises NotFoundError
+        structure = build_structure(document=stored.document, net_id=net_id)
+        for index, formula in enumerate(request.formulas):
+            report = check_formula(formula=formula, structure=structure)
+            if not report.valid:
+                first = report.errors[0]
+                raise InvalidFormulaError(
+                    f"Formula {formula.id!r}: {first.message}",
+                    location=f"/formulas/{index}{first.path}",
+                )
         # A job orphaned by a crashed process would otherwise block its own resubmission.
         self._jobs.recover_interrupted()
         if request.engine != "auto" and not self._engines.is_known(name=request.engine):

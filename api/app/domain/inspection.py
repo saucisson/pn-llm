@@ -199,13 +199,19 @@ def name_groups(*, structure: NetStructure, min_count: int) -> tuple[NameGroup, 
     return tuple(sorted(groups, key=lambda group: (group.kind, group.pattern)))
 
 
+def closest_ids(*, element_id: str, ids: tuple[str, ...]) -> tuple[str, ...]:
+    """Return up to five ids that look like ``element_id``: containing it, else similar to it."""
+    lowered = element_id.lower()
+    close = tuple(known for known in ids if lowered and lowered in known.lower())[:5]
+    if not close and len(ids) <= SUGGESTION_SCAN_LIMIT:
+        close = tuple(difflib.get_close_matches(element_id, ids, n=5))
+    return close
+
+
 def unknown_element(*, element_id: str, structure: NetStructure) -> NotFoundError:
     """Build the error for an id the net does not have, with the closest ids as a hint."""
-    ids = [node.id for node in (*structure.places, *structure.transitions)]
-    lowered = element_id.lower()
-    close = [known for known in ids if lowered and lowered in known.lower()][:5]
-    if not close and len(ids) <= SUGGESTION_SCAN_LIMIT:
-        close = difflib.get_close_matches(element_id, ids, n=5)
+    ids = tuple(node.id for node in (*structure.places, *structure.transitions))
+    close = closest_ids(element_id=element_id, ids=ids)
     hint = f"; closest ids: {', '.join(close)}" if close else ""
     return NotFoundError(f"Unknown element {element_id!r} in net {structure.net_id}{hint}")
 

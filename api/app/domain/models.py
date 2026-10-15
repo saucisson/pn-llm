@@ -6,15 +6,13 @@ They also serve as the tool schema exposed to the LLM through the OpenAPI docume
 from __future__ import annotations
 
 from enum import StrEnum
-from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import Field, model_validator
 
+from .base import DomainModel
+from .formula import Formula
 
-class DomainModel(BaseModel):
-    """Base class of all models: immutable, so that no function can change its inputs."""
-
-    model_config = ConfigDict(frozen=True)
+__all__ = ["DomainModel"]  # re-exported: most modules import it from here
 
 
 class Verdict(StrEnum):
@@ -38,15 +36,6 @@ class JobState(StrEnum):
     INTERRUPTED = "interrupted"  # the API restarted while the job was queued or running
 
 
-class Formula(DomainModel):
-    """A property to check, with its origin for later evaluation."""
-
-    id: str
-    syntax: Literal["ltl", "ctl", "reachability", "deadlock", "bounds"] = "ltl"
-    text: str
-    origin: Literal["user", "llm", "template"] = "user"
-
-
 class Limits(DomainModel):
     """Resource limits applied to one engine run."""
 
@@ -60,6 +49,15 @@ class CheckRequest(DomainModel):
     formulas: tuple[Formula, ...] = Field(min_length=1)
     engine: str = "auto"
     limits: Limits = Field(default_factory=Limits)
+
+    @model_validator(mode="after")
+    def _formula_ids_are_unique(self) -> CheckRequest:
+        """Reject two formulas with the same id: results are reported by id."""
+        ids = [formula.id for formula in self.formulas]
+        if len(set(ids)) != len(ids):
+            message = "formula ids must be unique"
+            raise ValueError(message)
+        return self
 
 
 class FormulaResult(DomainModel):
@@ -102,6 +100,6 @@ class EngineInfo(DomainModel):
 
     name: str
     version: str
-    syntaxes: tuple[str, ...]
+    logics: tuple[str, ...]
     supports_colored: bool = False
     available: bool

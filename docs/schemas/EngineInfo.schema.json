@@ -5,6 +5,13 @@
       "title": "Available",
       "type": "boolean"
     },
+    "logics": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Logics",
+      "type": "array"
+    },
     "name": {
       "title": "Name",
       "type": "string"
@@ -14,13 +21,6 @@
       "title": "Supports Colored",
       "type": "boolean"
     },
-    "syntaxes": {
-      "items": {
-        "type": "string"
-      },
-      "title": "Syntaxes",
-      "type": "array"
-    },
     "version": {
       "title": "Version",
       "type": "string"
@@ -29,7 +29,7 @@
   "required": [
     "name",
     "version",
-    "syntaxes",
+    "logics",
     "available"
   ],
   "title": "EngineInfo",

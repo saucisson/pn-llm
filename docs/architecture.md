@@ -41,11 +41,16 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/domain/net_structure.py` | domain | `NetStructure`: places, transitions and arcs flattened from the page tree, references resolved |
 | `app/domain/inspection.py` | domain | Inspection results (`NetOverview`, `ElementDetail`, `Neighbourhood`, `NameGroup`) and their computation |
 | `app/domain/net_leak.py` | domain | Detect a net (PNML, XML, net document) in text bound for the LLM |
+| `app/domain/base.py` | domain | `DomainModel`, the frozen base class of every model |
+| `app/domain/formula.py` | domain | Formula tree (`Formula`, operators, atoms) and `subexpressions` |
+| `app/domain/formula_text.py` | domain | Text syntax: parser, printer (reads back the same tree), logic inference |
+| `app/domain/formula_check.py` | domain | Check a formula against a net: ids, operators of the logic, neXt, atom classes |
 | `app/domain/errors.py` | domain | Domain errors, the failures that are part of the API contract |
 | `app/domain/contract.py` | domain | Shared JSON contract: `Envelope`, `ElementRef`, `Marking`, `Bound`, `Page` (docs/json-contract.md) |
 | `app/application/ports.py` | application | Protocols the use cases need: `NetRepository`, `JobRepository`, `EngineGateway` |
 | `app/application/nets.py` | application | `NetService`: convert an upload to the canonical document, store and read nets |
 | `app/application/inspection.py` | application | `InspectionService`: summary, lists, element, search, marking, neighbourhood, name groups |
+| `app/application/formulas.py` | application | `FormulaService`: parse and validate a formula against a net |
 | `app/application/leases.py` | application | `LeaseKeeper`: renews a running job's lease so other processes know its owner is alive |
 | `app/application/checks.py` | application | `CheckService`: submit, execute, read and cancel checks |
 | `app/application/engines.py` | application | `EngineService`: list engines |
@@ -59,6 +64,7 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/api/jobs.py` | api | Routes for checks and jobs |
 | `app/api/engines.py` | api | Route `/v1/engines` |
 | `app/api/inspection.py` | api | Read-only inspection routes under `/v1/nets/{id}` |
+| `app/api/formulas.py` | api | Route `POST /v1/formulas/validate` |
 | `app/api/envelopes.py` | api | Build the shared result envelope |
 | `app/api/llm_tools.py` | api | Which routes may be offered to the LLM (all but the net itself) |
 | `app/settings.py` | (config) | Pydantic settings from `PNVERIF_*` environment variables |

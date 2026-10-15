@@ -27,7 +27,7 @@ from app.domain.models import (
 
 from .docker_runner import DockerRunner, DockerTimeoutError
 
-ALL_SYNTAXES = ("ltl", "ctl", "reachability", "deadlock", "bounds")
+ALL_LOGICS = ("ltl", "ctl", "state")
 # Mode of the output directory: the container user is not the API user.
 OUTPUT_DIR_MODE = 0o777
 
@@ -37,31 +37,29 @@ class EngineSpec(DomainModel):
 
     image: str | None
     version: str
-    syntaxes: tuple[str, ...]
+    logics: tuple[str, ...]
     colored: bool = False
 
 
 # Adding an engine = one image + one entry here. Versions stay "tbd" until an image pins a release.
 DEFAULT_ENGINES: Mapping[str, EngineSpec] = {
-    "dummy": EngineSpec(image=None, version="0.1", syntaxes=("ltl", "ctl", "reachability")),
+    "dummy": EngineSpec(image=None, version="0.1", logics=ALL_LOGICS),
     "itstools": EngineSpec(
-        image="pn-llm-verif/itstools:latest", version="tbd", syntaxes=ALL_SYNTAXES, colored=True
+        image="pn-llm-verif/itstools:latest", version="tbd", logics=ALL_LOGICS, colored=True
     ),
     "tapaal": EngineSpec(
-        image="pn-llm-verif/tapaal:latest", version="tbd", syntaxes=ALL_SYNTAXES, colored=True
+        image="pn-llm-verif/tapaal:latest", version="tbd", logics=ALL_LOGICS, colored=True
     ),
     "smpt": EngineSpec(
-        image="pn-llm-verif/smpt:latest", version="tbd", syntaxes=("reachability",), colored=True
+        image="pn-llm-verif/smpt:latest", version="tbd", logics=("state",), colored=True
     ),
-    # tedd covers the StateSpace category; extend its syntaxes once it is integrated.
+    # tedd covers the StateSpace category; extend its logics once it is integrated.
     "tedd": EngineSpec(
-        image="pn-llm-verif/tedd:latest", version="tbd", syntaxes=("bounds",), colored=True
+        image="pn-llm-verif/tedd:latest", version="tbd", logics=("state",), colored=True
     ),
-    "petrivet": EngineSpec(
-        image="pn-llm-verif/petrivet:latest", version="tbd", syntaxes=("deadlock",)
-    ),
+    "petrivet": EngineSpec(image="pn-llm-verif/petrivet:latest", version="tbd", logics=("state",)),
     "ty": EngineSpec(
-        image="pn-llm-verif/ty:latest", version="tbd", syntaxes=ALL_SYNTAXES, colored=True
+        image="pn-llm-verif/ty:latest", version="tbd", logics=ALL_LOGICS, colored=True
     ),
 }
 
@@ -80,7 +78,7 @@ class EngineRegistry:
             EngineInfo(
                 name=name,
                 version=spec.version,
-                syntaxes=spec.syntaxes,
+                logics=spec.logics,
                 supports_colored=spec.colored,
                 available=spec.image is None or self._docker.image_present(image=spec.image),
             )
