@@ -311,6 +311,52 @@
         "title": "AtomKinds",
         "type": "object"
       },
+      "Body_start_session_with_files_v1_sessions_upload_post": {
+        "properties": {
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "description_file": {
+            "anyOf": [
+              {
+                "contentMediaType": "application/octet-stream",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": ".txt or .md",
+            "title": "Description File"
+          },
+          "goal": {
+            "maxLength": 8000,
+            "minLength": 1,
+            "title": "Goal",
+            "type": "string"
+          },
+          "net": {
+            "contentMediaType": "application/octet-stream",
+            "description": "PNML, or a JSON net document (.json)",
+            "title": "Net",
+            "type": "string"
+          }
+        },
+        "required": [
+          "goal",
+          "net"
+        ],
+        "title": "Body_start_session_with_files_v1_sessions_upload_post",
+        "type": "object"
+      },
       "BudgetExhausted": {
         "description": "The run stopped because it reached a budget.",
         "properties": {
@@ -1055,6 +1101,57 @@
           "text"
         ],
         "title": "Description",
+        "type": "object"
+      },
+      "DescriptionAccepted": {
+        "description": "The user accepted a proposed description: it is now stored, with the origin ``llm``.",
+        "properties": {
+          "description_id": {
+            "title": "Description Id",
+            "type": "string"
+          },
+          "kind": {
+            "const": "description_accepted",
+            "default": "description_accepted",
+            "title": "Kind",
+            "type": "string"
+          },
+          "proposal_id": {
+            "title": "Proposal Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "proposal_id",
+          "description_id"
+        ],
+        "title": "DescriptionAccepted",
+        "type": "object"
+      },
+      "DescriptionProposed": {
+        "description": "The LLM proposes a clearer description; it is stored only if the user accepts it.",
+        "properties": {
+          "kind": {
+            "const": "description_proposed",
+            "default": "description_proposed",
+            "title": "Kind",
+            "type": "string"
+          },
+          "proposal_id": {
+            "title": "Proposal Id",
+            "type": "string"
+          },
+          "text": {
+            "minLength": 1,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "proposal_id",
+          "text"
+        ],
+        "title": "DescriptionProposed",
         "type": "object"
       },
       "DistantElement": {
@@ -4909,6 +5006,18 @@
         "title": "ReplayResult",
         "type": "object"
       },
+      "RestartRequest": {
+        "description": "Body of ``POST /v1/sessions/{id}/restart``.",
+        "properties": {
+          "with_description": {
+            "default": true,
+            "title": "With Description",
+            "type": "boolean"
+          }
+        },
+        "title": "RestartRequest",
+        "type": "object"
+      },
       "RunFinished": {
         "description": "The agent ended its turn.",
         "properties": {
@@ -5129,6 +5238,8 @@
                 "assistant_message": "#/components/schemas/AssistantMessage",
                 "budget_exhausted": "#/components/schemas/BudgetExhausted",
                 "check_submitted": "#/components/schemas/CheckSubmitted",
+                "description_accepted": "#/components/schemas/DescriptionAccepted",
+                "description_proposed": "#/components/schemas/DescriptionProposed",
                 "property_proposed": "#/components/schemas/PropertyProposed",
                 "question": "#/components/schemas/Question",
                 "run_finished": "#/components/schemas/RunFinished",
@@ -5181,6 +5292,12 @@
               },
               {
                 "$ref": "#/components/schemas/RunFinished"
+              },
+              {
+                "$ref": "#/components/schemas/DescriptionProposed"
+              },
+              {
+                "$ref": "#/components/schemas/DescriptionAccepted"
               },
               {
                 "$ref": "#/components/schemas/SessionCancelled"
@@ -6900,6 +7017,48 @@
         ]
       }
     },
+    "/v1/sessions/upload": {
+      "post": {
+        "description": "Register the net, store the description, and open the session: one request.\n\nA description typed in the form wins over a description file. Nothing is attached to the\n(immutable) net except the description, linked with the origin ``user``.",
+        "operationId": "start_session_with_files_v1_sessions_upload_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_start_session_with_files_v1_sessions_upload_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_Session_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Start Session With Files",
+        "tags": [
+          "sessions"
+        ]
+      }
+    },
     "/v1/sessions/{session_id}": {
       "get": {
         "description": "The state of a session.",
@@ -7039,6 +7198,58 @@
         ]
       }
     },
+    "/v1/sessions/{session_id}/description-proposals/{proposal_id}/accept": {
+      "post": {
+        "description": "Store a description the assistant proposed: only the user's acceptance does it.",
+        "operationId": "accept_description_v1_sessions__session_id__description_proposals__proposal_id__accept_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "proposal_id",
+            "required": true,
+            "schema": {
+              "title": "Proposal Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_StoredEvent_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Accept Description",
+        "tags": [
+          "sessions"
+        ]
+      }
+    },
     "/v1/sessions/{session_id}/events": {
       "get": {
         "description": "The events of a session: JSON, or a stream with ``Accept: text/event-stream``.\n\nA stream resumes after ``after`` or after the ``Last-Event-ID`` header; without ``follow`` it\nends when there is nothing more to send.",
@@ -7171,6 +7382,59 @@
           }
         },
         "summary": "Post Message",
+        "tags": [
+          "sessions"
+        ]
+      }
+    },
+    "/v1/sessions/{session_id}/restart": {
+      "post": {
+        "description": "Open a new session with the goal of this one, with or without its description.",
+        "operationId": "restart_session_v1_sessions__session_id__restart_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RestartRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_Session_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Restart Session",
         "tags": [
           "sessions"
         ]

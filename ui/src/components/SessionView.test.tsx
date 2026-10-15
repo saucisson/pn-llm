@@ -115,6 +115,43 @@ describe("SessionView", () => {
     expect(screen.queryByLabelText("Your message")).not.toBeInTheDocument();
   });
 
+  it("offers to accept a proposed description, once", async () => {
+    const calls = stubApi({
+      events: [
+        started,
+        {
+          kind: "description_proposed",
+          proposal_id: "p1",
+          text: "A lock shared by two processes.",
+        },
+        { kind: "run_finished", reason: "completed" },
+      ],
+    });
+    view();
+    const button = await screen.findByRole("button", { name: "Accept this description" });
+    await userEvent.setup().click(button);
+    await waitFor(() =>
+      expect(calls.some((c) => c.url === "/v1/sessions/s1/description-proposals/p1/accept")).toBe(
+        true,
+      ),
+    );
+  });
+
+  it("does not offer a description that was accepted", async () => {
+    stubApi({
+      events: [
+        started,
+        { kind: "description_proposed", proposal_id: "p1", text: "A lock." },
+        { kind: "description_accepted", proposal_id: "p1", description_id: "d2" },
+      ],
+    });
+    view();
+    await screen.findByText(/Description accepted/);
+    expect(
+      screen.queryByRole("button", { name: "Accept this description" }),
+    ).not.toBeInTheDocument();
+  });
+
   it("shows why a message was refused", async () => {
     vi.stubGlobal(
       "fetch",

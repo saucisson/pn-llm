@@ -1,7 +1,15 @@
 import { useEffect, useReducer, useState } from "react";
-import { cancelSession, sendAnswer, sendMessage } from "../api/client";
+import { acceptDescription, cancelSession, sendAnswer, sendMessage } from "../api/client";
 import { followEvents, type StreamStatus } from "../api/sse";
-import { addEvents, type EventLog, emptyLog, isLive, openQuestion, stateOf } from "../state/events";
+import {
+  addEvents,
+  type EventLog,
+  emptyLog,
+  isLive,
+  openQuestion,
+  pendingProposals,
+  stateOf,
+} from "../state/events";
 import { Composer } from "./Composer";
 import { EventItem } from "./EventItem";
 
@@ -43,6 +51,7 @@ export function SessionView({
   }, [sessionId, retryDelayMs]);
 
   const state = stateOf({ events: log.events });
+  const pending = pendingProposals({ events: log.events });
   const question = state === "waiting_for_user" ? openQuestion({ events: log.events }) : undefined;
 
   return (
@@ -60,7 +69,13 @@ export function SessionView({
       </header>
       <div className="feed">
         {log.events.map((stored) => (
-          <EventItem key={stored.number} event={stored.event} />
+          <div key={stored.number}>
+            <EventItem event={stored.event} />
+            {stored.event.kind === "description_proposed" &&
+              pending.has(stored.event.proposal_id) && (
+                <ProposalButton sessionId={sessionId} proposalId={stored.event.proposal_id} />
+              )}
+          </div>
         ))}
       </div>
       {question !== undefined && (
@@ -82,5 +97,33 @@ export function SessionView({
         />
       )}
     </section>
+  );
+}
+
+/** The button that accepts a description proposed by the assistant. */
+function ProposalButton({
+  sessionId,
+  proposalId,
+}: {
+  readonly sessionId: string;
+  readonly proposalId: string;
+}) {
+  const [error, setError] = useState<string | undefined>(undefined);
+  return (
+    <>
+      <button
+        type="button"
+        onClick={async () => {
+          try {
+            await acceptDescription({ sessionId, proposalId });
+          } catch (failure: unknown) {
+            setError(failure instanceof Error ? failure.message : String(failure));
+          }
+        }}
+      >
+        Accept this description
+      </button>
+      {error !== undefined && <p role="alert">{error}</p>}
+    </>
   );
 }

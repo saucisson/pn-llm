@@ -1,8 +1,9 @@
 """Sessions and their events: a conversation is a persisted, ordered sequence of events (ADR 0008).
 
-The event vocabulary is a public contract (version 1 is frozen): adding a kind is easy, changing
-one needs a new ADR. Text written by the LLM is always an ``assistant_message``; a verdict can only
-be built from an engine result (ADR 0006), so nothing the model says can look like one.
+The event vocabulary is a public contract (version 1 is frozen, ADR 0008): adding a kind is
+easy, changing one needs a new ADR. Text written by the LLM is always an ``assistant_message``; a
+verdict can only be built from an engine result (ADR 0006), so nothing the model says can look
+like one.
 """
 
 from __future__ import annotations
@@ -154,6 +155,22 @@ class RunFinished(DomainModel):
     reason: Literal["completed", "waiting_for_user", "budget_exhausted", "error", "cancelled"]
 
 
+class DescriptionProposed(DomainModel):
+    """The LLM proposes a clearer description; it is stored only if the user accepts it."""
+
+    kind: Literal["description_proposed"] = "description_proposed"
+    proposal_id: str
+    text: str = Field(min_length=1)
+
+
+class DescriptionAccepted(DomainModel):
+    """The user accepted a proposed description: it is now stored, with the origin ``llm``."""
+
+    kind: Literal["description_accepted"] = "description_accepted"
+    proposal_id: str
+    description_id: str
+
+
 class SessionCancelled(DomainModel):
     """The user cancelled the session."""
 
@@ -174,6 +191,8 @@ SessionEvent = Annotated[
     | BudgetExhausted
     | SessionError
     | RunFinished
+    | DescriptionProposed
+    | DescriptionAccepted
     | SessionCancelled,
     Field(discriminator="kind"),
 ]

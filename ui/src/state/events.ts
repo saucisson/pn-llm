@@ -65,6 +65,8 @@ function nextState({
     case "question":
     case "budget_exhausted":
     case "session_error":
+    case "description_proposed":
+    case "description_accepted":
       return state;
   }
 }
@@ -93,4 +95,21 @@ export function openQuestion({
 /** Tell whether the session still accepts work: it is not cancelled. */
 export function isLive({ state }: { readonly state: SessionState }): boolean {
   return state !== "cancelled";
+}
+
+/** The proposed descriptions the user has not accepted yet. */
+export function pendingProposals({
+  events,
+}: {
+  readonly events: readonly StoredEvent[];
+}): ReadonlySet<string> {
+  const pending = new Set<string>();
+  for (const stored of events) {
+    if (stored.event.kind === "description_proposed") {
+      pending.add(stored.event.proposal_id);
+    } else if (stored.event.kind === "description_accepted") {
+      pending.delete(stored.event.proposal_id);
+    }
+  }
+  return pending;
 }

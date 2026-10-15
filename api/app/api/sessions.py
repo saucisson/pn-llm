@@ -12,16 +12,17 @@ from collections.abc import AsyncIterator
 from http import HTTPStatus
 from typing import Annotated
 
-from fastapi import APIRouter, Query, Request, Response
+from fastapi import APIRouter, File, Form, Query, Request, Response, UploadFile
 from fastapi.responses import StreamingResponse
 from pydantic import Field
 from starlette.concurrency import run_in_threadpool
 
 from app.domain.contract import Envelope
 from app.domain.models import DomainModel
+from app.domain.nets import NetFormat
 from app.domain.sessions import Session, StoredEvent
 
-from .deps import AgentDep
+from .deps import AgentDep, DescriptionsDep, NetsDep
 from .envelopes import wrap
 
 router = APIRouter(prefix="/v1/sessions", tags=["sessions"])
@@ -64,6 +65,46 @@ def start_session(
     return wrap(tool="session.start", net_id=body.net_id, started=started, data=created.session)
 
 
+@router.post("/upload", status_code=HTTPStatus.CREATED)
+async def start_session_with_files(  # noqa: PLR0913 - one field per input of the form
+    *,
+    nets: NetsDep,
+    descriptions: DescriptionsDep,
+    agent: AgentDep,
+    response: Response,
+    goal: Annotated[str, Form(min_length=1, max_length=MAX_USER_TEXT)],
+    net: Annotated[UploadFile, File(description="PNML, or a JSON net document (.json)")],
+    description: Annotated[str | None, Form()] = None,
+    description_file: Annotated[UploadFile | None, File(description=".txt or .md")] = None,
+) -> Envelope[Session]:
+    """Register the net, store the description, and open the session: one request.
+
+    A description typed in the form wins over a description file. Nothing is attached to the
+    (immutable) net except the description, linked with the origin ``user``.
+    """
+    started = time.perf_counter()
+    payload = await net.read()
+    is_json = (net.filename or "").lower().endswith(".json")
+    registered = await run_in_threadpool(
+        nets.register, payload=payload, format=NetFormat.JSON if is_json else NetFormat.PNML
+    )
+    net_id = registered.stored.summary.net_id
+    description_id = None
+    text = description.encode() if description else b""
+    if not text and description_file is not None:
+        text = await description_file.read()
+    if text:
+        saved = await run_in_threadpool(
+            descriptions.add, net_id=net_id, payload=text, origin="user"
+        )
+        description_id = saved.description.description_id
+    created = await run_in_threadpool(
+        agent.start, net_id=net_id, description_id=description_id, goal=goal
+    )
+    response.headers["Location"] = f"/v1/sessions/{created.session.session_id}"
+    return wrap(tool="session.start", net_id=net_id, started=started, data=created.session)
+
+
 @router.get("/{session_id}")
 def get_session(*, session_id: str, agent: AgentDep) -> Envelope[Session]:
     """The state of a session."""
@@ -88,6 +129,37 @@ def post_answer(*, session_id: str, body: AnswerRequest, agent: AgentDep) -> Env
     started = time.perf_counter()
     stored = agent.answer(session_id=session_id, question_id=body.question_id, text=body.text)
     return wrap(tool="session.answer", net_id=None, started=started, data=stored)
+
+
+class RestartRequest(DomainModel):
+    """Body of ``POST /v1/sessions/{id}/restart``."""
+
+    with_description: bool = True
+
+
+@router.post("/{session_id}/restart", status_code=HTTPStatus.CREATED)
+def restart_session(
+    *, session_id: str, body: RestartRequest, agent: AgentDep, response: Response
+) -> Envelope[Session]:
+    """Open a new session with the goal of this one, with or without its description."""
+    started = time.perf_counter()
+    created = agent.restart(session_id=session_id, with_description=body.with_description)
+    response.headers["Location"] = f"/v1/sessions/{created.session.session_id}"
+    return wrap(
+        tool="session.restart", net_id=created.session.net_id, started=started, data=created.session
+    )
+
+
+@router.post(
+    "/{session_id}/description-proposals/{proposal_id}/accept", status_code=HTTPStatus.CREATED
+)
+def accept_description(
+    *, session_id: str, proposal_id: str, agent: AgentDep
+) -> Envelope[StoredEvent]:
+    """Store a description the assistant proposed: only the user's acceptance does it."""
+    started = time.perf_counter()
+    stored = agent.accept_description(session_id=session_id, proposal_id=proposal_id)
+    return wrap(tool="session.accept_description", net_id=None, started=started, data=stored)
 
 
 @router.post("/{session_id}/cancel")

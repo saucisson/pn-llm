@@ -115,3 +115,9 @@ class AskUserArguments(DomainModel):
     """Ask the user a question and wait for the answer."""
 
     question: str = Field(min_length=1)
+
+
+class ProposeDescriptionArguments(DomainModel):
+    """Offer a clearer description of the system to the user, who may accept it."""
+
+    text: str = Field(min_length=1, max_length=8_000)

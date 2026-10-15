@@ -8,6 +8,8 @@ from app.domain.sessions import (
     AssistantMessage,
     BudgetExhausted,
     CheckSubmitted,
+    DescriptionAccepted,
+    DescriptionProposed,
     PropertyProposed,
     Question,
     RunFinished,
@@ -48,6 +50,8 @@ EVENTS = [
     BudgetExhausted(budget="steps"),
     SessionError(code="llm_unavailable", message="no key"),
     RunFinished(reason="completed"),
+    DescriptionProposed(proposal_id="p1", text="A lock shared by two processes."),
+    DescriptionAccepted(proposal_id="p1", description_id="d1"),
     SessionCancelled(),
 ]
 ADAPTER: TypeAdapter[SessionEvent] = TypeAdapter(SessionEvent)
@@ -58,7 +62,7 @@ def test_every_event_kind_round_trips_through_json(event):
     assert ADAPTER.validate_json(ADAPTER.dump_json(event)) == event
 
 
-def test_the_vocabulary_is_the_frozen_one():
+def test_the_vocabulary_is_version_one_plus_the_description_kinds():
     assert [event.kind for event in EVENTS] == [
         "session_started",
         "user_message",
@@ -73,6 +77,8 @@ def test_the_vocabulary_is_the_frozen_one():
         "budget_exhausted",
         "session_error",
         "run_finished",
+        "description_proposed",
+        "description_accepted",
         "session_cancelled",
     ]
 

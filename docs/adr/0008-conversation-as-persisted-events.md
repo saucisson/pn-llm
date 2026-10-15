@@ -44,3 +44,8 @@ the API may run several processes (ADR 0003), and the work must be replayable an
 - Any process can serve any session; a crash loses at most the event being written.
 - Sessions are a complete log: they feed the evaluation (`bench/`) for free.
 - The event vocabulary is a public contract; adding a kind is easy, changing one needs a new ADR.
+
+## Amendments
+- Version 1 gained two kinds, `description_proposed` and `description_accepted`: the assistant may
+  propose a clearer description of the system (ADR 0011), which is stored with the origin `llm`
+  only when the user accepts it.

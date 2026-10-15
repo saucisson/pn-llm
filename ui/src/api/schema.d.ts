@@ -432,6 +432,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/sessions/upload": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Start Session With Files
+         * @description Register the net, store the description, and open the session: one request.
+         *
+         *     A description typed in the form wins over a description file. Nothing is attached to the
+         *     (immutable) net except the description, linked with the origin ``user``.
+         */
+        post: operations["start_session_with_files_v1_sessions_upload_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/sessions/{session_id}": {
         parameters: {
             query?: never;
@@ -492,6 +515,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/sessions/{session_id}/description-proposals/{proposal_id}/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Accept Description
+         * @description Store a description the assistant proposed: only the user's acceptance does it.
+         */
+        post: operations["accept_description_v1_sessions__session_id__description_proposals__proposal_id__accept_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/sessions/{session_id}/events": {
         parameters: {
             query?: never;
@@ -529,6 +572,26 @@ export interface paths {
          * @description Add a message once the agent has finished its turn.
          */
         post: operations["post_message_v1_sessions__session_id__messages_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/sessions/{session_id}/restart": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Restart Session
+         * @description Open a new session with the goal of this one, with or without its description.
+         */
+        post: operations["restart_session_v1_sessions__session_id__restart_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -632,6 +695,23 @@ export interface components {
             deadlock: boolean;
             /** Fireability */
             fireability: boolean;
+        };
+        /** Body_start_session_with_files_v1_sessions_upload_post */
+        Body_start_session_with_files_v1_sessions_upload_post: {
+            /** Description */
+            description?: string | null;
+            /**
+             * Description File
+             * @description .txt or .md
+             */
+            description_file?: string | null;
+            /** Goal */
+            goal: string;
+            /**
+             * Net
+             * @description PNML, or a JSON net document (.json)
+             */
+            net: string;
         };
         /**
          * BudgetExhausted
@@ -806,6 +886,36 @@ export interface components {
              * @enum {string}
              */
             origin: "user" | "mcc" | "llm";
+            /** Text */
+            text: string;
+        };
+        /**
+         * DescriptionAccepted
+         * @description The user accepted a proposed description: it is now stored, with the origin ``llm``.
+         */
+        DescriptionAccepted: {
+            /** Description Id */
+            description_id: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "description_accepted";
+            /** Proposal Id */
+            proposal_id: string;
+        };
+        /**
+         * DescriptionProposed
+         * @description The LLM proposes a clearer description; it is stored only if the user accepts it.
+         */
+        DescriptionProposed: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "description_proposed";
+            /** Proposal Id */
+            proposal_id: string;
             /** Text */
             text: string;
         };
@@ -1927,6 +2037,17 @@ export interface components {
             valid: boolean;
         };
         /**
+         * RestartRequest
+         * @description Body of ``POST /v1/sessions/{id}/restart``.
+         */
+        RestartRequest: {
+            /**
+             * With Description
+             * @default true
+             */
+            with_description: boolean;
+        };
+        /**
          * RunFinished
          * @description The agent ended its turn.
          */
@@ -2030,7 +2151,7 @@ export interface components {
             /** At */
             at: number;
             /** Event */
-            event: components["schemas"]["SessionStarted"] | components["schemas"]["UserMessage"] | components["schemas"]["AssistantMessage"] | components["schemas"]["ToolCall"] | components["schemas"]["ToolResult"] | components["schemas"]["PropertyProposed"] | components["schemas"]["CheckSubmitted"] | components["schemas"]["app__domain__sessions__Verdict"] | components["schemas"]["Question"] | components["schemas"]["Answer"] | components["schemas"]["BudgetExhausted"] | components["schemas"]["SessionError"] | components["schemas"]["RunFinished"] | components["schemas"]["SessionCancelled"];
+            event: components["schemas"]["SessionStarted"] | components["schemas"]["UserMessage"] | components["schemas"]["AssistantMessage"] | components["schemas"]["ToolCall"] | components["schemas"]["ToolResult"] | components["schemas"]["PropertyProposed"] | components["schemas"]["CheckSubmitted"] | components["schemas"]["app__domain__sessions__Verdict"] | components["schemas"]["Question"] | components["schemas"]["Answer"] | components["schemas"]["BudgetExhausted"] | components["schemas"]["SessionError"] | components["schemas"]["RunFinished"] | components["schemas"]["DescriptionProposed"] | components["schemas"]["DescriptionAccepted"] | components["schemas"]["SessionCancelled"];
             /** Number */
             number: number;
             /** Session Id */
@@ -2976,6 +3097,39 @@ export interface operations {
             };
         };
     };
+    start_session_with_files_v1_sessions_upload_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_start_session_with_files_v1_sessions_upload_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_Session_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_session_v1_sessions__session_id__get: {
         parameters: {
             query?: never;
@@ -3073,6 +3227,38 @@ export interface operations {
             };
         };
     };
+    accept_description_v1_sessions__session_id__description_proposals__proposal_id__accept_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+                proposal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_StoredEvent_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_events_v1_sessions__session_id__events_get: {
         parameters: {
             query?: {
@@ -3132,6 +3318,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Envelope_StoredEvent_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    restart_session_v1_sessions__session_id__restart_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RestartRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_Session_"];
                 };
             };
             /** @description Validation Error */
