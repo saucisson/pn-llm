@@ -3,12 +3,12 @@ import inspect
 import pytest
 from pydantic import BaseModel, ValidationError
 
-from app.domain import contract, models
+from app.domain import contract, models, net_document, net_validation
 from app.domain.models import CheckRequest, DomainModel, Limits
 
 ALL_MODELS = [
     cls
-    for module in (models, contract)
+    for module in (models, contract, net_document, net_validation)
     for _, cls in inspect.getmembers(module, inspect.isclass)
     if issubclass(cls, BaseModel) and cls.__module__ == module.__name__
 ]

@@ -8,6 +8,7 @@ from pydantic import BaseModel
 
 from .contract import ElementRef, Envelope, Marking, Page, PageRequest
 from .models import CheckRequest, EngineInfo, FormulaResult
+from .net_document import NetDocument
 
 EXPORTED_MODELS: tuple[type[BaseModel], ...] = (
     CheckRequest,
@@ -16,6 +17,7 @@ EXPORTED_MODELS: tuple[type[BaseModel], ...] = (
     Envelope,
     FormulaResult,
     Marking,
+    NetDocument,
     Page,
     PageRequest,
 )
