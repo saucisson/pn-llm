@@ -75,6 +75,16 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/settings.py` | (config) | Pydantic settings from `PNVERIF_*` environment variables |
 | `app/main.py` | main | Composition root: `create_app(settings=...)` |
 
+## The UI
+`ui/` is a TypeScript (strict), React and Vite project (ADR 0010), a thin client of the REST API:
+it offers nothing the API does not. Its types are generated from `docs/openapi.json`
+(`make openapi`, then `npm run gen:api` in `ui/`), which comes from the pydantic models; a hook and
+the CI fail when either is stale, so an API change that breaks the UI fails the build. Biome
+(lint and format), `tsc --strict`, Vitest and Testing Library run in the `ui` hook and CI job
+(`make ui-check`, Node 22, see `ui/.nvmrc`). The built files (`ui/dist`) are served under `/ui`
+by the API when `PNVERIF_UI_DIR` points to them; the API image builds them in a first stage.
+Event data is rendered as React text, never as HTML.
+
 ## Dependency rules (enforced)
 
 1. Layers: `main` > `api` | `infrastructure` > `application` > `domain`. Imports go downward only.

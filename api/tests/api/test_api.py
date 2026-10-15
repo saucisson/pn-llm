@@ -218,3 +218,17 @@ def test_the_sweeper_purges_old_finished_jobs_when_retention_is_set(tmp_path):
             time.sleep(0.05)
         assert running.get(f"/v1/jobs/{job_id}").status_code == 404
         assert running.get(f"/v1/nets/{net_id}").status_code == 200
+
+
+def test_the_built_ui_is_served_under_ui_when_a_directory_is_given(tmp_path):
+    built = tmp_path / "dist"
+    built.mkdir()
+    (built / "index.html").write_text("<html>chat</html>")
+    settings = Settings(database_path=tmp_path / "ui.sqlite", ui_dir=built)
+    client = TestClient(create_app(settings=settings))
+    assert client.get("/ui/").text == "<html>chat</html>"
+    assert client.get("/v1/engines").status_code == 200
+
+
+def test_there_is_no_ui_route_without_a_directory(client):
+    assert client.get("/ui/").status_code == 404

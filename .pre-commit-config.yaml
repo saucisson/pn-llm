@@ -66,6 +66,18 @@ repos:
         language: system
         pass_filenames: false
         files: ^(api/app/domain/.*\.py|docs/schemas/.*|scripts/export_schemas\.py)$
+      - id: openapi
+        name: committed OpenAPI document in sync with the API
+        entry: python3 scripts/export_openapi.py --check
+        language: system
+        pass_filenames: false
+        files: ^(api/app/.*\.py|docs/openapi\.json|scripts/export_openapi\.py)$
+      - id: ui
+        name: UI (biome, tsc strict, vitest) and generated API types
+        entry: bash -c 'cd ui && npm run check:api && npm run check'
+        language: system
+        pass_filenames: false
+        files: ^(ui/.*|docs/openapi\.json)$
       - id: tests
         name: tests with coverage threshold
         entry: bash -c 'cd api && pytest -q --cov=app --cov-branch'

@@ -28,3 +28,5 @@ class Settings(BaseSettings):
     # Finished jobs (and their counterexamples) older than this many days are deleted; None keeps
     # them for ever. Nets are never deleted.
     job_retention_days: float | None = None
+    # Directory of the built UI (ui/dist), served under /ui; None or a missing directory: no UI.
+    ui_dir: Path | None = None

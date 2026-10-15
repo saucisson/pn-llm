@@ -12,6 +12,7 @@ import contextlib
 from collections.abc import AsyncIterator
 
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from starlette.concurrency import run_in_threadpool
 
 from app import __version__
@@ -85,6 +86,8 @@ def create_app(
     app.state.formulas = FormulaService(nets=store)
     app.state.engines = EngineService(engines=registry)
     register_error_handlers(app=app)
+    if config.ui_dir is not None and config.ui_dir.is_dir():
+        app.mount("/ui", StaticFiles(directory=config.ui_dir, html=True), name="ui")
     for module in (nets, inspection, formulas, jobs, engines):
         app.include_router(module.router)
     return app

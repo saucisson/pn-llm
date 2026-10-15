@@ -10,3 +10,5 @@ data
 bench/models
 api/tests
 docs
+**/node_modules
+ui/dist

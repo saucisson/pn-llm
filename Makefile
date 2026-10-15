@@ -4,7 +4,7 @@ export PATH := $(CURDIR)/api/.venv/bin:$(PATH)
 RUFF_CONFIG := --config api/pyproject.toml
 
 .DEFAULT_GOAL := help
-.PHONY: help setup format lint typecheck arch docs-check schemas schemas-check test cov audit check hooks
+.PHONY: help setup format lint typecheck arch docs-check schemas schemas-check openapi openapi-check ui-check test cov audit check hooks
 
 help:  ## List the targets
 	@grep -E '^[a-z-]+:.*##' $(MAKEFILE_LIST) | sed 's/:.*## /\t/'
@@ -34,8 +34,17 @@ docs-check:  ## Architecture document in sync with the modules
 schemas:  ## Export the JSON Schemas to docs/schemas/
 	python3 scripts/export_schemas.py
 
+openapi-check:  ## Committed OpenAPI document in sync with the API
+	python3 scripts/export_openapi.py --check
+
 schemas-check:  ## Committed JSON Schemas in sync with the models
 	python3 scripts/export_schemas.py --check
+
+openapi:  ## Export the OpenAPI document (the UI types come from it)
+	python3 scripts/export_openapi.py
+
+ui-check:  ## UI: biome, tsc strict, vitest (needs Node 22, see ui/.nvmrc)
+	cd ui && npm ci && npm run check:api && npm run check
 
 test:  ## Fast tests
 	cd api && pytest -q
@@ -46,7 +55,7 @@ cov:  ## Tests with branch coverage and the minimum threshold
 audit:  ## Known vulnerabilities in dependencies
 	cd api && pip-audit --skip-editable
 
-check: lint typecheck arch docs-check schemas-check cov  ## Everything the CI runs on the Python code
+check: lint typecheck arch docs-check schemas-check openapi-check cov  ## Everything the CI runs on the Python code
 
 hooks:  ## Run every git hook on all files (commit and push stages)
 	pre-commit run --all-files
