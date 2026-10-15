@@ -21,7 +21,8 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: pip
           cache-dependency-path: api/pyproject.toml
-      - run: pip install -e "api[dev]"
+      # The runner image ships a setuptools with a known vulnerability (PYSEC-2026-3447); pip-audit sees it.
+      - run: pip install --upgrade "setuptools>=83" && pip install -e "api[dev]"
       - name: Commit-stage hooks (hygiene, ruff, mypy, architecture, docs sync, shellcheck)
         run: pre-commit run --all-files --show-diff-on-failure
       - name: Tests with branch coverage (threshold in api/pyproject.toml)
