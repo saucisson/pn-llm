@@ -52,6 +52,7 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/domain/mcc.py` | domain | Model Checking Contest catalog: `MccFamily` parsed from the models page, `MccInstance` from archive members, `ModelEntry`, `SeedReport` |
 | `app/domain/mcc_properties.py` | domain | The contest's formula XML read into formula trees (`parse_property_set`), `BoundQuery` for upper bounds; unknown elements are refused, never skipped |
 | `app/domain/mcc_xml.py` | domain | Formula trees written as the contest's property XML (the inverse of `parse_property_set`), which verifypn and others read natively |
+| `app/domain/conformance.py` | domain | Conformance cases, the engine-by-case matrix, wrong answers and contradictions flagged for triage |
 | `app/domain/mcc_results.py` | domain | The contest's published runs: tool names normalized, the contest's own outcome classes kept (never a verdict), success rate and median time per family |
 | `app/domain/splits.py` | domain | Frozen, seeded split of families into balanced development folds and a held-out test set (the family is the unit) |
 | `app/domain/sessions.py` | domain | `Session`, the frozen event vocabulary (`SessionEvent`) and `StoredEvent`; a verdict cannot be built without an engine result |
@@ -72,6 +73,7 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/application/log_context.py` | application | The request id of the request being served, read by the log formatter |
 | `app/application/retention.py` | application | `RetentionService`: delete sessions, nets and descriptions, and apply the retention policy |
 | `app/application/models.py` | application | `ModelCatalogService`: seed the platform with contest nets (family, instance, `mcc` description) and list them |
+| `app/application/conformance.py` | application | `ConformanceService`: the same cases through the engine gateway for several engines |
 | `app/application/results.py` | application | `ResultsService`: import the published results (all or nothing) and summarize them |
 | `app/application/splits.py` | application | `SplitService`: freeze a split of the catalog's families and read it back |
 | `app/application/leases.py` | application | `LeaseKeeper`: renews a running job's lease so other processes know its owner is alive |
@@ -109,6 +111,7 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/settings.py` | (config) | Pydantic settings from `PNVERIF_*` environment variables |
 | `app/main.py` | main | Composition root: `create_app(settings=...)` |
 | `app/seed.py` | main | `python -m app.seed [family...]`: download and store contest models; nothing downloaded is versioned |
+| `app/conformance.py` | main | `python -m app.conformance --cases FILE`: loads cases, runs them, prints the matrix, exits 1 when a row needs triage |
 
 ## The chat workflow
 A session is a conversation about one net (ADR 0008). Its log is the `events` table; the state is

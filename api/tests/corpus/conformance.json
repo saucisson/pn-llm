@@ -1,0 +1,410 @@
+[
+ {
+  "id": "mutex-reach-true",
+  "net": "hand/mutex.pnml",
+  "expected": "TRUE",
+  "source": "by hand: two processes share one lock, so the critical section holds at most one token",
+  "formula_text": "\"crit1\" >= 1",
+  "logic": "state"
+ },
+ {
+  "id": "mutex-reach-false",
+  "net": "hand/mutex.pnml",
+  "expected": "FALSE",
+  "source": "by hand: two processes share one lock, so the critical section holds at most one token",
+  "formula_text": "\"crit1\" >= 3",
+  "logic": "state"
+ },
+ {
+  "id": "mutex-ctl-true",
+  "net": "hand/mutex.pnml",
+  "expected": "TRUE",
+  "source": "by hand: two processes share one lock, so the critical section holds at most one token",
+  "formula_text": "AG \"crit1\" <= 1",
+  "logic": "ctl"
+ },
+ {
+  "id": "mutex-ctl-false",
+  "net": "hand/mutex.pnml",
+  "expected": "FALSE",
+  "source": "by hand: two processes share one lock, so the critical section holds at most one token",
+  "formula_text": "AG \"crit1\" < 1",
+  "logic": "ctl"
+ },
+ {
+  "id": "mutex-ltl-true",
+  "net": "hand/mutex.pnml",
+  "expected": "TRUE",
+  "source": "by hand: two processes share one lock, so the critical section holds at most one token",
+  "formula_text": "G \"crit1\" <= 1",
+  "logic": "ltl"
+ },
+ {
+  "id": "mutex-ltl-false",
+  "net": "hand/mutex.pnml",
+  "expected": "FALSE",
+  "source": "by hand: two processes share one lock, so the critical section holds at most one token",
+  "formula_text": "G \"crit1\" < 1",
+  "logic": "ltl"
+ },
+ {
+  "id": "mutex-no-deadlock",
+  "net": "hand/mutex.pnml",
+  "expected": "FALSE",
+  "source": "by hand: two processes share one lock, so the critical section holds at most one token",
+  "formula_text": "deadlock",
+  "logic": "state"
+ },
+ {
+  "id": "PGCD-COL-D04N050-ReachabilityCardinality-00",
+  "net": "mcc/PGCD-COL-D04N050/model.pnml",
+  "expected": "TRUE",
+  "source": "MCC 2026 reference answers (gold2025 row of GlobalSummary.csv)",
+  "examination": "ReachabilityCardinality",
+  "property_id": "PGCD-COL-D04N050-ReachabilityCardinality-2024-00"
+ },
+ {
+  "id": "PGCD-COL-D04N050-ReachabilityCardinality-01",
+  "net": "mcc/PGCD-COL-D04N050/model.pnml",
+  "expected": "FALSE",
+  "source": "MCC 2026 reference answers (gold2025 row of GlobalSummary.csv)",
+  "examination": "ReachabilityCardinality",
+  "property_id": "PGCD-COL-D04N050-ReachabilityCardinality-2024-01"
+ },
+ {
+  "id": "PGCD-COL-D04N050-ReachabilityCardinality-02",
+  "net": "mcc/PGCD-COL-D04N050/model.pnml",
+  "expected": "TRUE",
+  "source": "MCC 2026 reference answers (gold2025 row of GlobalSummary.csv)",
+  "examination": "ReachabilityCardinality",
+  "property_id": "PGCD-COL-D04N050-ReachabilityCardinality-2024-02"
+ },
+ {
+  "id": "PGCD-COL-D04N050-ReachabilityCardinality-03",
+  "net": "mcc/PGCD-COL-D04N050/model.pnml",
+  "expected": "TRUE",
+  "source": "MCC 2026 reference answers (gold2025 row of GlobalSummary.csv)",
+  "examination": "ReachabilityCardinality",
+  "property_id": "PGCD-COL-D04N050-ReachabilityCardinality-2024-03"
+ },
+ {
+  "id": "PGCD-COL-D04N050-ReachabilityFireability-00",
+  "net": "mcc/PGCD-COL-D04N050/model.pnml",
+  "expected": "FALSE",
+  "source": "MCC 2026 reference answers (gold2025 row of GlobalSummary.csv)",
+  "examination": "ReachabilityFireability",
+  "property_id": "PGCD-COL-D04N050-ReachabilityFireability-2024-00"
+ },
+ {
+  "id": "PGCD-COL-D04N050-ReachabilityFireability-01",
+  "net": "mcc/PGCD-COL-D04N050/model.pnml",
+  "expected": "FALSE",
+  "source": "MCC 2026 reference answers (gold2025 row of GlobalSummary.csv)",
+  "examination": "ReachabilityFireability",
+  "property_id": "PGCD-COL-D04N050-ReachabilityFireability-2024-01"
+ },
+ {
+  "id": "PGCD-COL-D04N050-ReachabilityFireability-02",
+  "net": "mcc/PGCD-COL-D04N050/model.pnml",
+  "expected": "TRUE",
+  "source": "MCC 2026 reference answers (gold2025 row of GlobalSummary.csv)",
+  "examination": "ReachabilityFireability",
+  "property_id": "PGCD-COL-D04N050-ReachabilityFireability-2024-02"
+ },
+ {
+  "id": "PGCD-COL-D04N050-ReachabilityFireability-03",
+  "net": "mcc/PGCD-COL-D04N050/model.pnml",
+  "expected": "TRUE",
+  "source": "MCC 2026 reference answers (gold2025 row of GlobalSummary.csv)",
+  "examination": "ReachabilityFireability",
+  "property_id": "PGCD-COL-D04N050-ReachabilityFireability-2024-03"
+ },
+ {
+  "id": "PGCD-COL-D04N050-CTLCardinality-00",
+  "net": "mcc/PGCD-COL-D04N050/model.pnml",
+  "expected": "TRUE",
+  "source": "MCC 2026 reference answers (gold2025 row of GlobalSummary.csv)",
+  "examination": "CTLCardinality",
+  "property_id": "PGCD-COL-D04N050-CTLCardinality-2024-00"
+ },
+ {
+  "id": "PGCD-COL-D04N050-CTLCardinality-01",
+  "net": "mcc/PGCD-COL-D04N050/model.pnml",
+  "expected": "FALSE",
+  "source": "MCC 2026 reference answers (gold2025 row of GlobalSummary.csv)",
+  "examination": "CTLCardinality",
+  "property_id": "PGCD-COL-D04N050-CTLCardinality-2024-01"
+ },
+ {
+  "id": "PGCD-COL-D04N050-CTLFireability-00",
+  "net": "mcc/PGCD-COL-D04N050/model.pnml",
+  "expected": "TRUE",
+  "source": "MCC 2026 reference answers (gold2025 row of GlobalSummary.csv)",
+  "examination": "CTLFireability",
+  "property_id": "PGCD-COL-D04N050-CTLFireability-2024-00"
+ },
+ {
+  "id": "PGCD-COL-D04N050-CTLFireability-01",
+  "net": "mcc/PGCD-COL-D04N050/model.pnml",
+  "expected": "TRUE",
+  "source": "MCC 2026 reference answers (gold2025 row of GlobalSummary.csv)",
+  "examination": "CTLFireability",
+  "property_id": "PGCD-COL-D04N050-CTLFireability-2024-01"
+ },
+ {
+  "id": "PGCD-COL-D04N050-CTLFireability-02",
+  "net": "mcc/PGCD-COL-D04N050/model.pnml",
+  "expected": "TRUE",
+  "source": "MCC 2026 reference answers (gold2025 row of GlobalSummary.csv)",
+  "examination": "CTLFireability",
+  "property_id": "PGCD-COL-D04N050-CTLFireability-2024-02"
+ },
+ {
+  "id": "PGCD-COL-D04N050-CTLFireability-03",
+  "net": "mcc/PGCD-COL-D04N050/model.pnml",
+  "expected": "TRUE",
+  "source": "MCC 2026 reference answers (gold2025 row of GlobalSummary.csv)",
+  "examination": "CTLFireability",
+  "property_id": "PGCD-COL-D04N050-CTLFireability-2024-03"
+ },
+ {
+  "id": "PGCD-COL-D04N050-LTLCardinality-00",
+  "net": "mcc/PGCD-COL-D04N050/model.pnml",
+  "expected": "TRUE",
+  "source": "MCC 2026 reference answers (gold2025 row of GlobalSummary.csv)",
+  "examination": "LTLCardinality",
+  "property_id": "PGCD-COL-D04N050-LTLCardinality-00"
+ },
+ {
+  "id": "PGCD-COL-D04N050-LTLCardinality-01",
+  "net": "mcc/PGCD-COL-D04N050/model.pnml",
+  "expected": "FALSE",
+  "source": "MCC 2026 reference answers (gold2025 row of GlobalSummary.csv)",
+  "examination": "LTLCardinality",
+  "property_id": "PGCD-COL-D04N050-LTLCardinality-01"
+ },
+ {
+  "id": "PGCD-COL-D04N050-LTLCardinality-02",
+  "net": "mcc/PGCD-COL-D04N050/model.pnml",
+  "expected": "FALSE",
+  "source": "MCC 2026 reference answers (gold2025 row of GlobalSummary.csv)",
+  "examination": "LTLCardinality",
+  "property_id": "PGCD-COL-D04N050-LTLCardinality-02"
+ },
+ {
+  "id": "PGCD-COL-D04N050-LTLCardinality-03",
+  "net": "mcc/PGCD-COL-D04N050/model.pnml",
+  "expected": "FALSE",
+  "source": "MCC 2026 reference answers (gold2025 row of GlobalSummary.csv)",
+  "examination": "LTLCardinality",
+  "property_id": "PGCD-COL-D04N050-LTLCardinality-03"
+ },
+ {
+  "id": "PGCD-COL-D04N050-LTLFireability-00",
+  "net": "mcc/PGCD-COL-D04N050/model.pnml",
+  "expected": "FALSE",
+  "source": "MCC 2026 reference answers (gold2025 row of GlobalSummary.csv)",
+  "examination": "LTLFireability",
+  "property_id": "PGCD-COL-D04N050-LTLFireability-00"
+ },
+ {
+  "id": "PGCD-COL-D04N050-LTLFireability-01",
+  "net": "mcc/PGCD-COL-D04N050/model.pnml",
+  "expected": "FALSE",
+  "source": "MCC 2026 reference answers (gold2025 row of GlobalSummary.csv)",
+  "examination": "LTLFireability",
+  "property_id": "PGCD-COL-D04N050-LTLFireability-01"
+ },
+ {
+  "id": "TwoPhaseLocking-PT-nC00004vN-ReachabilityCardinality-00",
+  "net": "mcc/TwoPhaseLocking-PT-nC00004vN/model.pnml",
+  "expected": "TRUE",
+  "source": "MCC 2026 reference answers (gold2025 row of GlobalSummary.csv)",
+  "examination": "ReachabilityCardinality",
+  "property_id": "TwoPhaseLocking-PT-nC00004vN-ReachabilityCardinality-2024-00"
+ },
+ {
+  "id": "TwoPhaseLocking-PT-nC00004vN-ReachabilityCardinality-01",
+  "net": "mcc/TwoPhaseLocking-PT-nC00004vN/model.pnml",
+  "expected": "TRUE",
+  "source": "MCC 2026 reference answers (gold2025 row of GlobalSummary.csv)",
+  "examination": "ReachabilityCardinality",
+  "property_id": "TwoPhaseLocking-PT-nC00004vN-ReachabilityCardinality-2024-01"
+ },
+ {
+  "id": "TwoPhaseLocking-PT-nC00004vN-ReachabilityCardinality-02",
+  "net": "mcc/TwoPhaseLocking-PT-nC00004vN/model.pnml",
+  "expected": "TRUE",
+  "source": "MCC 2026 reference answers (gold2025 row of GlobalSummary.csv)",
+  "examination": "ReachabilityCardinality",
+  "property_id": "TwoPhaseLocking-PT-nC00004vN-ReachabilityCardinality-2024-02"
+ },
+ {
+  "id": "TwoPhaseLocking-PT-nC00004vN-ReachabilityCardinality-03",
+  "net": "mcc/TwoPhaseLocking-PT-nC00004vN/model.pnml",
+  "expected": "FALSE",
+  "source": "MCC 2026 reference answers (gold2025 row of GlobalSummary.csv)",
+  "examination": "ReachabilityCardinality",
+  "property_id": "TwoPhaseLocking-PT-nC00004vN-ReachabilityCardinality-2024-03"
+ },
+ {
+  "id": "TwoPhaseLocking-PT-nC00004vN-ReachabilityFireability-00",
+  "net": "mcc/TwoPhaseLocking-PT-nC00004vN/model.pnml",
+  "expected": "FALSE",
+  "source": "MCC 2026 reference answers (gold2025 row of GlobalSummary.csv)",
+  "examination": "ReachabilityFireability",
+  "property_id": "TwoPhaseLocking-PT-nC00004vN-ReachabilityFireability-2024-00"
+ },
+ {
+  "id": "TwoPhaseLocking-PT-nC00004vN-ReachabilityFireability-01",
+  "net": "mcc/TwoPhaseLocking-PT-nC00004vN/model.pnml",
+  "expected": "TRUE",
+  "source": "MCC 2026 reference answers (gold2025 row of GlobalSummary.csv)",
+  "examination": "ReachabilityFireability",
+  "property_id": "TwoPhaseLocking-PT-nC00004vN-ReachabilityFireability-2024-01"
+ },
+ {
+  "id": "TwoPhaseLocking-PT-nC00004vN-ReachabilityFireability-02",
+  "net": "mcc/TwoPhaseLocking-PT-nC00004vN/model.pnml",
+  "expected": "TRUE",
+  "source": "MCC 2026 reference answers (gold2025 row of GlobalSummary.csv)",
+  "examination": "ReachabilityFireability",
+  "property_id": "TwoPhaseLocking-PT-nC00004vN-ReachabilityFireability-2024-02"
+ },
+ {
+  "id": "TwoPhaseLocking-PT-nC00004vN-ReachabilityFireability-03",
+  "net": "mcc/TwoPhaseLocking-PT-nC00004vN/model.pnml",
+  "expected": "TRUE",
+  "source": "MCC 2026 reference answers (gold2025 row of GlobalSummary.csv)",
+  "examination": "ReachabilityFireability",
+  "property_id": "TwoPhaseLocking-PT-nC00004vN-ReachabilityFireability-2024-03"
+ },
+ {
+  "id": "TwoPhaseLocking-PT-nC00004vN-CTLCardinality-00",
+  "net": "mcc/TwoPhaseLocking-PT-nC00004vN/model.pnml",
+  "expected": "FALSE",
+  "source": "MCC 2026 reference answers (gold2025 row of GlobalSummary.csv)",
+  "examination": "CTLCardinality",
+  "property_id": "TwoPhaseLocking-PT-nC00004vN-CTLCardinality-2024-00"
+ },
+ {
+  "id": "TwoPhaseLocking-PT-nC00004vN-CTLCardinality-01",
+  "net": "mcc/TwoPhaseLocking-PT-nC00004vN/model.pnml",
+  "expected": "TRUE",
+  "source": "MCC 2026 reference answers (gold2025 row of GlobalSummary.csv)",
+  "examination": "CTLCardinality",
+  "property_id": "TwoPhaseLocking-PT-nC00004vN-CTLCardinality-2024-01"
+ },
+ {
+  "id": "TwoPhaseLocking-PT-nC00004vN-CTLCardinality-02",
+  "net": "mcc/TwoPhaseLocking-PT-nC00004vN/model.pnml",
+  "expected": "FALSE",
+  "source": "MCC 2026 reference answers (gold2025 row of GlobalSummary.csv)",
+  "examination": "CTLCardinality",
+  "property_id": "TwoPhaseLocking-PT-nC00004vN-CTLCardinality-2024-02"
+ },
+ {
+  "id": "TwoPhaseLocking-PT-nC00004vN-CTLCardinality-03",
+  "net": "mcc/TwoPhaseLocking-PT-nC00004vN/model.pnml",
+  "expected": "FALSE",
+  "source": "MCC 2026 reference answers (gold2025 row of GlobalSummary.csv)",
+  "examination": "CTLCardinality",
+  "property_id": "TwoPhaseLocking-PT-nC00004vN-CTLCardinality-2024-03"
+ },
+ {
+  "id": "TwoPhaseLocking-PT-nC00004vN-CTLFireability-00",
+  "net": "mcc/TwoPhaseLocking-PT-nC00004vN/model.pnml",
+  "expected": "FALSE",
+  "source": "MCC 2026 reference answers (gold2025 row of GlobalSummary.csv)",
+  "examination": "CTLFireability",
+  "property_id": "TwoPhaseLocking-PT-nC00004vN-CTLFireability-2024-00"
+ },
+ {
+  "id": "TwoPhaseLocking-PT-nC00004vN-CTLFireability-01",
+  "net": "mcc/TwoPhaseLocking-PT-nC00004vN/model.pnml",
+  "expected": "TRUE",
+  "source": "MCC 2026 reference answers (gold2025 row of GlobalSummary.csv)",
+  "examination": "CTLFireability",
+  "property_id": "TwoPhaseLocking-PT-nC00004vN-CTLFireability-2024-01"
+ },
+ {
+  "id": "TwoPhaseLocking-PT-nC00004vN-CTLFireability-02",
+  "net": "mcc/TwoPhaseLocking-PT-nC00004vN/model.pnml",
+  "expected": "TRUE",
+  "source": "MCC 2026 reference answers (gold2025 row of GlobalSummary.csv)",
+  "examination": "CTLFireability",
+  "property_id": "TwoPhaseLocking-PT-nC00004vN-CTLFireability-2024-02"
+ },
+ {
+  "id": "TwoPhaseLocking-PT-nC00004vN-CTLFireability-03",
+  "net": "mcc/TwoPhaseLocking-PT-nC00004vN/model.pnml",
+  "expected": "FALSE",
+  "source": "MCC 2026 reference answers (gold2025 row of GlobalSummary.csv)",
+  "examination": "CTLFireability",
+  "property_id": "TwoPhaseLocking-PT-nC00004vN-CTLFireability-2024-03"
+ },
+ {
+  "id": "TwoPhaseLocking-PT-nC00004vN-LTLCardinality-00",
+  "net": "mcc/TwoPhaseLocking-PT-nC00004vN/model.pnml",
+  "expected": "FALSE",
+  "source": "MCC 2026 reference answers (gold2025 row of GlobalSummary.csv)",
+  "examination": "LTLCardinality",
+  "property_id": "TwoPhaseLocking-PT-nC00004vN-LTLCardinality-00"
+ },
+ {
+  "id": "TwoPhaseLocking-PT-nC00004vN-LTLCardinality-01",
+  "net": "mcc/TwoPhaseLocking-PT-nC00004vN/model.pnml",
+  "expected": "FALSE",
+  "source": "MCC 2026 reference answers (gold2025 row of GlobalSummary.csv)",
+  "examination": "LTLCardinality",
+  "property_id": "TwoPhaseLocking-PT-nC00004vN-LTLCardinality-01"
+ },
+ {
+  "id": "TwoPhaseLocking-PT-nC00004vN-LTLCardinality-02",
+  "net": "mcc/TwoPhaseLocking-PT-nC00004vN/model.pnml",
+  "expected": "FALSE",
+  "source": "MCC 2026 reference answers (gold2025 row of GlobalSummary.csv)",
+  "examination": "LTLCardinality",
+  "property_id": "TwoPhaseLocking-PT-nC00004vN-LTLCardinality-02"
+ },
+ {
+  "id": "TwoPhaseLocking-PT-nC00004vN-LTLCardinality-03",
+  "net": "mcc/TwoPhaseLocking-PT-nC00004vN/model.pnml",
+  "expected": "FALSE",
+  "source": "MCC 2026 reference answers (gold2025 row of GlobalSummary.csv)",
+  "examination": "LTLCardinality",
+  "property_id": "TwoPhaseLocking-PT-nC00004vN-LTLCardinality-03"
+ },
+ {
+  "id": "TwoPhaseLocking-PT-nC00004vN-LTLFireability-00",
+  "net": "mcc/TwoPhaseLocking-PT-nC00004vN/model.pnml",
+  "expected": "TRUE",
+  "source": "MCC 2026 reference answers (gold2025 row of GlobalSummary.csv)",
+  "examination": "LTLFireability",
+  "property_id": "TwoPhaseLocking-PT-nC00004vN-LTLFireability-00"
+ },
+ {
+  "id": "TwoPhaseLocking-PT-nC00004vN-LTLFireability-01",
+  "net": "mcc/TwoPhaseLocking-PT-nC00004vN/model.pnml",
+  "expected": "FALSE",
+  "source": "MCC 2026 reference answers (gold2025 row of GlobalSummary.csv)",
+  "examination": "LTLFireability",
+  "property_id": "TwoPhaseLocking-PT-nC00004vN-LTLFireability-01"
+ },
+ {
+  "id": "TwoPhaseLocking-PT-nC00004vN-LTLFireability-02",
+  "net": "mcc/TwoPhaseLocking-PT-nC00004vN/model.pnml",
+  "expected": "TRUE",
+  "source": "MCC 2026 reference answers (gold2025 row of GlobalSummary.csv)",
+  "examination": "LTLFireability",
+  "property_id": "TwoPhaseLocking-PT-nC00004vN-LTLFireability-02"
+ },
+ {
+  "id": "TwoPhaseLocking-PT-nC00004vN-LTLFireability-03",
+  "net": "mcc/TwoPhaseLocking-PT-nC00004vN/model.pnml",
+  "expected": "TRUE",
+  "source": "MCC 2026 reference answers (gold2025 row of GlobalSummary.csv)",
+  "examination": "LTLFireability",
+  "property_id": "TwoPhaseLocking-PT-nC00004vN-LTLFireability-03"
+ }
+]

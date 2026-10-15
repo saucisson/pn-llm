@@ -1,7 +1,7 @@
 # Integrated engines
 
 What each engine is, how it was pinned, what it covers and what is known about its behaviour.
-How to add one: `docs/engine-integration-checklist.md`; contract: `docs/engine-contract.md`.
+How to add one: `docs/adding-an-engine.md` (the path) and `docs/engine-integration-checklist.md` (the rules); the latest matrix: `docs/conformance-report.md`; contract: `docs/engine-contract.md`.
 
 | Engine | Tool and version | Licence | Logics | Colored | Image |
 |---|---|---|---|---|---|
