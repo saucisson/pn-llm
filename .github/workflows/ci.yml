@@ -21,8 +21,13 @@ jobs:
       # The runner image ships a setuptools with a known vulnerability (PYSEC-2026-3447); pip-audit sees it.
       - run: pip install --upgrade "setuptools>=83" && pip install -e "api[dev]"
       - name: Commit-stage hooks (hygiene, ruff, mypy, architecture, docs sync, shellcheck)
+        # The ui hook needs Node and node_modules: the ui job runs it.
+        env:
+          SKIP: ui
         run: pre-commit run --all-files --show-diff-on-failure
       - name: Tests with branch coverage (threshold in api/pyproject.toml)
+        env:
+          SKIP: ui
         run: pre-commit run --all-files --hook-stage pre-push --show-diff-on-failure
       - name: Known vulnerabilities in dependencies
         run: cd api && pip-audit --skip-editable
