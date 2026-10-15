@@ -19,6 +19,7 @@ class InvalidNetError(InvalidRequestError):
     def __init__(self, message: str, *, location: str | None = None) -> None:  # noqa: PLR0917 - exception message
         """Create the error with its message and, when known, where the fault is."""
         super().__init__(message if location is None else f"{message} (at {location})")
+        self.reason = message
         self.location = location
 
 
