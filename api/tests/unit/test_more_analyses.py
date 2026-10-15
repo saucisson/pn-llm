@@ -88,6 +88,7 @@ def test_places_in_a_marked_invariant_are_bounded_by_its_constant():
         "lock": FiniteBound(value=1),
     }
     assert (result.finite, result.unbounded, result.unknown) == (3, 0, 0)
+    assert result.largest_finite_bound == 1
 
 
 def test_a_weighted_invariant_bounds_by_integer_division():

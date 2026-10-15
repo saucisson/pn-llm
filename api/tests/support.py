@@ -231,6 +231,25 @@ class InProcessNative:
         return self.tamper(report) if self.tamper else report
 
 
+def make_analysis_tools(*, store, path, engines=None):
+    """The analysis tools of the agent over a store, with the native engine as a function call."""
+    from app.application.analysis_tools import AnalysisTools
+    from app.application.operations import OperationService
+    from app.infrastructure.sqlite_operations import SqliteOperations
+
+    return AnalysisTools(
+        operations=OperationService(
+            nets=store,
+            runs=SqliteOperations(path=path),
+            engines=engines or InProcessNative(),
+            lease_seconds=60,
+            wait_seconds=0,
+        ),
+        poll_seconds=0.001,
+        summary_max_chars=4_000,
+    )
+
+
 def query(*, path, sql, params=()):
     """Run one read-only SQL statement on a database file and close the connection."""
     import contextlib

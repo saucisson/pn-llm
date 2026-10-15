@@ -7279,6 +7279,17 @@
             "title": "Finite",
             "type": "integer"
           },
+          "largest_finite_bound": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Largest Finite Bound"
+          },
           "total": {
             "title": "Total",
             "type": "integer"
@@ -7298,6 +7309,7 @@
           "finite",
           "unbounded",
           "unknown",
+          "largest_finite_bound",
           "complete"
         ],
         "title": "PlaceBoundsResult",

@@ -48,7 +48,8 @@ from app.domain.sessions import (
 
 from .leases import LeaseKeeper
 from .ports import DescriptionRepository, LlmGateway, NetRepository, SessionRepository
-from .tools import ToolContext, ToolFacade
+from .tool_kit import ToolContext
+from .tools import ToolFacade
 
 SESSION_ID_LENGTH = 12
 

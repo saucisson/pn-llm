@@ -10,14 +10,12 @@ engine result, a question).
 
 from __future__ import annotations
 
-import json
 import time
 from collections.abc import Callable
 
-from pydantic import BaseModel, JsonValue, TypeAdapter, ValidationError
+from pydantic import ValidationError
 
-from app.domain.contract import MarkingEntry, Page, PageRequest
-from app.domain.descriptions import Description
+from app.domain.contract import MarkingEntry, PageRequest
 from app.domain.errors import DomainError
 from app.domain.formula import Formula
 from app.domain.formula_check import FormulaValidationRequest
@@ -31,7 +29,6 @@ from app.domain.sessions import (
     DescriptionProposed,
     PropertyProposed,
     Question,
-    Session,
     SessionEvent,
     Verdict,
 )
@@ -53,40 +50,24 @@ from app.domain.tool_inputs import (
     ValidateFormulaArguments,
 )
 
+from .analysis_tools import AnalysisTools
 from .checks import CheckService
 from .formulas import FormulaService
 from .inspection import InspectionService
+from .tool_kit import (
+    Tool,
+    ToolContext,
+    ToolOutcome,
+    ToolPayload,
+    answer,
+    define_tool,
+    failure,
+)
 
 MAX_TRACE_STEPS = 200
 MAX_MARKING_ENTRIES = 50
 JOB_GRACE_SECONDS = 30.0
 FINAL_STATES = frozenset({JobState.DONE, JobState.CANCELLED, JobState.INTERRUPTED})
-
-
-class ToolContext(DomainModel):
-    """What a tool may know of the conversation that calls it."""
-
-    session: Session
-    description: Description | None = None
-    # Set by the facade for each call: the id of the call being served.
-    call_id: str = ""
-
-
-class ToolOutcome(DomainModel):
-    """The result of one tool call: the text for the model, and the events it caused."""
-
-    ok: bool
-    content: str
-    events: tuple[SessionEvent, ...] = ()
-
-
-class ToolPayload(DomainModel):
-    """The trimmed shape of every tool answer (ADR 0017): no envelope noise."""
-
-    status: str
-    data: JsonValue = None
-    truncated: Page | None = None
-    error: str | None = None
 
 
 class DescriptionData(DomainModel):
@@ -124,40 +105,6 @@ class ReplayData(DomainModel):
     state_formula_holds: bool | None = None
 
 
-class Tool(DomainModel, arbitrary_types_allowed=True):
-    """A tool: its specification, the model of its arguments and the function that runs it."""
-
-    spec: ToolSpec
-    arguments: type[BaseModel]
-    run: Callable[..., ToolOutcome]
-
-
-def define_tool(
-    *, name: str, description: str, arguments: type[BaseModel], run: Callable[..., ToolOutcome]
-) -> Tool:
-    """Build a tool; the input schema shown to the model comes from the arguments model."""
-    schema = json.dumps(arguments.model_json_schema(), sort_keys=True)
-    return Tool(
-        spec=ToolSpec(name=name, description=description, input_schema=schema),
-        arguments=arguments,
-        run=run,
-    )
-
-
-def to_json(*, value: object) -> JsonValue:
-    """Turn a pydantic value, or a tuple of them, into plain JSON data."""
-    adapter: TypeAdapter[JsonValue] = TypeAdapter(JsonValue)
-    return adapter.validate_python(
-        TypeAdapter(type(value)).dump_python(value, mode="json", exclude_none=True)
-    )
-
-
-def failure(*, message: str) -> ToolOutcome:
-    """Build the outcome of a tool that could not do what was asked."""
-    payload = ToolPayload(status="error", error=message)
-    return ToolOutcome(ok=False, content=payload.model_dump_json(exclude_none=True))
-
-
 class ToolFacade:
     """The tools of the agent, built over the use cases."""
 
@@ -167,6 +114,7 @@ class ToolFacade:
         inspection: InspectionService,
         formulas: FormulaService,
         checks: CheckService,
+        analyses: AnalysisTools,
         max_result_chars: int,
         poll_seconds: float,
     ) -> None:
@@ -174,9 +122,10 @@ class ToolFacade:
         self._inspection = inspection
         self._formulas = formulas
         self._checks = checks
+        self._analyses = analyses
         self._max_result_chars = max_result_chars
         self._poll_seconds = poll_seconds
-        self._tools = (*self.reading_tools(), *self.acting_tools())
+        self._tools = (*self.reading_tools(), *analyses.tools(), *self.acting_tools())
 
     def reading_tools(self) -> tuple[Tool, ...]:
         """The tools that only look: the net, its description."""
@@ -341,19 +290,13 @@ class ToolFacade:
             )
         return outcome
 
-    def answer(self, *, data: object, page: Page | None = None) -> ToolOutcome:
-        """Build a successful outcome from a result and, for lists, the page information."""
-        truncated = page if page is not None and page.next_cursor is not None else None
-        payload = ToolPayload(status="ok", data=to_json(value=data), truncated=truncated)
-        return ToolOutcome(ok=True, content=payload.model_dump_json(exclude_none=True))
-
     # ---- inspection tools -----------------------------------------------------------------
 
     def net_summary(
         self, *, context: ToolContext, arguments: NoArguments, is_cancelled: Callable[[], bool]
     ) -> ToolOutcome:
         """Counts, kind and structural flags."""
-        return self.answer(data=self._inspection.overview(net_id=context.session.net_id))
+        return answer(data=self._inspection.overview(net_id=context.session.net_id))
 
     def list_places(
         self,
@@ -369,7 +312,7 @@ class ToolFacade:
             marked=arguments.marked,
             page=PageRequest(limit=arguments.limit, cursor=arguments.cursor),
         )
-        return self.answer(data=found.items, page=found.page)
+        return answer(data=found.items, page=found.page)
 
     def list_transitions(
         self,
@@ -384,7 +327,7 @@ class ToolFacade:
             name=arguments.name,
             page=PageRequest(limit=arguments.limit, cursor=arguments.cursor),
         )
-        return self.answer(data=found.items, page=found.page)
+        return answer(data=found.items, page=found.page)
 
     def list_arcs(
         self,
@@ -400,13 +343,13 @@ class ToolFacade:
             target=arguments.target,
             page=PageRequest(limit=arguments.limit, cursor=arguments.cursor),
         )
-        return self.answer(data=found.items, page=found.page)
+        return answer(data=found.items, page=found.page)
 
     def get_element(
         self, *, context: ToolContext, arguments: ElementArguments, is_cancelled: Callable[[], bool]
     ) -> ToolOutcome:
         """One element."""
-        return self.answer(
+        return answer(
             data=self._inspection.element(
                 net_id=context.session.net_id, element_id=arguments.element_id
             )
@@ -421,7 +364,7 @@ class ToolFacade:
             query=arguments.query,
             page=PageRequest(limit=arguments.limit, cursor=arguments.cursor),
         )
-        return self.answer(data=found.items, page=found.page)
+        return answer(data=found.items, page=found.page)
 
     def get_marking(
         self, *, context: ToolContext, arguments: PageArguments, is_cancelled: Callable[[], bool]
@@ -431,7 +374,7 @@ class ToolFacade:
             net_id=context.session.net_id,
             page=PageRequest(limit=arguments.limit, cursor=arguments.cursor),
         )
-        return self.answer(data=found.items, page=found.page)
+        return answer(data=found.items, page=found.page)
 
     def neighbourhood(
         self,
@@ -441,7 +384,7 @@ class ToolFacade:
         is_cancelled: Callable[[], bool],
     ) -> ToolOutcome:
         """Elements near some elements."""
-        return self.answer(
+        return answer(
             data=self._inspection.neighbourhood(
                 net_id=context.session.net_id,
                 ids=arguments.ids,
@@ -463,15 +406,15 @@ class ToolFacade:
             min_count=arguments.min_count,
             page=PageRequest(limit=arguments.limit, cursor=arguments.cursor),
         )
-        return self.answer(data=found.items, page=found.page)
+        return answer(data=found.items, page=found.page)
 
     def get_description(
         self, *, context: ToolContext, arguments: NoArguments, is_cancelled: Callable[[], bool]
     ) -> ToolOutcome:
         """The description of the system given by the user, as quoted data."""
         if context.description is None:
-            return self.answer(data=DescriptionData(provided=False))
-        return self.answer(
+            return answer(data=DescriptionData(provided=False))
+        return answer(
             data=DescriptionData(
                 provided=True,
                 description=context.description.text,
@@ -500,7 +443,7 @@ class ToolFacade:
                 origin="llm",
             )
         )
-        return self.answer(data=report)
+        return answer(data=report)
 
     def check_formulas(
         self,
@@ -573,7 +516,7 @@ class ToolFacade:
                     has_trace=result.trace_url is not None,
                 )
             )
-        outcome = self.answer(data=CheckData(job_id=job_id, results=job.results))
+        outcome = answer(data=CheckData(job_id=job_id, results=job.results))
         return outcome.model_copy(update={"events": tuple(events)})
 
     def get_trace(
@@ -585,7 +528,7 @@ class ToolFacade:
             return failure(message="That job belongs to another net")
         trace = self._checks.trace(job_id=arguments.job_id, result_index=arguments.result_index)
         shown = trace.model_copy(update={"steps": trace.steps[:MAX_TRACE_STEPS]})
-        return self.answer(
+        return answer(
             data=TraceData(
                 formula_id=shown.formula_id,
                 steps=tuple(step.transition.id for step in shown.steps),
@@ -611,7 +554,7 @@ class ToolFacade:
                 page=PageRequest(limit=1),
             ),
         )
-        return self.answer(
+        return answer(
             data=ReplayData(
                 valid=result.valid,
                 replayed=result.replayed,

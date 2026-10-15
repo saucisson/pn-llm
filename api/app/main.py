@@ -27,6 +27,7 @@ from app.api import (
 from app.api.errors import register_error_handlers
 from app.api.middleware import log_requests
 from app.application.agent import AgentConfig, AgentService
+from app.application.analysis_tools import AnalysisTools
 from app.application.checks import CheckService
 from app.application.descriptions import DescriptionService
 from app.application.engines import EngineService
@@ -76,13 +77,23 @@ def build_llm(*, config: Settings) -> LlmGateway:
 
 
 def build_agent(
-    *, config: Settings, store: SqliteStore, checks: CheckService, llm: LlmGateway
+    *,
+    config: Settings,
+    store: SqliteStore,
+    checks: CheckService,
+    operations: OperationService,
+    llm: LlmGateway,
 ) -> AgentService:
     """Wire the agent over the store, the use cases it exposes as tools, and a language model."""
     tools = ToolFacade(
         inspection=InspectionService(nets=store),
         formulas=FormulaService(nets=store),
         checks=checks,
+        analyses=AnalysisTools(
+            operations=operations,
+            poll_seconds=config.tool_poll_seconds,
+            summary_max_chars=config.analysis_summary_max_chars,
+        ),
         max_result_chars=config.tool_result_max_chars,
         poll_seconds=config.tool_poll_seconds,
     )
@@ -175,7 +186,11 @@ def create_app(
     )
     operations_service = build_operations(config=config, store=store, engines=registry)
     agent = build_agent(
-        config=config, store=store, checks=checks, llm=llm_gateway or build_llm(config=config)
+        config=config,
+        store=store,
+        checks=checks,
+        operations=operations_service,
+        llm=llm_gateway or build_llm(config=config),
     )
     retention = build_retention(config=config, store=store, agent=agent)
 
@@ -270,7 +285,13 @@ def worker_main() -> None:
         nets=store, jobs=store, engines=registry, lease_seconds=config.job_lease_seconds
     )
     operations_service = build_operations(config=config, store=store, engines=registry)
-    agent = build_agent(config=config, store=store, checks=checks, llm=build_llm(config=config))
+    agent = build_agent(
+        config=config,
+        store=store,
+        checks=checks,
+        operations=operations_service,
+        llm=build_llm(config=config),
+    )
     retention = build_retention(config=config, store=store, agent=agent)
     stopping = threading.Event()
     handler: Callable[..., None] = lambda *_: stopping.set()  # noqa: E731 - signal handler

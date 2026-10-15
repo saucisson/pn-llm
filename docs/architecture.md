@@ -55,6 +55,7 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/domain/conformance.py` | domain | Conformance cases, the engine-by-case matrix, wrong answers and contradictions flagged for triage |
 | `app/domain/operations.py` | domain | The operations (analyses, reductions): `OperationDefinition`, the request, the run and its outcome |
 | `app/domain/operation_check.py` | domain | Checks what an engine says an operation found: the shape, and only elements the net has, with their names |
+| `app/domain/analysis_summary.py` | domain | The size-bounded digest of the analyses given to the LLM: exact counts, a few named examples, and what could not be computed |
 | the package `app/domain/analyses` | domain | The analyses, one module each; its `__init__` is the catalog `ANALYSES` and `find_operation` |
 | `app/domain/analyses/t_invariants.py` | domain | Analysis `t-invariants`: semiflows of the transposed incidence matrix |
 | `app/domain/analyses/place_bounds.py` | domain | Analysis `place-bounds`: bounds from the P-invariants; unbounded only when a source transition feeds a place |
@@ -90,6 +91,8 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/application/models.py` | application | `ModelCatalogService`: seed the platform with contest nets (family, instance, `mcc` description) and list them |
 | `app/application/conformance.py` | application | `ConformanceService`: the same cases through the engine gateway for several engines |
 | `app/application/operations.py` | application | `OperationService`: describe, submit, run and read operations; a finished run is the cache of its key |
+| `app/application/tool_kit.py` | application | What every tool is made of: context, outcome, trimmed JSON answers |
+| `app/application/analysis_tools.py` | application | The tools `analysis_summary` and `analyze`: the operation runner as the agent's tools |
 | `app/application/results.py` | application | `ResultsService`: import the published results (all or nothing) and summarize them |
 | `app/application/splits.py` | application | `SplitService`: freeze a split of the catalog's families and read it back |
 | `app/application/leases.py` | application | `LeaseKeeper`: renews a running job's lease so other processes know its owner is alive |

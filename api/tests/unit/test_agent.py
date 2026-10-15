@@ -14,7 +14,7 @@ from app.domain.nets import summarize_document
 from app.domain.sessions import SessionState
 from app.infrastructure.scripted_llm import ScriptedLlm
 from app.infrastructure.unavailable_llm import UnavailableLlm
-from tests.support import LEASE, MUTEX_DOCUMENT, ScriptedEngines
+from tests.support import LEASE, MUTEX_DOCUMENT, ScriptedEngines, make_analysis_tools
 
 CONFIG = AgentConfig(
     max_steps=10, max_tool_calls=20, max_tokens=100_000, max_seconds=60, lease_seconds=LEASE
@@ -38,6 +38,7 @@ def build(*, store, llm, config=CONFIG, engines=None):
         inspection=InspectionService(nets=store),
         formulas=FormulaService(nets=store),
         checks=checks,
+        analyses=make_analysis_tools(store=store, path=store._path),
         max_result_chars=20_000,
         poll_seconds=0.001,
     )

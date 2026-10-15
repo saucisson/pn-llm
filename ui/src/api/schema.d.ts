@@ -3306,6 +3306,8 @@ export interface components {
             complete: boolean;
             /** Finite */
             finite: number;
+            /** Largest Finite Bound */
+            largest_finite_bound: number | null;
             /** Total */
             total: number;
             /** Unbounded */
