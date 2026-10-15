@@ -74,8 +74,10 @@ def test_a_database_from_a_newer_version_is_refused_untouched(tmp_path):
     assert tables_of(path) == set()
 
 
-def test_several_processes_starting_together_migrate_once(tmp_path):
-    path = tmp_path / "race.sqlite"
+@pytest.mark.parametrize("round_number", range(30))
+def test_several_processes_starting_together_migrate_once(tmp_path, round_number):
+    """Without the retry on the switch to WAL, about one start in six failed with 'locked'."""
+    path = tmp_path / f"race{round_number}.sqlite"
     errors = []
 
     def start():
@@ -84,7 +86,7 @@ def test_several_processes_starting_together_migrate_once(tmp_path):
         except Exception as exc:  # noqa: BLE001 - collected to fail the test with the cause
             errors.append(exc)
 
-    threads = [threading.Thread(target=start) for _ in range(6)]
+    threads = [threading.Thread(target=start) for _ in range(8)]
     for thread in threads:
         thread.start()
     for thread in threads:
