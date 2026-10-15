@@ -1,0 +1,71 @@
+{
+  "$defs": {
+    "ElementRef": {
+      "description": "Cite a place or a transition by id; the name is kept exactly as in the net.",
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "place",
+            "transition"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Name"
+        }
+      },
+      "required": [
+        "id",
+        "kind"
+      ],
+      "title": "ElementRef",
+      "type": "object"
+    }
+  },
+  "description": "An arc with both ends cited by reference.",
+  "properties": {
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "source": {
+      "$ref": "#/$defs/ElementRef"
+    },
+    "target": {
+      "$ref": "#/$defs/ElementRef"
+    },
+    "weight": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Weight"
+    }
+  },
+  "required": [
+    "id",
+    "source",
+    "target"
+  ],
+  "title": "ArcView",
+  "type": "object"
+}

@@ -7,17 +7,25 @@ import json
 from pydantic import BaseModel
 
 from .contract import ElementRef, Envelope, Marking, Page, PageRequest
+from .inspection import ArcView, ElementDetail, NameGroup, Neighbourhood, NetOverview
 from .models import CheckRequest, EngineInfo, FormulaResult
 from .net_document import NetDocument
+from .nets import NetRegistration
 
 EXPORTED_MODELS: tuple[type[BaseModel], ...] = (
+    ArcView,
     CheckRequest,
+    ElementDetail,
     ElementRef,
     EngineInfo,
     Envelope,
     FormulaResult,
     Marking,
+    NameGroup,
+    Neighbourhood,
     NetDocument,
+    NetOverview,
+    NetRegistration,
     Page,
     PageRequest,
 )

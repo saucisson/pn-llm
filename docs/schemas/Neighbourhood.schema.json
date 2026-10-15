@@ -1,0 +1,132 @@
+{
+  "$defs": {
+    "ArcView": {
+      "description": "An arc with both ends cited by reference.",
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "source": {
+          "$ref": "#/$defs/ElementRef"
+        },
+        "target": {
+          "$ref": "#/$defs/ElementRef"
+        },
+        "weight": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Weight"
+        }
+      },
+      "required": [
+        "id",
+        "source",
+        "target"
+      ],
+      "title": "ArcView",
+      "type": "object"
+    },
+    "DistantElement": {
+      "description": "An element of a neighbourhood and its distance, in arcs, from the nearest center.",
+      "properties": {
+        "distance": {
+          "title": "Distance",
+          "type": "integer"
+        },
+        "element": {
+          "$ref": "#/$defs/ElementRef"
+        }
+      },
+      "required": [
+        "element",
+        "distance"
+      ],
+      "title": "DistantElement",
+      "type": "object"
+    },
+    "ElementRef": {
+      "description": "Cite a place or a transition by id; the name is kept exactly as in the net.",
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "place",
+            "transition"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Name"
+        }
+      },
+      "required": [
+        "id",
+        "kind"
+      ],
+      "title": "ElementRef",
+      "type": "object"
+    }
+  },
+  "description": "The elements within a distance of some centers, and the arcs between them.\n\n``cut`` is true when the size cap stopped the exploration: more elements exist at a distance\nnot above ``depth``.",
+  "properties": {
+    "arcs": {
+      "items": {
+        "$ref": "#/$defs/ArcView"
+      },
+      "title": "Arcs",
+      "type": "array"
+    },
+    "centers": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Centers",
+      "type": "array"
+    },
+    "cut": {
+      "title": "Cut",
+      "type": "boolean"
+    },
+    "depth": {
+      "title": "Depth",
+      "type": "integer"
+    },
+    "elements": {
+      "items": {
+        "$ref": "#/$defs/DistantElement"
+      },
+      "title": "Elements",
+      "type": "array"
+    }
+  },
+  "required": [
+    "centers",
+    "depth",
+    "elements",
+    "arcs",
+    "cut"
+  ],
+  "title": "Neighbourhood",
+  "type": "object"
+}

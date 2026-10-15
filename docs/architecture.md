@@ -37,10 +37,15 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/domain/pnml_import.py` | domain | Hardened PNML reader producing a `NetDocument`; errors located by line |
 | `app/domain/pnml_export.py` | domain | Deterministic PNML rendered from a `NetDocument` (engine input and `Accept: application/pnml+xml`) |
 | `app/domain/nets.py` | domain | `NetSummary`, `StoredNet`, `SavedNet`, `NetFormat`; summary of a document |
+| `app/domain/pagination.py` | domain | `Paged` lists and opaque offset cursors |
+| `app/domain/net_structure.py` | domain | `NetStructure`: places, transitions and arcs flattened from the page tree, references resolved |
+| `app/domain/inspection.py` | domain | Inspection results (`NetOverview`, `ElementDetail`, `Neighbourhood`, `NameGroup`) and their computation |
+| `app/domain/net_leak.py` | domain | Detect a net (PNML, XML, net document) in text bound for the LLM |
 | `app/domain/errors.py` | domain | Domain errors, the failures that are part of the API contract |
 | `app/domain/contract.py` | domain | Shared JSON contract: `Envelope`, `ElementRef`, `Marking`, `Bound`, `Page` (docs/json-contract.md) |
 | `app/application/ports.py` | application | Protocols the use cases need: `NetRepository`, `JobRepository`, `EngineGateway` |
 | `app/application/nets.py` | application | `NetService`: convert an upload to the canonical document, store and read nets |
+| `app/application/inspection.py` | application | `InspectionService`: summary, lists, element, search, marking, neighbourhood, name groups |
 | `app/application/leases.py` | application | `LeaseKeeper`: renews a running job's lease so other processes know its owner is alive |
 | `app/application/checks.py` | application | `CheckService`: submit, execute, read and cancel checks |
 | `app/application/engines.py` | application | `EngineService`: list engines |
@@ -53,6 +58,9 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/api/negotiation.py` | api | `Content-Type` and `Accept` negotiation |
 | `app/api/jobs.py` | api | Routes for checks and jobs |
 | `app/api/engines.py` | api | Route `/v1/engines` |
+| `app/api/inspection.py` | api | Read-only inspection routes under `/v1/nets/{id}` |
+| `app/api/envelopes.py` | api | Build the shared result envelope |
+| `app/api/llm_tools.py` | api | Which routes may be offered to the LLM (all but the net itself) |
 | `app/settings.py` | (config) | Pydantic settings from `PNVERIF_*` environment variables |
 | `app/main.py` | main | Composition root: `create_app(settings=...)` |
 

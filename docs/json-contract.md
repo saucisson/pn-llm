@@ -127,6 +127,16 @@ no tool returns the net itself, in any format.
 | `/replay` (`POST`) | Replay a trace on the net | validity and failing step |
 | `/description` | The user's text description (the only text document) | text with origin |
 
+Implemented details: lists are paginated with `limit` (1 to 500, default 50) and an opaque
+`cursor`; `truncated` is set exactly when more items exist. `/places` and `/transitions` filter by
+`name` (glob `*`, `?`, case-sensitive); `/places` also by `marked`. `/search?q=` ignores case and
+looks in names and ids. `/neighbourhood?ids=a&ids=b&depth=1&max_elements=100` ignores arc
+direction, adds elements by distance then id, and sets `cut` when the cap stopped it (depth at
+most 5, cap at most 500). `/name-groups` reports each family as `pattern` (numbers written `{}`),
+`count`, one range per number (`min`, `max`, `distinct`, `width` when zero-padded) and an example.
+`/summary` returns counts, the net kind, a size category and structural flags, never names.
+Reference places and transitions are resolved: arcs always join real nodes.
+
 ### Analyses (`POST /analyses/{operation}`, one per operation)
 | Operation | Result `data` |
 |---|---|
