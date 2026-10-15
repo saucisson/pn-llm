@@ -43,7 +43,7 @@ class CheckService:
     def submit(self, *, net_id: str, request: CheckRequest) -> JobSubmission:
         """Register a check. The same net and request give the same job, also across restarts.
 
-        The caller executes the job only when ``created`` is True.
+        A new job is queued: a worker runs it (``run_next``).
 
         Raises:
             NotFoundError: if the net is unknown.
@@ -70,16 +70,19 @@ class CheckService:
             state=JobState.QUEUED,
             request=request,
         )
-        return self._jobs.create_or_get_job(job=job, lease_seconds=self._lease_seconds)
+        return self._jobs.create_or_get_job(job=job)
 
-    def execute(self, *, job_id: str) -> None:
-        """Run a queued job to completion. Does nothing if it is no longer queued.
+    def run_next(self) -> bool:
+        """Claim the oldest queued job and run it to completion; False if the queue was empty.
 
         An engine crash never leaves the job running: it becomes an ERROR verdict per formula.
+        Safe to call from several workers and several processes: a job is claimed by exactly one.
         """
-        if not self._jobs.mark_running(job_id=job_id, lease_seconds=self._lease_seconds):
-            return  # cancelled before it started, or claimed by another process
-        job = self._jobs.load_job(job_id=job_id)
+        claimed = self._jobs.claim_next_job(lease_seconds=self._lease_seconds)
+        if claimed is None:
+            return False
+        job = claimed
+        job_id = job.job_id
         net = self._nets.load_net(net_id=job.net_id)
         structure = build_structure(document=net.document, net_id=job.net_id)
         engine = self._engines.choose(requested=job.request.engine)
@@ -127,6 +130,29 @@ class CheckService:
             for index, result in enumerate(outcome.results)
         )
         self._jobs.finish(job_id=job_id, results=results, traces=outcome.traces)
+        return True
+
+    def drain(self) -> int:
+        """Run queued jobs, one after the other, until the queue is empty; return how many ran."""
+        count = 0
+        while self.run_next():
+            count += 1
+        return count
+
+    def retry(self, *, job_id: str) -> Job:
+        """Queue an interrupted job again (its engine run was lost) and return it.
+
+        Raises:
+            NotFoundError: if the job is unknown.
+            InvalidRequestError: if the job is not interrupted.
+            ConflictError: if an equivalent job is already live.
+        """
+        job = self._jobs.load_job(job_id=job_id)  # raises NotFoundError
+        if not self._jobs.requeue(job_id=job_id):
+            raise InvalidRequestError(
+                f"Only an interrupted job can be retried: {job_id} is {job.state}"
+            )
+        return self._jobs.load_job(job_id=job_id)
 
     def recover_interrupted(self) -> int:
         """Mark jobs whose owner stopped renewing their lease as interrupted; return the count.

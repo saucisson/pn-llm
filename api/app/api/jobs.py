@@ -6,8 +6,6 @@ import time
 from http import HTTPStatus
 
 from fastapi import APIRouter, Response
-from fastapi.responses import JSONResponse
-from starlette.background import BackgroundTask
 
 from app.domain.contract import Envelope
 from app.domain.engine_contract import Trace
@@ -19,21 +17,15 @@ from .envelopes import wrap
 router = APIRouter(prefix="/v1", tags=["checks"])
 
 
-@router.post("/nets/{net_id}/checks", response_model=Envelope[Job], status_code=HTTPStatus.ACCEPTED)
-def start_check(*, net_id: str, body: CheckRequest, checks: ChecksDep) -> JSONResponse:
-    """Start (or reuse) an asynchronous check of formulas on a net."""
+@router.post("/nets/{net_id}/checks", status_code=HTTPStatus.ACCEPTED)
+def start_check(
+    *, net_id: str, body: CheckRequest, checks: ChecksDep, response: Response
+) -> Envelope[Job]:
+    """Queue (or reuse) an asynchronous check of formulas on a net; a worker runs it."""
     started = time.perf_counter()
     submission = checks.submit(net_id=net_id, request=body)
-    # Only a new job is executed; an equivalent live job is already on its way.
-    background = (
-        BackgroundTask(checks.execute, job_id=submission.job.job_id) if submission.created else None
-    )
-    envelope = wrap(tool="check.submit", net_id=net_id, started=started, data=submission.job)
-    return JSONResponse(
-        status_code=HTTPStatus.ACCEPTED,
-        content=envelope.model_dump(mode="json"),
-        background=background,
-    )
+    response.headers["Location"] = f"/v1/jobs/{submission.job.job_id}"
+    return wrap(tool="check.submit", net_id=net_id, started=started, data=submission.job)
 
 
 @router.get("/jobs/{job_id}")
@@ -50,6 +42,14 @@ def get_trace(*, job_id: str, result_index: int, checks: ChecksDep) -> Envelope[
     started = time.perf_counter()
     trace = checks.trace(job_id=job_id, result_index=result_index)
     return wrap(tool="check.trace", net_id=trace.net_id, started=started, data=trace)
+
+
+@router.post("/jobs/{job_id}/retry", status_code=HTTPStatus.ACCEPTED)
+def retry_job(*, job_id: str, checks: ChecksDep) -> Envelope[Job]:
+    """Queue an interrupted job again."""
+    started = time.perf_counter()
+    job = checks.retry(job_id=job_id)
+    return wrap(tool="check.retry", net_id=job.net_id, started=started, data=job)
 
 
 @router.delete("/jobs/{job_id}", status_code=HTTPStatus.NO_CONTENT)

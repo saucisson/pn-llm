@@ -33,19 +33,27 @@ class NetRepository(Protocol):
 class JobRepository(Protocol):
     """Persistent storage of jobs."""
 
-    def create_or_get_job(self, *, job: Job, lease_seconds: float) -> JobSubmission:
+    def create_or_get_job(self, *, job: Job) -> JobSubmission:
         """Insert ``job`` unless an equivalent live job exists (idempotency); say which was used.
 
-        A live job carries a lease: its owner must renew it, or it can be marked interrupted.
+        A queued job waits for a worker and has no lease; a running job has one (see below).
+        """
+        ...
+
+    def claim_next_job(self, *, lease_seconds: float) -> Job | None:
+        """Atomically claim the oldest queued job; None if the queue is empty."""
+        ...
+
+    def requeue(self, *, job_id: str) -> bool:
+        """Queue an interrupted job again; False if it was not interrupted.
+
+        Raises:
+            ConflictError: if an equivalent live job exists.
         """
         ...
 
     def load_job(self, *, job_id: str) -> Job:
         """Return a job, or raise NotFoundError."""
-        ...
-
-    def mark_running(self, *, job_id: str, lease_seconds: float) -> bool:
-        """Atomically claim a queued job; return False if it was not queued (another owner won)."""
         ...
 
     def renew_lease(self, *, job_id: str, lease_seconds: float) -> bool:
@@ -71,7 +79,7 @@ class JobRepository(Protocol):
         ...
 
     def recover_interrupted(self) -> int:
-        """Mark live jobs whose lease expired as interrupted; safe to call from any process."""
+        """Mark running jobs whose lease expired as interrupted; safe to call from any process."""
         ...
 
 

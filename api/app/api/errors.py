@@ -8,6 +8,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
 from app.domain.errors import (
+    ConflictError,
     DomainError,
     InvalidFormulaError,
     InvalidNetError,
@@ -33,6 +34,7 @@ class ProblemDetails(DomainModel):
 # The first matching class wins, so list specific classes before general ones.
 STATUS_BY_ERROR: tuple[tuple[type[DomainError], HTTPStatus], ...] = (
     (NotFoundError, HTTPStatus.NOT_FOUND),
+    (ConflictError, HTTPStatus.CONFLICT),
     (NotAcceptableError, HTTPStatus.NOT_ACCEPTABLE),
     (UnsupportedMediaTypeError, HTTPStatus.UNSUPPORTED_MEDIA_TYPE),
     (PayloadTooLargeError, HTTPStatus.REQUEST_ENTITY_TOO_LARGE),

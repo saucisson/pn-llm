@@ -23,7 +23,7 @@ from pydantic import TypeAdapter
 
 from app.domain.canonical import canonical_bytes
 from app.domain.engine_contract import Trace
-from app.domain.errors import NotFoundError
+from app.domain.errors import ConflictError, NotFoundError
 from app.domain.models import CheckRequest, FormulaResult, Job, JobState, JobSubmission
 from app.domain.net_document import NetDocument
 from app.domain.nets import NetSummary, SavedNet, StoredNet
@@ -93,10 +93,10 @@ class SqliteStore:
 
     # ---- JobRepository --------------------------------------------------------------------
 
-    def create_or_get_job(self, *, job: Job, lease_seconds: float) -> JobSubmission:
+    def create_or_get_job(self, *, job: Job) -> JobSubmission:
         """Insert ``job`` unless an equivalent live job exists; say which one must be used.
 
-        The new job is leased for ``lease_seconds``: it must be claimed before then.
+        A queued job has no owner and no lease: it waits in the queue for a worker.
 
         Safe under concurrent calls thanks to the unique index on live idempotency keys.
         """
@@ -115,7 +115,7 @@ class SqliteStore:
                             job.state.value,
                             job.request.model_dump_json(),
                             _RESULTS.dump_json(job.results).decode(),
-                            now + lease_seconds,
+                            0.0,
                             now,
                             now,
                         ),
@@ -141,19 +141,40 @@ class SqliteStore:
             raise NotFoundError(f"Unknown job: {job_id}")
         return self._job_from_row(row=row)
 
-    def mark_running(self, *, job_id: str, lease_seconds: float) -> bool:
-        """Claim a queued job for this process; return False if it was not queued.
+    def claim_next_job(self, *, lease_seconds: float) -> Job | None:
+        """Atomically claim the oldest queued job for this process, or return None if none waits.
 
-        Atomic: of several processes claiming the same job, exactly one gets True.
+        One conditional UPDATE picks and claims in the same statement, so of several workers
+        looking at the same job exactly one gets it.
         """
         now = time.time()
         with self._connection() as conn:
-            cursor = conn.execute(
+            row = conn.execute(
                 "UPDATE jobs SET state='running', lease_expires_at=?, updated_at=?"
-                " WHERE job_id=? AND state='queued'",
-                (now + lease_seconds, now, job_id),
-            )
-            return cursor.rowcount == 1
+                " WHERE job_id = (SELECT job_id FROM jobs WHERE state='queued'"
+                " ORDER BY created_at, job_id LIMIT 1) AND state='queued' RETURNING job_id",
+                (now + lease_seconds, now),
+            ).fetchone()
+        return None if row is None else self.load_job(job_id=row["job_id"])
+
+    def requeue(self, *, job_id: str) -> bool:
+        """Put an interrupted job back in the queue; return False if it was not interrupted.
+
+        Raises:
+            ConflictError: if an equivalent job is live, which holds the idempotency key.
+        """
+        try:
+            with self._connection() as conn:
+                cursor = conn.execute(
+                    "UPDATE jobs SET state='queued', updated_at=?"
+                    " WHERE job_id=? AND state='interrupted'",
+                    (time.time(), job_id),
+                )
+                return cursor.rowcount == 1
+        except sqlite3.IntegrityError as exc:
+            raise ConflictError(
+                f"An equivalent job is already live; job {job_id} stays interrupted"
+            ) from exc
 
     def renew_lease(self, *, job_id: str, lease_seconds: float) -> bool:
         """Extend the lease of a running job; return False if it is no longer running."""
@@ -226,7 +247,7 @@ class SqliteStore:
             return cursor.rowcount
 
     def recover_interrupted(self) -> int:
-        """Mark live jobs whose lease expired as interrupted; return their count.
+        """Mark running jobs whose lease expired as interrupted; return their count.
 
         Safe to call from any process at any time: a job whose owner is alive keeps renewing its
         lease and is never touched.
@@ -235,7 +256,7 @@ class SqliteStore:
         with self._connection() as conn:
             cursor = conn.execute(
                 "UPDATE jobs SET state='interrupted', updated_at=?"
-                " WHERE state IN ('queued','running') AND lease_expires_at < ?",
+                " WHERE state='running' AND lease_expires_at < ?",
                 (now, now),
             )
             return int(cursor.rowcount)

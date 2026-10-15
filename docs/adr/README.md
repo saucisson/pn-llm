@@ -22,3 +22,4 @@ Do not edit an accepted ADR to change the decision: add a new one that supersede
 | [0015](0015-canonical-json-net-document.md) | A canonical JSON net document; PNML by content negotiation; identity by canonical hash (proposed) |
 | [0016](0016-docker-sdk-and-container-profile.md) | The Docker SDK and a fixed container security profile |
 | [0017](0017-llm-facing-rendering-in-the-facade.md) | JSON on the wire; the LLM-facing rendering lives in the tool facade |
+| [0018](0018-sqlite-job-queue-and-workers.md) | The job queue is the jobs table; workers claim from it |

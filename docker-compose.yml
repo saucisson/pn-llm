@@ -13,6 +13,20 @@ services:
       # WARNING: gives the API near-root access to the host. Acceptable locally only.
       - /var/run/docker.sock:/var/run/docker.sock
 
+  # Profile "workers": run jobs in a separate process (set PNVERIF_EMBEDDED_WORKERS=0 on the api).
+  worker:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    command: ["python", "-m", "app.main"]
+    environment:
+      PNVERIF_DATABASE_PATH: /data/pnverif.sqlite
+    volumes:
+      - pnverif-data:/data
+      # WARNING: gives the worker near-root access to the host. Acceptable locally only.
+      - /var/run/docker.sock:/var/run/docker.sock
+    profiles: ["workers"]
+
   # Profile "engines": docker compose --profile engines build
   engine-dummy:
     build:

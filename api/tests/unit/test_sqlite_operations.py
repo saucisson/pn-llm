@@ -28,10 +28,8 @@ def net_id(store):
 
 
 def finish_job(*, store, net_id, job_id, age_s):
-    store.create_or_get_job(
-        job=make_job(net_id=net_id, job_id=job_id, engine=job_id), lease_seconds=LEASE
-    )
-    store.mark_running(job_id=job_id, lease_seconds=LEASE)
+    store.create_or_get_job(job=make_job(net_id=net_id, job_id=job_id, engine=job_id))
+    store.claim_next_job(lease_seconds=LEASE)
     store.finish(
         job_id=job_id,
         results=(FormulaResult(id="f1", verdict=Verdict.TRUE, engine="x"),),
@@ -56,7 +54,7 @@ def test_old_finished_jobs_are_purged_and_recent_ones_kept(store, net_id):
 
 
 def test_live_jobs_and_nets_are_never_purged(store, net_id):
-    store.create_or_get_job(job=make_job(net_id=net_id, job_id="queued"), lease_seconds=LEASE)
+    store.create_or_get_job(job=make_job(net_id=net_id, job_id="queued"))
     conn = sqlite3.connect(store._path)
     conn.execute("UPDATE jobs SET updated_at=0")
     conn.commit()
@@ -70,8 +68,8 @@ def test_purging_a_job_removes_its_traces(store, net_id):
     from app.domain.contract import Marking
     from app.domain.engine_contract import Trace
 
-    store.create_or_get_job(job=make_job(net_id=net_id), lease_seconds=LEASE)
-    store.mark_running(job_id="j1", lease_seconds=LEASE)
+    store.create_or_get_job(job=make_job(net_id=net_id))
+    store.claim_next_job(lease_seconds=LEASE)
     trace = Trace(formula_id="f1", net_id=net_id, initial_marking=Marking(), steps=())
     store.finish(job_id="j1", results=(), traces=(trace,))
     assert store.load_trace(job_id="j1", formula_id="f1").formula_id == "f1"
@@ -149,11 +147,11 @@ class InterferingStore(SqliteStore):
 
 def test_the_insert_is_retried_when_the_blocking_job_finishes_in_between(settings, net_id):
     store = InterferingStore(path=settings.database_path, blocking_job_id="blocker")
-    store.create_or_get_job(job=make_job(net_id=net_id, job_id="blocker"), lease_seconds=LEASE)
+    store.create_or_get_job(job=make_job(net_id=net_id, job_id="blocker"))
     store.armed = True
 
     submission = store.create_or_get_job(
-        job=make_job(net_id=net_id, job_id="second"), lease_seconds=LEASE
+        job=make_job(net_id=net_id, job_id="second"),
     )
 
     assert submission.created is True
@@ -166,9 +164,7 @@ def test_two_threads_submitting_the_same_check_get_one_job(settings, net_id):
     outcomes = []
 
     def submit(name):
-        outcomes.append(
-            store.create_or_get_job(job=make_job(net_id=net_id, job_id=name), lease_seconds=LEASE)
-        )
+        outcomes.append(store.create_or_get_job(job=make_job(net_id=net_id, job_id=name)))
 
     threads = [threading.Thread(target=submit, args=(f"t{i}",)) for i in range(8)]
     for thread in threads:
@@ -183,6 +179,6 @@ def test_two_threads_submitting_the_same_check_get_one_job(settings, net_id):
 def test_a_missing_trace_is_not_found(store, net_id):
     from app.domain.errors import NotFoundError
 
-    store.create_or_get_job(job=make_job(net_id=net_id), lease_seconds=LEASE)
+    store.create_or_get_job(job=make_job(net_id=net_id))
     with pytest.raises(NotFoundError, match="No trace"):
         store.load_trace(job_id="j1", formula_id="f1")

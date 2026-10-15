@@ -83,25 +83,25 @@ def test_submit_accepts_auto(checks, net_id):
     assert checks.submit(net_id=net_id, request=make_request(engine="auto")).created
 
 
-def test_execute_runs_the_engine_and_stores_results(checks, net_id):
+def test_run_next_runs_the_engine_and_stores_results(checks, net_id):
     job_id = checks.submit(net_id=net_id, request=make_request()).job.job_id
-    checks.execute(job_id=job_id)
+    assert checks.run_next() is True
     done = checks.get(job_id=job_id)
     assert done.state is JobState.DONE
     assert done.results[0].verdict is Verdict.UNKNOWN
 
 
-def test_execute_skips_a_cancelled_job(checks, net_id):
+def test_run_next_skips_a_cancelled_job(checks, net_id):
     job_id = checks.submit(net_id=net_id, request=make_request()).job.job_id
     checks.cancel(job_id=job_id)
-    checks.execute(job_id=job_id)
+    assert checks.run_next() is False
     assert checks.get(job_id=job_id).state is JobState.CANCELLED
 
 
-def test_execute_does_not_run_a_job_twice(checks, net_id):
+def test_a_job_is_not_run_twice(checks, net_id):
     job_id = checks.submit(net_id=net_id, request=make_request()).job.job_id
-    checks.execute(job_id=job_id)
-    checks.execute(job_id=job_id)  # no longer queued: ignored
+    assert checks.run_next() is True
+    assert checks.run_next() is False  # the queue is empty
     assert checks.get(job_id=job_id).state is JobState.DONE
 
 
@@ -117,7 +117,7 @@ def test_an_engine_crash_becomes_an_error_verdict_not_a_stuck_job(store, net_id)
         lease_seconds=LEASE,
     )
     job_id = crashing.submit(net_id=net_id, request=make_request()).job.job_id
-    crashing.execute(job_id=job_id)
+    crashing.run_next()
     done = crashing.get(job_id=job_id)
     assert done.state is JobState.DONE
     assert done.results[0].verdict is Verdict.ERROR
@@ -125,9 +125,10 @@ def test_an_engine_crash_becomes_an_error_verdict_not_a_stuck_job(store, net_id)
 
 
 def test_resubmitting_after_the_owner_died_creates_a_new_job(store, registry, net_id):
-    # Simulates a crashed process: its job holds an expired lease and blocks the idempotency key.
+    # Simulates a crashed process: its running job holds an expired lease and blocks the key.
     orphan = CheckService(nets=store, jobs=store, engines=registry, lease_seconds=-1)
     first = orphan.submit(net_id=net_id, request=make_request())
+    store.claim_next_job(lease_seconds=-1)
     healthy = CheckService(nets=store, jobs=store, engines=registry, lease_seconds=LEASE)
 
     second = healthy.submit(net_id=net_id, request=make_request())
@@ -135,6 +136,36 @@ def test_resubmitting_after_the_owner_died_creates_a_new_job(store, registry, ne
     assert second.created is True
     assert second.job.job_id != first.job.job_id
     assert healthy.get(job_id=first.job.job_id).state is JobState.INTERRUPTED
+
+
+def test_a_queued_job_waits_without_expiring(checks, net_id):
+    job_id = checks.submit(net_id=net_id, request=make_request()).job.job_id
+    assert checks.recover_interrupted() == 0
+    assert checks.get(job_id=job_id).state is JobState.QUEUED
+
+
+def test_drain_runs_every_queued_job(checks, net_id):
+    checks.submit(net_id=net_id, request=make_request(engine="dummy"))
+    checks.submit(net_id=net_id, request=make_request(engine="itstools"))
+    assert checks.drain() == 2
+    assert checks.drain() == 0
+
+
+def test_an_interrupted_job_can_be_retried(store, checks, net_id):
+    job_id = checks.submit(net_id=net_id, request=make_request()).job.job_id
+    store.claim_next_job(lease_seconds=-1)
+    checks.recover_interrupted()
+    assert checks.retry(job_id=job_id).state is JobState.QUEUED
+    assert checks.drain() == 1
+    assert checks.get(job_id=job_id).state is JobState.DONE
+
+
+def test_only_an_interrupted_job_can_be_retried(checks, net_id):
+    job_id = checks.submit(net_id=net_id, request=make_request()).job.job_id
+    with pytest.raises(InvalidRequestError, match="interrupted"):
+        checks.retry(job_id=job_id)
+    with pytest.raises(NotFoundError):
+        checks.retry(job_id="nope")
 
 
 def test_cancelling_an_unknown_job_raises(checks):
@@ -154,7 +185,7 @@ def test_old_finished_jobs_are_purged_through_the_service(checks, net_id, store)
     import sqlite3
 
     job_id = checks.submit(net_id=net_id, request=make_request()).job.job_id
-    checks.execute(job_id=job_id)
+    checks.run_next()
     conn = sqlite3.connect(store._path)
     conn.execute("UPDATE jobs SET updated_at=0")
     conn.commit()
