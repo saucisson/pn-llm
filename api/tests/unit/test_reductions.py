@@ -304,6 +304,87 @@ def test_implicit_places_keep_what_a_consumer_needs_and_what_is_protected():
     )
 
 
+# ---- agglomerations ---------------------------------------------------------------------------
+
+BUFFER = structure_of(
+    places=["s", "p", "r"],
+    transitions=["t", "u"],
+    arcs=[("s", "t"), ("t", "p"), ("p", "u"), ("u", "r")],
+    marking={"s": 1},
+)
+
+
+def arcs_of(structure):
+    return sorted((a.source, a.target, a.weight) for a in structure.arcs)
+
+
+def test_pre_agglomeration_makes_each_producer_do_what_the_consumer_did():
+    outcome = reduce_net(rule="pre-agglomeration", structure=BUFFER)
+    assert ids(outcome.result.removed) == ["p", "u"]
+    assert expansions_of(outcome.result) == [("t", ["t", "u"])]
+    assert arcs_of(outcome.reduced) == [("s", "t", 1), ("t", "r", 1)]
+
+
+def test_pre_agglomeration_of_one_producer_into_several_consumers_keeps_the_consumer_ids():
+    branching = structure_of(
+        places=["s", "p", "r1", "r2"],
+        transitions=["t", "u1", "u2"],
+        arcs=[("s", "t"), ("t", "p"), ("p", "u1"), ("u1", "r1"), ("p", "u2"), ("u2", "r2")],
+        marking={"s": 1},
+    )
+    outcome = reduce_net(rule="pre-agglomeration", structure=branching)
+    assert ids(outcome.result.removed) == ["p", "t"]
+    assert expansions_of(outcome.result) == [("u1", ["t", "u1"]), ("u2", ["t", "u2"])]
+    assert arcs_of(outcome.reduced) == [
+        ("s", "u1", 1),
+        ("s", "u2", 1),
+        ("u1", "r1", 1),
+        ("u2", "r2", 1),
+    ]
+
+
+def test_post_agglomeration_makes_the_consumer_wait_for_what_the_producer_needs():
+    waiting = structure_of(
+        places=["s", "w", "p", "r"],
+        transitions=["t", "u"],
+        arcs=[("s", "t"), ("t", "p"), ("p", "u"), ("w", "u"), ("u", "r")],
+        marking={"s": 1, "w": 1},
+    )
+    # u needs w as well as p, so pre-agglomeration does not apply but post-agglomeration does.
+    assert reduce_net(rule="pre-agglomeration", structure=waiting).result.changed is False
+    outcome = reduce_net(rule="post-agglomeration", structure=waiting)
+    assert expansions_of(outcome.result) == [("t", ["t", "u"])]
+    assert arcs_of(outcome.reduced) == [("s", "t", 1), ("t", "r", 1), ("w", "t", 1)]
+
+
+def test_an_agglomeration_needs_an_empty_buffer_and_no_transition_at_both_ends():
+    marked = structure_of(
+        places=["s", "p", "r"],
+        transitions=["t", "u"],
+        arcs=[("s", "t"), ("t", "p"), ("p", "u"), ("u", "r")],
+        marking={"s": 1, "p": 1},
+    )
+    both_ends = structure_of(
+        places=["s", "p", "r"],
+        transitions=["t", "u"],
+        arcs=[("s", "t"), ("t", "p"), ("p", "u"), ("u", "p"), ("u", "r")],
+        marking={"s": 1},
+    )
+    for structure in (marked, both_ends):
+        for rule in ("pre-agglomeration", "post-agglomeration"):
+            assert reduce_net(rule=rule, structure=structure).result.changed is False
+
+
+def test_an_agglomeration_leaves_alone_what_is_protected_around_the_buffer():
+    for protected in (["s"], ["r"], ["t"], ["u"], ["p"]):
+        assert (
+            reduce_net(
+                rule="pre-agglomeration", structure=BUFFER, protected=protected
+            ).result.changed
+            is False
+        )
+
+
 # ---- the claim of every rule, checked on the state spaces of random nets ---------------------
 
 

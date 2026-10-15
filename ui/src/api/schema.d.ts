@@ -701,6 +701,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/nets/{net_id}/reductions/post-agglomeration": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Remove an empty buffer place whose producers give nothing else, fusing them. */
+        post: operations["reductions.post-agglomeration"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/nets/{net_id}/reductions/pre-agglomeration": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Remove an empty buffer place whose consumers take nothing else, fusing them. */
+        post: operations["reductions.pre-agglomeration"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/nets/{net_id}/reductions/remove-dead-transitions": {
         parameters: {
             query?: never;
@@ -5485,6 +5519,94 @@ export interface operations {
         };
     };
     "reductions.fuse-series-transitions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                net_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OperationRequest_ReductionParameters_"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_ReductionResult_"];
+                };
+            };
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_RunHandle_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "reductions.post-agglomeration": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                net_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OperationRequest_ReductionParameters_"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_ReductionResult_"];
+                };
+            };
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_RunHandle_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "reductions.pre-agglomeration": {
         parameters: {
             query?: never;
             header?: never;

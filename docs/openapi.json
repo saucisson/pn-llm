@@ -11208,6 +11208,132 @@
         ]
       }
     },
+    "/v1/nets/{net_id}/reductions/post-agglomeration": {
+      "post": {
+        "operationId": "reductions.post-agglomeration",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "net_id",
+            "required": true,
+            "schema": {
+              "title": "Net Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OperationRequest_ReductionParameters_"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_ReductionResult_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_RunHandle_"
+                }
+              }
+            },
+            "description": "Accepted"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Remove an empty buffer place whose producers give nothing else, fusing them.",
+        "tags": [
+          "operations",
+          "reductions"
+        ]
+      }
+    },
+    "/v1/nets/{net_id}/reductions/pre-agglomeration": {
+      "post": {
+        "operationId": "reductions.pre-agglomeration",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "net_id",
+            "required": true,
+            "schema": {
+              "title": "Net Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OperationRequest_ReductionParameters_"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_ReductionResult_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_RunHandle_"
+                }
+              }
+            },
+            "description": "Accepted"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Remove an empty buffer place whose consumers take nothing else, fusing them.",
+        "tags": [
+          "operations",
+          "reductions"
+        ]
+      }
+    },
     "/v1/nets/{net_id}/reductions/remove-dead-transitions": {
       "post": {
         "operationId": "reductions.remove-dead-transitions",
