@@ -55,7 +55,7 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/application/checks.py` | application | `CheckService`: submit, execute, read and cancel checks |
 | `app/application/engines.py` | application | `EngineService`: list engines |
 | `app/infrastructure/sqlite_store.py` | infrastructure | SQLite implementation of `NetRepository` and `JobRepository` |
-| `app/infrastructure/docker_runner.py` | infrastructure | The only module that starts subprocesses (the `docker` CLI) |
+| `app/infrastructure/docker_runner.py` | infrastructure | The only module that talks to Docker (SDK): isolated, labelled, always-removed engine containers (ADR 0016) |
 | `app/infrastructure/engine_registry.py` | infrastructure | Engine specs and `EngineGateway` implementation |
 | `app/api/deps.py` | api | FastAPI dependencies giving routes their services |
 | `app/api/errors.py` | api | Domain error to RFC 9457 problem response, in one place |
@@ -75,7 +75,7 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 1. Layers: `main` > `api` | `infrastructure` > `application` > `domain`. Imports go downward only.
 2. Domain and application import no web framework, no `sqlite3`, no `subprocess`, no Docker SDK.
 3. Infrastructure imports no web framework.
-4. Only `sqlite_store` imports `sqlite3`; only `docker_runner` starts subprocesses.
+4. Only `sqlite_store` imports `sqlite3`; only `docker_runner` imports the Docker SDK; nobody starts subprocesses.
 5. `sqlite_store` and `docker_runner` are independent of each other and of the registry.
 
 The contracts live in `api/pyproject.toml` (`[tool.importlinter]`). To see a rule fail on purpose,
@@ -146,7 +146,8 @@ envelope; nets and checks migrate with the net document (#9-#14) and the engine 
 
 ## Known limitations
 
-- Jobs run in the API process that received them (background tasks); cancelling a running job does not stop its
-  container yet (see the "robust Docker runner" issue).
+- Jobs run in the API process that received them (background tasks); cancelling a job stops its
+  container at once, but a crashed API process leaves its job to the lease sweeper (issue #6).
 - No schema migrations yet (see the storage issue).
-- Mounting the Docker socket gives the API near-root access to the host: local use only.
+- Mounting the Docker socket gives the API near-root access to the host: local use only. Risk
+  analysis and the deployment plan: `docs/security-container-launching.md`.

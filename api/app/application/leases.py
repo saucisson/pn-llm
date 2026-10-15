@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import threading
+from collections.abc import Callable
 from types import TracebackType
 
 from .ports import JobRepository
@@ -17,8 +18,20 @@ class LeaseKeeper:
     expiry), so a lost job is never kept alive.
     """
 
-    def __init__(self, *, jobs: JobRepository, job_id: str, lease_seconds: float) -> None:
-        """Prepare the keeper; nothing runs until the ``with`` block is entered."""
+    def __init__(
+        self,
+        *,
+        jobs: JobRepository,
+        job_id: str,
+        lease_seconds: float,
+        on_lost: Callable[[], None],
+    ) -> None:
+        """Prepare the keeper; nothing runs until the ``with`` block is entered.
+
+        ``on_lost`` is called once if the lease can no longer be renewed (the job was cancelled or
+        taken over): the work it protects must stop.
+        """
+        self._on_lost = on_lost
         self._jobs = jobs
         self._job_id = job_id
         self._lease_seconds = lease_seconds
@@ -29,6 +42,7 @@ class LeaseKeeper:
         interval = self._lease_seconds / RENEWALS_PER_LEASE
         while not self._stop.wait(timeout=interval):
             if not self._jobs.renew_lease(job_id=self._job_id, lease_seconds=self._lease_seconds):
+                self._on_lost()
                 return
 
     def __enter__(self) -> LeaseKeeper:

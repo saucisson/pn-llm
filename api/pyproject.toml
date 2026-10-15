@@ -13,6 +13,8 @@ dependencies = [
     "pydantic>=2.6",
     "pydantic-settings>=2.2",
     "defusedxml>=0.7",
+    "docker>=7",
+    "requests>=2.31",
 ]
 
 [project.optional-dependencies]
@@ -110,6 +112,11 @@ plugins = ["pydantic.mypy"]
 files = ["app"]  # production code is fully typed; tests are linted but not type-checked
 warn_unreachable = true
 
+[[tool.mypy.overrides]]
+# The Docker SDK and requests ship no type information; only docker_runner uses them.
+module = ["docker", "docker.*", "requests", "requests.*"]
+ignore_missing_imports = true
+
 # ---------------------------------------------------------------------------------------------
 # Architecture: import-linter. Checked at every commit. Rationale: docs/architecture.md.
 # ---------------------------------------------------------------------------------------------
@@ -160,6 +167,16 @@ source_modules = [
     "app.infrastructure.engine_registry", "app.infrastructure.sqlite_store",
 ]
 forbidden_modules = ["subprocess"]
+
+[[tool.importlinter.contracts]]
+name = "Only the Docker adapter talks to Docker"
+type = "forbidden"
+allow_indirect_imports = true
+source_modules = [
+    "app.domain", "app.application", "app.api", "app.main",
+    "app.infrastructure.engine_registry", "app.infrastructure.sqlite_store",
+]
+forbidden_modules = ["docker"]
 
 [[tool.importlinter.contracts]]
 name = "The SQLite and Docker adapters are independent of each other"
