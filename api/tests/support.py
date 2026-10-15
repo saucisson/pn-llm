@@ -1,6 +1,8 @@
 """Test data and builders shared by the test modules."""
 
 from app.domain.models import CheckRequest
+from app.domain.net_validation import DocumentLimits
+from app.domain.pnml_import import import_pnml
 
 # Lease long enough that no test job expires by accident.
 LEASE = 60.0
@@ -32,3 +34,7 @@ CHECK_BODY = {
 def make_request(**overrides) -> CheckRequest:
     """Build a CheckRequest from the default body, with fields overridden by keyword."""
     return CheckRequest.model_validate({**CHECK_BODY, **overrides})
+
+
+# The same net as a document (children in file order, as imported).
+MUTEX_DOCUMENT = import_pnml(payload=MUTEX_PNML, limits=DocumentLimits())

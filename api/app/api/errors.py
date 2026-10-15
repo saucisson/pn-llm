@@ -9,14 +9,31 @@ from fastapi.responses import JSONResponse
 
 from app.domain.errors import (
     DomainError,
+    InvalidNetError,
     InvalidRequestError,
+    NotAcceptableError,
     NotFoundError,
     PayloadTooLargeError,
+    UnsupportedMediaTypeError,
 )
+from app.domain.models import DomainModel
+
+
+class ProblemDetails(DomainModel):
+    """RFC 9457 problem body; ``location`` points at the fault in an invalid net."""
+
+    type: str = "about:blank"
+    title: str
+    status: int
+    detail: str
+    location: str | None = None
+
 
 # The first matching class wins, so list specific classes before general ones.
 STATUS_BY_ERROR: tuple[tuple[type[DomainError], HTTPStatus], ...] = (
     (NotFoundError, HTTPStatus.NOT_FOUND),
+    (NotAcceptableError, HTTPStatus.NOT_ACCEPTABLE),
+    (UnsupportedMediaTypeError, HTTPStatus.UNSUPPORTED_MEDIA_TYPE),
     (PayloadTooLargeError, HTTPStatus.REQUEST_ENTITY_TOO_LARGE),
     (InvalidRequestError, HTTPStatus.UNPROCESSABLE_ENTITY),
 )
@@ -29,15 +46,16 @@ async def handle_domain_error(_: Request, exc: Exception) -> JSONResponse:  # no
         if isinstance(exc, error_type):
             status = mapped_status
             break
+    problem = ProblemDetails(
+        title=status.phrase,
+        status=status.value,
+        detail=exc.reason if isinstance(exc, InvalidNetError) else str(exc),
+        location=exc.location if isinstance(exc, InvalidNetError) else None,
+    )
     return JSONResponse(
         status_code=status.value,
         media_type="application/problem+json",
-        content={
-            "type": "about:blank",
-            "title": status.phrase,
-            "status": status.value,
-            "detail": str(exc),
-        },
+        content=problem.model_dump(mode="json", exclude_none=True),
     )
 
 

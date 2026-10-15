@@ -13,15 +13,15 @@ from app.domain.models import (
     FormulaResult,
     Job,
     JobSubmission,
-    NetSummary,
-    StoredNet,
 )
+from app.domain.net_document import NetDocument
+from app.domain.nets import NetSummary, SavedNet, StoredNet
 
 
 class NetRepository(Protocol):
     """Persistent storage of nets."""
 
-    def save_net(self, *, summary: NetSummary, pnml: bytes) -> StoredNet:
+    def save_net(self, *, summary: NetSummary, document: NetDocument) -> SavedNet:
         """Store a net if it is new; return what is stored (the existing net if already known)."""
         ...
 

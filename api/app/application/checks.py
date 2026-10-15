@@ -13,6 +13,7 @@ from app.domain.models import (
     JobSubmission,
     Verdict,
 )
+from app.domain.pnml_export import render_pnml
 
 from .leases import LeaseKeeper
 from .ports import EngineGateway, JobRepository, NetRepository
@@ -71,7 +72,9 @@ class CheckService:
         engine = self._engines.choose(requested=job.request.engine)
         try:
             with LeaseKeeper(jobs=self._jobs, job_id=job_id, lease_seconds=self._lease_seconds):
-                results = self._engines.run(engine=engine, pnml=net.pnml, request=job.request)
+                results = self._engines.run(
+                    engine=engine, pnml=render_pnml(document=net.document), request=job.request
+                )
         except Exception as exc:  # noqa: BLE001  (adapter bugs are reported, not propagated)
             results = tuple(
                 FormulaResult(

@@ -1,10 +1,11 @@
 import pytest
 
-from app.domain import pnml
+from app.domain.canonical import net_id_of
 from app.domain.errors import NotFoundError
 from app.domain.models import FormulaResult, Job, JobState, Verdict
+from app.domain.nets import summarize_document
 from app.infrastructure.sqlite_store import SqliteStore
-from tests.support import LEASE, make_request
+from tests.support import LEASE, MUTEX_DOCUMENT, make_request
 
 
 def make_job(*, net_id, job_id="j1", **overrides):
@@ -13,23 +14,43 @@ def make_job(*, net_id, job_id="j1", **overrides):
     )
 
 
+def save_mutex(*, store):
+    document = MUTEX_DOCUMENT
+    summary = summarize_document(document=document, net_id=net_id_of(document=document))
+    return store.save_net(summary=summary, document=document)
+
+
 @pytest.fixture
-def net_id(store, mutex_pnml):
-    return store.save_net(summary=pnml.summarize(pnml=mutex_pnml), pnml=mutex_pnml).summary.net_id
+def net_id(store):
+    return save_mutex(store=store).stored.summary.net_id
 
 
 # ---- nets -----------------------------------------------------------------------------------
 
 
-def test_net_round_trip_keeps_the_original_bytes(store, mutex_pnml, net_id):
+def test_net_round_trip_keeps_the_canonical_document(store, net_id):
     stored = store.load_net(net_id=net_id)
-    assert stored.pnml == mutex_pnml
+    assert stored.document == MUTEX_DOCUMENT.sorted_by_id()
+    assert net_id_of(document=stored.document) == net_id
     assert stored.summary.places == 3
 
 
-def test_saving_the_same_net_twice_keeps_one_copy(store, mutex_pnml, net_id):
-    again = store.save_net(summary=pnml.summarize(pnml=mutex_pnml), pnml=mutex_pnml)
-    assert again.summary.net_id == net_id
+def test_the_second_save_of_a_net_is_not_a_creation(store, net_id):
+    first = save_mutex(store=store)
+    assert first.created is False
+    assert first.stored.summary.net_id == net_id
+
+
+def test_the_first_save_of_a_net_is_a_creation(store):
+    assert save_mutex(store=store).created is True
+
+
+def test_the_document_is_stored_compressed(store, net_id, settings):
+    import sqlite3
+
+    raw = sqlite3.connect(settings.database_path).execute("SELECT document FROM nets").fetchone()[0]
+    assert raw[:1] == b"x"  # zlib header
+    assert b"idle1" not in raw
 
 
 def test_unknown_net_raises(store):
@@ -69,8 +90,12 @@ def test_different_limits_make_a_different_job(store, net_id):
 
 
 def test_a_different_net_makes_a_different_job(store, net_id):
-    other_pnml = b'<pnml><net><place id="p"/><transition id="t"/></net></pnml>'
-    other_net = store.save_net(summary=pnml.summarize(pnml=other_pnml), pnml=other_pnml)
+    other_document = MUTEX_DOCUMENT.model_copy(update={"source_id": "other"})
+    other_id = net_id_of(document=other_document)
+    other_net = store.save_net(
+        summary=summarize_document(document=other_document, net_id=other_id),
+        document=other_document,
+    ).stored
     store.create_or_get_job(job=make_job(net_id=net_id, job_id="a"), lease_seconds=LEASE)
     other = store.create_or_get_job(
         job=make_job(net_id=other_net.summary.net_id, job_id="b"), lease_seconds=LEASE
