@@ -96,6 +96,16 @@ export function EventItem({ event }: { readonly event: SessionEvent }) {
       );
     case "run_finished":
       return <p className="event note">The assistant finished its turn ({event.reason}).</p>;
+    case "description_proposed":
+      return (
+        <article className="event property">
+          <h3>Description proposed by the assistant</h3>
+          <p className="text">{event.text}</p>
+          <small>Stored only if you accept it.</small>
+        </article>
+      );
+    case "description_accepted":
+      return <p className="event note">Description accepted and stored (origin: llm).</p>;
     case "session_cancelled":
       return <p className="event note">Session cancelled.</p>;
   }

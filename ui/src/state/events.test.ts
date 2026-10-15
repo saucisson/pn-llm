@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { SessionEvent } from "../api/types";
 import { stored } from "../test-helpers";
-import { addEvents, emptyLog, isLive, openQuestion, stateOf } from "./events";
+import { addEvents, emptyLog, isLive, openQuestion, pendingProposals, stateOf } from "./events";
 
 function log(...events: SessionEvent[]) {
   return events.map((event, index) => stored({ number: index + 1, event }));
@@ -93,5 +93,17 @@ describe("isLive", () => {
   it("is false only for a cancelled session", () => {
     expect(isLive({ state: "idle" })).toBe(true);
     expect(isLive({ state: "cancelled" })).toBe(false);
+  });
+});
+
+describe("pendingProposals", () => {
+  it("lists the proposals not yet accepted", () => {
+    const events = log(
+      started,
+      { kind: "description_proposed", proposal_id: "a", text: "x" },
+      { kind: "description_proposed", proposal_id: "b", text: "y" },
+      { kind: "description_accepted", proposal_id: "a", description_id: "d" },
+    );
+    expect([...pendingProposals({ events })]).toEqual(["b"]);
   });
 });

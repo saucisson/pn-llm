@@ -104,3 +104,18 @@ export async function cancelSession({
   });
   return envelope.data;
 }
+
+/** Store a description the assistant proposed: only the user's acceptance does it. */
+export async function acceptDescription({
+  sessionId,
+  proposalId,
+}: {
+  readonly sessionId: string;
+  readonly proposalId: string;
+}): Promise<StoredEvent> {
+  const envelope = await callApi<Enveloped<StoredEvent>>({
+    method: "POST",
+    path: `/v1/sessions/${encodeURIComponent(sessionId)}/description-proposals/${encodeURIComponent(proposalId)}/accept`,
+  });
+  return envelope.data;
+}

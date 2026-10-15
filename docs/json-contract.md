@@ -161,6 +161,11 @@ another id), `POST /v1/sessions/{id}/cancel`, `GET /v1/sessions/{id}`. `GET /v1/
 returns the events as JSON (`after`, `limit`) or, with `Accept: text/event-stream`, as server-sent
 events (`id` is the event number, `event` its kind, `data` the `StoredEvent`), resumable with
 `Last-Event-ID` or `after`; `follow=false` ends the stream when it is caught up.
+`POST /v1/sessions/upload` (multipart: `net` file, `goal`, optional `description` text or
+`description_file`) registers the net, stores the description and opens the session in one request.
+`POST /v1/sessions/{id}/restart` (`with_description`) opens a new session with the same goal, with
+or without the description, to compare conditions. A description proposed by the assistant
+(`description_proposed`) is stored by `POST /v1/sessions/{id}/description-proposals/{proposal_id}/accept`.
 
 ### Analyses (`POST /analyses/{operation}`, one per operation)
 | Operation | Result `data` |

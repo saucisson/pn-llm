@@ -549,6 +549,57 @@
       "title": "Deadlock",
       "type": "object"
     },
+    "DescriptionAccepted": {
+      "description": "The user accepted a proposed description: it is now stored, with the origin ``llm``.",
+      "properties": {
+        "description_id": {
+          "title": "Description Id",
+          "type": "string"
+        },
+        "kind": {
+          "const": "description_accepted",
+          "default": "description_accepted",
+          "title": "Kind",
+          "type": "string"
+        },
+        "proposal_id": {
+          "title": "Proposal Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "proposal_id",
+        "description_id"
+      ],
+      "title": "DescriptionAccepted",
+      "type": "object"
+    },
+    "DescriptionProposed": {
+      "description": "The LLM proposes a clearer description; it is stored only if the user accepts it.",
+      "properties": {
+        "kind": {
+          "const": "description_proposed",
+          "default": "description_proposed",
+          "title": "Kind",
+          "type": "string"
+        },
+        "proposal_id": {
+          "title": "Proposal Id",
+          "type": "string"
+        },
+        "text": {
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "proposal_id",
+        "text"
+      ],
+      "title": "DescriptionProposed",
+      "type": "object"
+    },
     "Enabled": {
       "description": "Fireability atom: the transition can fire.",
       "properties": {
@@ -1681,6 +1732,8 @@
           "assistant_message": "#/$defs/AssistantMessage",
           "budget_exhausted": "#/$defs/BudgetExhausted",
           "check_submitted": "#/$defs/CheckSubmitted",
+          "description_accepted": "#/$defs/DescriptionAccepted",
+          "description_proposed": "#/$defs/DescriptionProposed",
           "property_proposed": "#/$defs/PropertyProposed",
           "question": "#/$defs/Question",
           "run_finished": "#/$defs/RunFinished",
@@ -1733,6 +1786,12 @@
         },
         {
           "$ref": "#/$defs/RunFinished"
+        },
+        {
+          "$ref": "#/$defs/DescriptionProposed"
+        },
+        {
+          "$ref": "#/$defs/DescriptionAccepted"
         },
         {
           "$ref": "#/$defs/SessionCancelled"

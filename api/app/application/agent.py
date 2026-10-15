@@ -28,6 +28,8 @@ from app.domain.sessions import (
     Answer,
     AssistantMessage,
     BudgetExhausted,
+    DescriptionAccepted,
+    DescriptionProposed,
     Question,
     RunFinished,
     Session,
@@ -53,7 +55,9 @@ logger = logging.getLogger("pnverif.agent")
 EVENT_PAGE = 500
 # Events a tool may add to the conversation. A verdict is among them, built by the tool from an
 # engine result: the model has no way to write one.
-TOOL_EVENT_KINDS = frozenset({"property_proposed", "check_submitted", "verdict", "question"})
+TOOL_EVENT_KINDS = frozenset(
+    {"property_proposed", "check_submitted", "verdict", "question", "description_proposed"}
+)
 LIVE_STATES = (
     SessionState.QUEUED,
     SessionState.RUNNING,
@@ -147,6 +151,58 @@ class AgentService:
             net_id=net_id, description_id=description_id, description_origin=origin, goal=goal
         )
         return self._sessions.create_session(session=session, started=started)
+
+    def restart(self, *, session_id: str, with_description: bool) -> StartedSession:
+        """Open a new session with the goal (and, if asked, the description) of an existing one.
+
+        It is how a run is repeated without its description, to compare conditions.
+
+        Raises:
+            NotFoundError: if the session is unknown.
+        """
+        session = self._sessions.load_session(session_id=session_id)
+        first = self._sessions.events_after(session_id=session_id, after=0, limit=1)[0].event
+        if not isinstance(first, SessionStarted):
+            raise InvalidRequestError("The session has no start event")
+        return self.start(
+            net_id=session.net_id,
+            description_id=session.description_id if with_description else None,
+            goal=first.goal,
+        )
+
+    def accept_description(self, *, session_id: str, proposal_id: str) -> StoredEvent:
+        """Store a description the assistant proposed, now that the user accepted it.
+
+        Raises:
+            NotFoundError: if the session is unknown.
+            InvalidRequestError: if there is no such proposal, or it was accepted already.
+        """
+        session = self._sessions.load_session(session_id=session_id)
+        events = self.all_events(session_id=session_id)
+        proposal = next(
+            (
+                s.event
+                for s in events
+                if isinstance(s.event, DescriptionProposed) and s.event.proposal_id == proposal_id
+            ),
+            None,
+        )
+        if proposal is None:
+            raise InvalidRequestError("That is not a description proposed in this session")
+        if any(
+            isinstance(s.event, DescriptionAccepted) and s.event.proposal_id == proposal_id
+            for s in events
+        ):
+            raise ConflictError("That proposal was accepted already")
+        saved = self._descriptions.save_description(
+            net_id=session.net_id, text=proposal.text, origin="llm"
+        )
+        return self._sessions.append_event(
+            session_id=session_id,
+            event=DescriptionAccepted(
+                proposal_id=proposal_id, description_id=saved.description.description_id
+            ),
+        )
 
     def get(self, *, session_id: str) -> Session:
         """Return a session.

@@ -28,6 +28,7 @@ from app.domain.net_leak import contains_net
 from app.domain.replay import ReplayFailure, ReplayRequest
 from app.domain.sessions import (
     CheckSubmitted,
+    DescriptionProposed,
     PropertyProposed,
     Question,
     Session,
@@ -45,6 +46,7 @@ from app.domain.tool_inputs import (
     NeighbourhoodArguments,
     NoArguments,
     PageArguments,
+    ProposeDescriptionArguments,
     ReplayArguments,
     SearchArguments,
     TraceArguments,
@@ -174,7 +176,11 @@ class ToolFacade:
         self._checks = checks
         self._max_result_chars = max_result_chars
         self._poll_seconds = poll_seconds
-        self._tools = (
+        self._tools = (*self.reading_tools(), *self.acting_tools())
+
+    def reading_tools(self) -> tuple[Tool, ...]:
+        """The tools that only look: the net, its description."""
+        return (
             define_tool(
                 name="net_summary",
                 description="Counts, kind and structural flags of the net. No names. Start here.",
@@ -238,6 +244,11 @@ class ToolFacade:
                 arguments=NoArguments,
                 run=self.get_description,
             ),
+        )
+
+    def acting_tools(self) -> tuple[Tool, ...]:
+        """The tools that check, replay or talk to the user."""
+        return (
             define_tool(
                 name="validate_formula",
                 description=(
@@ -271,6 +282,15 @@ class ToolFacade:
                 description="Fire transitions in order on the net and report where it fails.",
                 arguments=ReplayArguments,
                 run=self.replay,
+            ),
+            define_tool(
+                name="propose_description",
+                description=(
+                    "Offer the user a clearer or corrected description of the system, written in "
+                    "your own words. It is stored only if the user accepts it."
+                ),
+                arguments=ProposeDescriptionArguments,
+                run=self.propose_description,
             ),
             define_tool(
                 name="ask_user",
@@ -602,6 +622,20 @@ class ToolFacade:
         )
 
     # ---- the user -------------------------------------------------------------------------
+
+    def propose_description(
+        self,
+        *,
+        context: ToolContext,
+        arguments: ProposeDescriptionArguments,
+        is_cancelled: Callable[[], bool],
+    ) -> ToolOutcome:
+        """Record a proposed description; nothing is stored until the user accepts it."""
+        proposal = DescriptionProposed(proposal_id=context.call_id, text=arguments.text)
+        content = ToolPayload(
+            status="ok", data="proposed to the user; it is stored only if they accept it"
+        ).model_dump_json(exclude_none=True)
+        return ToolOutcome(ok=True, content=content, events=(proposal,))
 
     def ask_user(
         self, *, context: ToolContext, arguments: AskUserArguments, is_cancelled: Callable[[], bool]
