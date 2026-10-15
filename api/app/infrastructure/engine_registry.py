@@ -15,21 +15,25 @@ import time
 from collections.abc import Mapping
 from pathlib import Path
 
-from app.domain.errors import InvalidRequestError
-from app.domain.models import (
-    CheckRequest,
-    DomainModel,
-    EngineInfo,
-    EngineOutput,
-    FormulaResult,
-    Verdict,
+from app.domain.contract import Envelope
+from app.domain.engine_contract import (
+    EngineCheckData,
+    EngineFormulaResult,
+    EngineReport,
+    EngineRequest,
+    EngineTrace,
+    ReportedResult,
 )
+from app.domain.errors import InvalidRequestError
+from app.domain.models import DomainModel, EngineInfo, Verdict
 
 from .docker_runner import DockerRunner, DockerTimeoutError, DockerUnavailableError
 
 ALL_LOGICS = ("ltl", "ctl", "state")
 # Mode of the output directory: the container user is not the API user.
 OUTPUT_DIR_MODE = 0o777
+# An engine cannot make the API read an arbitrarily large file.
+MAX_OUTPUT_FILE_BYTES = 64 * 1024 * 1024
 
 
 class EngineSpec(DomainModel):
@@ -65,14 +69,69 @@ DEFAULT_ENGINES: Mapping[str, EngineSpec] = {
 
 
 def non_answers(
-    *, engine: str, request: CheckRequest, verdict: Verdict, warning: str, elapsed: float = 0.0
-) -> tuple[FormulaResult, ...]:
-    """Return one non-answer per formula: a failure is never reported as TRUE or FALSE."""
-    return tuple(
-        FormulaResult(
-            id=formula.id, verdict=verdict, engine=engine, time_s=elapsed, warnings=(warning,)
+    *,
+    spec: EngineSpec,
+    engine: str,
+    request: EngineRequest,
+    verdict: Verdict,
+    warning: str,
+    elapsed: float = 0.0,
+) -> EngineReport:
+    """Report one non-answer per formula: a failure is never reported as TRUE or FALSE."""
+    return EngineReport(
+        tool_name=engine,
+        tool_version=spec.version,
+        status="ok",
+        results=tuple(
+            ReportedResult(
+                result=EngineFormulaResult(
+                    id=formula.id, verdict=verdict, time_s=elapsed, warnings=(warning,)
+                )
+            )
+            for formula in request.formulas
+        ),
+    )
+
+
+def read_report(*, output_dir: Path) -> EngineReport:
+    """Read ``result.json`` and the traces it cites from an engine's output directory.
+
+    A missing, oversized or unreadable file gives a ``failed`` report, never a guess.
+    """
+    result_file = output_dir / "result.json"
+    if not result_file.is_file() or result_file.stat().st_size > MAX_OUTPUT_FILE_BYTES:
+        return EngineReport(status="failed", error_code="no_usable_result_file")
+    try:
+        envelope = Envelope[EngineCheckData].model_validate_json(result_file.read_text())
+    except ValueError:  # includes pydantic's ValidationError and invalid JSON
+        return EngineReport(status="failed", error_code="unreadable_result_json")
+    if envelope.data is None:
+        return EngineReport(
+            tool_name=envelope.tool.name,
+            tool_version=envelope.tool.version,
+            status="failed",
+            error_code=envelope.error.code if envelope.error else "no_data",
         )
-        for formula in request.formulas
+    reported: list[ReportedResult] = []
+    for result in envelope.data.results:
+        trace = None
+        if result.trace is not None:
+            trace_file = output_dir / result.trace
+            try:
+                if trace_file.stat().st_size > MAX_OUTPUT_FILE_BYTES:
+                    raise ValueError(trace_file.name)
+                trace = EngineTrace.model_validate_json(trace_file.read_text())
+            except (OSError, ValueError):
+                result = result.model_copy(  # noqa: PLW2901 - the loop variable is replaced by its annotated copy
+                    update={"warnings": (*result.warnings, "unreadable_trace")}
+                )
+        reported.append(ReportedResult(result=result, trace=trace))
+    return EngineReport(
+        tool_name=envelope.tool.name,
+        tool_version=envelope.tool.version,
+        status=envelope.status,
+        error_code=envelope.error.code if envelope.error else None,
+        results=tuple(reported),
     )
 
 
@@ -118,13 +177,12 @@ class EngineRegistry:
         """Kill and remove the engine container of a job, if one is running."""
         self._docker.stop(job_id=job_id)
 
-    def run(
-        self, *, engine: str, pnml: bytes, request: CheckRequest, job_id: str
-    ) -> tuple[FormulaResult, ...]:
-        """Run an engine on a net and return one result per formula.
+    def run(self, *, engine: str, pnml: bytes, request: EngineRequest, job_id: str) -> EngineReport:
+        """Run an engine on a net and report what it produced, one result per formula.
 
-        Failures never become verdicts: a timeout, an out-of-memory kill, a missing Docker or a
-        missing result file give TIMEOUT, OOM or ERROR for every formula, never TRUE or FALSE.
+        Failures never become verdicts: a timeout, an out-of-memory kill or an unreachable Docker
+        give TIMEOUT, OOM or ERROR for every formula, never TRUE or FALSE. Whatever the engine
+        wrote is only read here; the platform checks it (``app.domain.engine_check``).
 
         Raises:
             InvalidRequestError: if ``engine`` is not registered.
@@ -134,15 +192,12 @@ class EngineRegistry:
             raise InvalidRequestError(f"Unknown engine: {engine}")
 
         if spec.image is None:  # the dummy engine verifies nothing and says so
-            return tuple(
-                FormulaResult(
-                    id=formula.id,
-                    verdict=Verdict.UNKNOWN,
-                    engine=engine,
-                    engine_version=spec.version,
-                    warnings=("dummy_engine_no_verification",),
-                )
-                for formula in request.formulas
+            return non_answers(
+                spec=spec,
+                engine=engine,
+                request=request,
+                verdict=Verdict.UNKNOWN,
+                warning="dummy_engine_no_verification",
             )
 
         started = time.monotonic()
@@ -160,6 +215,7 @@ class EngineRegistry:
                 )
             except DockerTimeoutError:
                 return non_answers(
+                    spec=spec,
                     engine=engine,
                     request=request,
                     verdict=Verdict.TIMEOUT,
@@ -168,6 +224,7 @@ class EngineRegistry:
                 )
             except DockerUnavailableError:
                 return non_answers(
+                    spec=spec,
                     engine=engine,
                     request=request,
                     verdict=Verdict.ERROR,
@@ -177,19 +234,21 @@ class EngineRegistry:
             elapsed = time.monotonic() - started
             if outcome.oom_killed:  # whatever the engine managed to write is not trusted
                 return non_answers(
+                    spec=spec,
                     engine=engine,
                     request=request,
                     verdict=Verdict.OOM,
                     warning="engine_out_of_memory",
                     elapsed=elapsed,
                 )
-            result_file = work_dir / "output" / "result.json"
-            if not result_file.exists():
+            report = read_report(output_dir=work_dir / "output")
+            if report.status == "failed" and report.error_code == "no_usable_result_file":
                 return non_answers(
+                    spec=spec,
                     engine=engine,
                     request=request,
                     verdict=Verdict.ERROR,
                     warning=f"no_result_file_exit_{outcome.exit_code}",
                     elapsed=elapsed,
                 )
-            return EngineOutput.model_validate_json(result_file.read_text()).results
+            return report

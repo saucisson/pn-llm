@@ -45,6 +45,9 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/domain/formula.py` | domain | Formula tree (`Formula`, operators, atoms) and `subexpressions` |
 | `app/domain/formula_text.py` | domain | Text syntax: parser, printer (reads back the same tree), logic inference |
 | `app/domain/formula_check.py` | domain | Check a formula against a net: ids, operators of the logic, neXt, atom classes |
+| `app/domain/engine_contract.py` | domain | The engine contract v1: `EngineRequest`, the entries of `result.json`, traces, `EngineReport` |
+| `app/domain/engine_check.py` | domain | Check an engine report against the request and the net; ERROR for everything unusable |
+| `app/domain/replay.py` | domain | Replay firings on a P/T net; evaluate a state condition on a marking |
 | `app/domain/errors.py` | domain | Domain errors, the failures that are part of the API contract |
 | `app/domain/contract.py` | domain | Shared JSON contract: `Envelope`, `ElementRef`, `Marking`, `Bound`, `Page` (docs/json-contract.md) |
 | `app/application/ports.py` | application | Protocols the use cases need: `NetRepository`, `JobRepository`, `EngineGateway` |
@@ -141,8 +144,8 @@ inspection tools.
 Each analysis and each transformation has its own endpoint and does one thing; the endpoint
 names the operation, not the tool (ADR 0014). To add one: a route, a request model, a result
 model, a use case run by the generic job runner, an entry in the operations catalog, and an engine
-declaring it. The implemented API is the v0 subset of that contract: `GET /v1/engines` already returns the
-envelope; nets and checks migrate with the net document (#9-#14) and the engine contract (#21).
+declaring it. The nets, inspection, formula, check, job, trace and replay routes follow that contract; analyses
+and reductions (milestone M4) are not implemented yet.
 
 ## Known limitations
 

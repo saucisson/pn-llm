@@ -82,3 +82,75 @@ def make_ring(*, size: int) -> bytes:
         )
     parts.append("</page></net></pnml>")
     return "".join(parts).encode()
+
+
+def engine_envelope(*, results, version="9", status="ok", error=None, name="itstools"):
+    """Build the ``result.json`` an engine writes (docs/engine-contract.md), as a dict."""
+    return {
+        "schema_version": "1.0",
+        "tool": {"name": name, "version": version},
+        "net_id": "n",
+        "status": status,
+        "data": None if status == "failed" else {"results": results},
+        "warnings": [],
+        "truncated": None,
+        "error": error,
+        "elapsed_s": 0.5,
+    }
+
+
+class ScriptedEngines:
+    """An engine gateway whose answer is decided by the test: the process boundary double.
+
+    It reports the verdicts and traces it was given for the formulas of the request, as an engine
+    would, and lets the platform check them.
+    """
+
+    def __init__(self, *, verdict="FALSE", trace_steps=("enter1",), version="1.2.3", tamper=None):
+        self.verdict = verdict
+        self.trace_steps = trace_steps
+        self.version = version
+        self.tamper = tamper  # a function from the report to a modified report
+        self.stopped = []
+
+    def list_engines(self):
+        return ()
+
+    def is_known(self, *, name):
+        return True
+
+    def choose(self, *, requested):
+        return "scripted" if requested == "auto" else requested
+
+    def stop(self, *, job_id):
+        self.stopped.append(job_id)
+
+    def run(self, *, engine, pnml, request, job_id):
+        from app.domain.engine_contract import (
+            EngineFormulaResult,
+            EngineReport,
+            EngineTrace,
+            EngineTraceStep,
+            ReportedResult,
+        )
+        from app.domain.models import Verdict
+
+        report = EngineReport(
+            tool_name=engine,
+            tool_version=self.version,
+            status="ok",
+            results=tuple(
+                ReportedResult(
+                    result=EngineFormulaResult(
+                        id=formula.id, verdict=Verdict(self.verdict), rendered="native syntax"
+                    ),
+                    trace=EngineTrace(
+                        steps=tuple(EngineTraceStep(transition=t) for t in self.trace_steps)
+                    )
+                    if self.trace_steps
+                    else None,
+                )
+                for formula in request.formulas
+            ),
+        )
+        return self.tamper(report) if self.tamper else report

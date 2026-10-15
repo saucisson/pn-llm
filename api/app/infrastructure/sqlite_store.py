@@ -22,6 +22,7 @@ from pathlib import Path
 from pydantic import TypeAdapter
 
 from app.domain.canonical import canonical_bytes, net_id_of
+from app.domain.engine_contract import Trace
 from app.domain.errors import InvalidNetError, NotFoundError
 from app.domain.models import CheckRequest, FormulaResult, Job, JobState, JobSubmission
 from app.domain.net_document import NetDocument
@@ -48,6 +49,12 @@ CREATE TABLE IF NOT EXISTS jobs (
     updated_at REAL NOT NULL
 );
 CREATE INDEX IF NOT EXISTS jobs_net ON jobs(net_id);
+CREATE TABLE IF NOT EXISTS traces (
+    job_id     TEXT NOT NULL REFERENCES jobs(job_id),
+    formula_id TEXT NOT NULL,
+    trace      BLOB NOT NULL,          -- Trace as JSON, zlib-compressed
+    PRIMARY KEY (job_id, formula_id)
+);
 -- At most one live job per idempotency key, even under concurrent submissions.
 CREATE UNIQUE INDEX IF NOT EXISTS jobs_live_key ON jobs(job_key)
     WHERE state IN ('queued', 'running', 'done');
@@ -280,14 +287,35 @@ class SqliteStore:
                 (time.time(), job_id),
             )
 
-    def finish(self, *, job_id: str, results: tuple[FormulaResult, ...]) -> None:
-        """Store results and mark the job done, only if it is still running."""
+    def finish(
+        self, *, job_id: str, results: tuple[FormulaResult, ...], traces: tuple[Trace, ...]
+    ) -> None:
+        """Store results and counterexamples and mark the job done, only if it is still running."""
         with self._connection() as conn:
-            conn.execute(
+            cursor = conn.execute(
                 "UPDATE jobs SET results=?, state='done', updated_at=?"
                 " WHERE job_id=? AND state='running'",
                 (_RESULTS.dump_json(results).decode(), time.time(), job_id),
             )
+            if cursor.rowcount != 1:
+                return  # cancelled or interrupted meanwhile: its answer is not wanted
+            conn.executemany(
+                "INSERT OR REPLACE INTO traces(job_id, formula_id, trace) VALUES (?,?,?)",
+                [
+                    (job_id, trace.formula_id, zlib.compress(trace.model_dump_json().encode()))
+                    for trace in traces
+                ],
+            )
+
+    def load_trace(self, *, job_id: str, formula_id: str) -> Trace:
+        """Return the counterexample stored for a formula of a job, or raise NotFoundError."""
+        with self._connection() as conn:
+            row = conn.execute(
+                "SELECT trace FROM traces WHERE job_id=? AND formula_id=?", (job_id, formula_id)
+            ).fetchone()
+        if row is None:
+            raise NotFoundError(f"No trace for formula {formula_id!r} of job {job_id}")
+        return Trace.model_validate_json(zlib.decompress(row["trace"]))
 
     def recover_interrupted(self) -> int:
         """Mark live jobs whose lease expired as interrupted; return their count.

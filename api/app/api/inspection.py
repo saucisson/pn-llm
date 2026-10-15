@@ -13,6 +13,7 @@ from app.domain.contract import (
     ElementRef,
     Envelope,
     Marking,
+    Page,
     PageRequest,
 )
 from app.domain.inspection import (
@@ -23,6 +24,8 @@ from app.domain.inspection import (
     Neighbourhood,
     NetOverview,
 )
+from app.domain.pagination import encode_cursor
+from app.domain.replay import ReplayRequest, ReplayResult
 
 from .deps import InspectionDep
 from .envelopes import wrap
@@ -149,6 +152,25 @@ def get_neighbourhood(
         net_id=net_id, ids=tuple(ids), depth=depth, max_elements=max_elements
     )
     return wrap(tool="net.neighbourhood", net_id=net_id, started=started, data=found)
+
+
+@router.post("/replay")
+def replay_firings(
+    *, net_id: str, body: ReplayRequest, inspection: InspectionDep
+) -> Envelope[ReplayResult]:
+    """Fire transitions in order on a P/T net; say where it fails and return the markings met."""
+    started = time.perf_counter()
+    result = inspection.replay(net_id=net_id, request=body)
+    window = Page(
+        returned=len(result.markings),
+        total=result.markings_total,
+        next_cursor=(
+            encode_cursor(offset=result.markings_from + len(result.markings))
+            if result.markings_from + len(result.markings) < result.markings_total
+            else None
+        ),
+    )
+    return wrap(tool="net.replay", net_id=net_id, started=started, data=result, page=window)
 
 
 @router.get("/name-groups")

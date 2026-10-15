@@ -123,7 +123,7 @@ def test_finish_stores_results_and_marks_done(store, net_id):
     store.create_or_get_job(job=make_job(net_id=net_id), lease_seconds=LEASE)
     store.mark_running(job_id="j1", lease_seconds=LEASE)
     result = FormulaResult(id="f1", verdict=Verdict.TRUE, engine="x", warnings=("w",))
-    store.finish(job_id="j1", results=(result,))
+    store.finish(traces=(), job_id="j1", results=(result,))
     job = store.load_job(job_id="j1")
     assert job.state is JobState.DONE
     assert job.results == (result,)
@@ -132,7 +132,9 @@ def test_finish_stores_results_and_marks_done(store, net_id):
 def test_finish_does_not_resurrect_a_cancelled_job(store, net_id):
     store.create_or_get_job(job=make_job(net_id=net_id), lease_seconds=LEASE)
     store.cancel(job_id="j1")
-    store.finish(job_id="j1", results=(FormulaResult(id="f1", verdict=Verdict.TRUE, engine="x"),))
+    store.finish(
+        traces=(), job_id="j1", results=(FormulaResult(id="f1", verdict=Verdict.TRUE, engine="x"),)
+    )
     job = store.load_job(job_id="j1")
     assert job.state is JobState.CANCELLED
     assert job.results == ()
@@ -141,7 +143,7 @@ def test_finish_does_not_resurrect_a_cancelled_job(store, net_id):
 def test_cancelling_a_finished_job_changes_nothing(store, net_id):
     store.create_or_get_job(job=make_job(net_id=net_id), lease_seconds=LEASE)
     store.mark_running(job_id="j1", lease_seconds=LEASE)
-    store.finish(job_id="j1", results=())
+    store.finish(traces=(), job_id="j1", results=())
     store.cancel(job_id="j1")
     assert store.load_job(job_id="j1").state is JobState.DONE
 
@@ -163,7 +165,7 @@ def test_recovery_interrupts_only_jobs_whose_lease_expired(store, net_id):
         job=make_job(net_id=net_id, job_id="done", engine="smpt"), lease_seconds=-1
     )
     store.mark_running(job_id="done", lease_seconds=LEASE)
-    store.finish(job_id="done", results=())
+    store.finish(traces=(), job_id="done", results=())
 
     assert store.recover_interrupted() == 2
     assert store.load_job(job_id="stale-queued").state is JobState.INTERRUPTED
@@ -191,7 +193,9 @@ def test_an_expired_job_cannot_be_finished_by_its_former_owner(store, net_id):
     store.create_or_get_job(job=make_job(net_id=net_id), lease_seconds=LEASE)
     store.mark_running(job_id="j1", lease_seconds=-1)
     store.recover_interrupted()
-    store.finish(job_id="j1", results=(FormulaResult(id="f1", verdict=Verdict.TRUE, engine="x"),))
+    store.finish(
+        traces=(), job_id="j1", results=(FormulaResult(id="f1", verdict=Verdict.TRUE, engine="x"),)
+    )
     job = store.load_job(job_id="j1")
     assert job.state is JobState.INTERRUPTED
     assert job.results == ()

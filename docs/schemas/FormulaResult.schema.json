@@ -29,6 +29,18 @@
       "title": "Id",
       "type": "string"
     },
+    "rendered": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Rendered"
+    },
     "time_s": {
       "default": 0.0,
       "title": "Time S",
