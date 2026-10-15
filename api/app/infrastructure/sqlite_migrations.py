@@ -92,6 +92,30 @@ MIGRATIONS = (
 )""",
         ),
     ),
+    Migration(
+        version=4,
+        description="sessions and their events",
+        statements=(
+            """CREATE TABLE sessions (
+    session_id     TEXT PRIMARY KEY,
+    net_id         TEXT NOT NULL REFERENCES nets(net_id),
+    description_id TEXT REFERENCES descriptions(description_id),
+    state          TEXT NOT NULL,
+    lease_expires_at REAL NOT NULL DEFAULT 0,  -- meaningful while the session is running
+    created_at     REAL NOT NULL,
+    updated_at     REAL NOT NULL
+)""",
+            "CREATE INDEX sessions_state ON sessions(state, created_at)",
+            """CREATE TABLE events (
+    session_id TEXT NOT NULL REFERENCES sessions(session_id),
+    number     INTEGER NOT NULL,
+    at         REAL NOT NULL,
+    kind       TEXT NOT NULL,
+    body       TEXT NOT NULL,          -- the SessionEvent as JSON
+    PRIMARY KEY (session_id, number)
+)""",
+        ),
+    ),
 )
 LATEST_VERSION = MIGRATIONS[-1].version
 WAL_ATTEMPTS = 50

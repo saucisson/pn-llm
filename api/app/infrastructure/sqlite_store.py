@@ -33,10 +33,30 @@ from app.domain.errors import ConflictError, NotFoundError
 from app.domain.models import CheckRequest, FormulaResult, Job, JobState, JobSubmission
 from app.domain.net_document import NetDocument
 from app.domain.nets import NetSummary, SavedNet, StoredNet
+from app.domain.sessions import (
+    Session,
+    SessionEvent,
+    SessionState,
+    StartedSession,
+    StoredEvent,
+)
 
 from .sqlite_migrations import migrate
 
 _RESULTS = TypeAdapter(tuple[FormulaResult, ...])
+_EVENT: TypeAdapter[SessionEvent] = TypeAdapter(SessionEvent)
+
+
+def _session_from_row(*, row: sqlite3.Row) -> Session:
+    """Build a session from a database row."""
+    return Session(
+        session_id=row["session_id"],
+        net_id=row["net_id"],
+        description_id=row["description_id"],
+        state=SessionState(row["state"]),
+        created_at=row["created_at"],
+        updated_at=row["updated_at"],
+    )
 
 
 class SqliteStore:
@@ -162,6 +182,134 @@ class SqliteStore:
             )
             for row in rows
         )
+
+    # ---- SessionRepository ----------------------------------------------------------------
+
+    def create_session(self, *, session: Session, started: SessionEvent) -> StartedSession:
+        """Store a new session and its first event together."""
+        with self._connection() as conn:
+            conn.execute(
+                "INSERT INTO sessions(session_id, net_id, description_id, state, created_at,"
+                " updated_at) VALUES (?,?,?,?,?,?)",
+                (
+                    session.session_id,
+                    session.net_id,
+                    session.description_id,
+                    session.state.value,
+                    session.created_at,
+                    session.updated_at,
+                ),
+            )
+            conn.execute(
+                "INSERT INTO events(session_id, number, at, kind, body) VALUES (?,?,?,?,?)",
+                (
+                    session.session_id,
+                    1,
+                    session.created_at,
+                    started.kind,
+                    _EVENT.dump_json(started).decode(),
+                ),
+            )
+        first = StoredEvent(
+            session_id=session.session_id, number=1, at=session.created_at, event=started
+        )
+        return StartedSession(session=session, first_event=first)
+
+    def load_session(self, *, session_id: str) -> Session:
+        """Return a session, or raise NotFoundError."""
+        with self._connection() as conn:
+            row = conn.execute(
+                "SELECT * FROM sessions WHERE session_id=?", (session_id,)
+            ).fetchone()
+        if row is None:
+            raise NotFoundError(f"Unknown session: {session_id}")
+        return _session_from_row(row=row)
+
+    def append_event(self, *, session_id: str, event: SessionEvent) -> StoredEvent:
+        """Add an event with the next number of the session (strictly increasing, no gap).
+
+        The number is computed by the INSERT itself, under SQLite's write lock, so concurrent
+        writers of any process get distinct consecutive numbers.
+        """
+        now = time.time()
+        with self._connection() as conn:
+            row = conn.execute(
+                "INSERT INTO events(session_id, number, at, kind, body)"
+                " SELECT ?, COALESCE(MAX(number), 0) + 1, ?, ?, ? FROM events WHERE session_id=?"
+                " RETURNING number",
+                (session_id, now, event.kind, _EVENT.dump_json(event).decode(), session_id),
+            ).fetchone()
+            conn.execute("UPDATE sessions SET updated_at=? WHERE session_id=?", (now, session_id))
+        return StoredEvent(session_id=session_id, number=row["number"], at=now, event=event)
+
+    def events_after(self, *, session_id: str, after: int, limit: int) -> tuple[StoredEvent, ...]:
+        """Return up to ``limit`` events whose number is above ``after``, in order."""
+        with self._connection() as conn:
+            rows = conn.execute(
+                "SELECT number, at, body FROM events WHERE session_id=? AND number>?"
+                " ORDER BY number LIMIT ?",
+                (session_id, after, limit),
+            ).fetchall()
+        return tuple(
+            StoredEvent(
+                session_id=session_id,
+                number=row["number"],
+                at=row["at"],
+                event=_EVENT.validate_json(row["body"]),
+            )
+            for row in rows
+        )
+
+    def move_session(
+        self, *, session_id: str, allowed_from: tuple[SessionState, ...], to: SessionState
+    ) -> bool:
+        """Change the state if it is one of ``allowed_from``; False if it was not."""
+        marks = ",".join("?" for _ in allowed_from)
+        with self._connection() as conn:
+            cursor = conn.execute(
+                f"UPDATE sessions SET state=?, updated_at=? WHERE session_id=?"  # noqa: S608 - marks only
+                f" AND state IN ({marks})",
+                (to.value, time.time(), session_id, *(state.value for state in allowed_from)),
+            )
+            return cursor.rowcount == 1
+
+    def claim_next_run(self, *, lease_seconds: float) -> Session | None:
+        """Atomically claim the oldest queued session for this process; None if none waits."""
+        now = time.time()
+        with self._connection() as conn:
+            row = conn.execute(
+                "UPDATE sessions SET state='running', lease_expires_at=?, updated_at=?"
+                " WHERE session_id = (SELECT session_id FROM sessions WHERE state='queued'"
+                " ORDER BY updated_at, session_id LIMIT 1) AND state='queued' RETURNING *",
+                (now + lease_seconds, now),
+            ).fetchone()
+        return None if row is None else _session_from_row(row=row)
+
+    def renew_run_lease(self, *, session_id: str, lease_seconds: float) -> bool:
+        """Extend the lease of a running session; False if it is no longer running."""
+        now = time.time()
+        with self._connection() as conn:
+            cursor = conn.execute(
+                "UPDATE sessions SET lease_expires_at=?, updated_at=?"
+                " WHERE session_id=? AND state='running'",
+                (now + lease_seconds, now, session_id),
+            )
+            return cursor.rowcount == 1
+
+    def finish_run(self, *, session_id: str, to: SessionState) -> bool:
+        """Leave the running state, only if the session is still running."""
+        return self.move_session(session_id=session_id, allowed_from=(SessionState.RUNNING,), to=to)
+
+    def requeue_lost_runs(self) -> int:
+        """Queue again the running sessions whose lease expired: a run resumes from its events."""
+        now = time.time()
+        with self._connection() as conn:
+            cursor = conn.execute(
+                "UPDATE sessions SET state='queued', updated_at=?"
+                " WHERE state='running' AND lease_expires_at < ?",
+                (now, now),
+            )
+            return int(cursor.rowcount)
 
     # ---- JobRepository --------------------------------------------------------------------
 
