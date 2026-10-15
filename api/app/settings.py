@@ -69,3 +69,9 @@ class Settings(BaseSettings):
     # Logs go to standard error, one JSON object per line unless PNVERIF_LOG_JSON is false.
     log_level: str = "INFO"
     log_json: bool = True
+
+    # Retention of user data, in days (None keeps it for ever). Sessions not touched for this long
+    # are deleted with their events; nets that no job or session uses, and descriptions no net
+    # links to, are deleted after the second delay.
+    session_retention_days: float | None = None
+    unreferenced_net_retention_days: float | None = None

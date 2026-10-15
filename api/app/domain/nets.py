@@ -84,3 +84,11 @@ def summarize_document(*, document: NetDocument, net_id: str) -> NetSummary:
         arcs=sum(len(container.arcs) for container in containers),
         initial_tokens=tokens,
     )
+
+
+class NetReferences(DomainModel):
+    """What uses a net: jobs and sessions, and how many of them are queued or running."""
+
+    jobs: int
+    sessions: int
+    live: int

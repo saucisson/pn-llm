@@ -18,7 +18,11 @@ export interface paths {
         get: operations["get_description_v1_descriptions__description_id__get"];
         put?: never;
         post?: never;
-        delete?: never;
+        /**
+         * Delete Description
+         * @description Unlink a description from a net; its text is deleted when no net uses it.
+         */
+        delete: operations["delete_description_v1_descriptions__description_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -162,7 +166,11 @@ export interface paths {
         get: operations["get_net_v1_nets__net_id__get"];
         put?: never;
         post?: never;
-        delete?: never;
+        /**
+         * Delete Net
+         * @description Delete a net. Refused (409) while something uses it, unless ``cascade`` is set.
+         */
+        delete: operations["delete_net_v1_nets__net_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -469,7 +477,11 @@ export interface paths {
         get: operations["get_session_v1_sessions__session_id__get"];
         put?: never;
         post?: never;
-        delete?: never;
+        /**
+         * Delete Session
+         * @description Delete a session and its events (its run is cancelled first).
+         */
+        delete: operations["delete_session_v1_sessions__session_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -2384,6 +2396,38 @@ export interface operations {
             };
         };
     };
+    delete_description_v1_descriptions__description_id__delete: {
+        parameters: {
+            query: {
+                /** @description The net the description is unlinked from */
+                net_id: string;
+            };
+            header?: never;
+            path: {
+                description_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_engines_v1_engines_get: {
         parameters: {
             query?: never;
@@ -2599,6 +2643,38 @@ export interface operations {
                 content: {
                     "application/json": unknown;
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_net_v1_nets__net_id__delete: {
+        parameters: {
+            query?: {
+                /** @description Also delete its jobs and sessions */
+                cascade?: boolean;
+            };
+            header?: never;
+            path: {
+                net_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
@@ -3149,6 +3225,35 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["Envelope_Session_"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_session_v1_sessions__session_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {

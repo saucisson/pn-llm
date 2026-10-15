@@ -5712,6 +5712,51 @@
   "openapi": "3.1.0",
   "paths": {
     "/v1/descriptions/{description_id}": {
+      "delete": {
+        "description": "Unlink a description from a net; its text is deleted when no net uses it.",
+        "operationId": "delete_description_v1_descriptions__description_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "description_id",
+            "required": true,
+            "schema": {
+              "title": "Description Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The net the description is unlinked from",
+            "in": "query",
+            "name": "net_id",
+            "required": true,
+            "schema": {
+              "description": "The net the description is unlinked from",
+              "title": "Net Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Description",
+        "tags": [
+          "descriptions"
+        ]
+      },
       "get": {
         "description": "A description with its links to nets (one entry per net and origin).",
         "operationId": "get_description_v1_descriptions__description_id__get",
@@ -6013,6 +6058,52 @@
       }
     },
     "/v1/nets/{net_id}": {
+      "delete": {
+        "description": "Delete a net. Refused (409) while something uses it, unless ``cascade`` is set.",
+        "operationId": "delete_net_v1_nets__net_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "net_id",
+            "required": true,
+            "schema": {
+              "title": "Net Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Also delete its jobs and sessions",
+            "in": "query",
+            "name": "cascade",
+            "required": false,
+            "schema": {
+              "default": false,
+              "description": "Also delete its jobs and sessions",
+              "title": "Cascade",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Net",
+        "tags": [
+          "nets"
+        ]
+      },
       "get": {
         "description": "Return the net: its JSON document (default) or canonical PNML with ``Accept``.",
         "operationId": "get_net_v1_nets__net_id__get",
@@ -7060,6 +7151,40 @@
       }
     },
     "/v1/sessions/{session_id}": {
+      "delete": {
+        "description": "Delete a session and its events (its run is cancelled first).",
+        "operationId": "delete_session_v1_sessions__session_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Session",
+        "tags": [
+          "sessions"
+        ]
+      },
       "get": {
         "description": "The state of a session.",
         "operationId": "get_session_v1_sessions__session_id__get",

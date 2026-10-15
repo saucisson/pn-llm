@@ -64,10 +64,13 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/application/tools.py` | application | `ToolFacade`: the tools of the agent over the use cases; trimmed JSON answers (ADR 0017), events for checks and questions |
 | `app/application/agent.py` | application | `AgentService`: sessions, user messages and answers, and the agent run (budgets, resumable, cancellable) |
 | `app/application/log_context.py` | application | The request id of the request being served, read by the log formatter |
+| `app/application/retention.py` | application | `RetentionService`: delete sessions, nets and descriptions, and apply the retention policy |
 | `app/application/leases.py` | application | `LeaseKeeper`: renews a running job's lease so other processes know its owner is alive |
 | `app/application/checks.py` | application | `CheckService`: submit, execute, read and cancel checks |
 | `app/application/engines.py` | application | `EngineService`: list engines |
 | `app/infrastructure/sqlite_store.py` | infrastructure | SQLite implementation of `NetRepository` and `JobRepository` |
+| `app/infrastructure/sqlite_database.py` | infrastructure | The shared base of the SQLite adapters: the file, its migration, short-lived connections |
+| `app/infrastructure/sqlite_retention.py` | infrastructure | Deletion of user data along its references |
 | `app/infrastructure/sqlite_migrations.py` | infrastructure | Numbered schema migrations (`PRAGMA user_version`), including the conversion of first-schema databases |
 | `app/infrastructure/sqlite_backup.py` | infrastructure | Online backup and offline restore of the database |
 | `app/infrastructure/scripted_llm.py` | infrastructure | `ScriptedLlm`, the double of the LLM port, and `DemoLlm`, an offline demonstration |
@@ -221,6 +224,19 @@ names the operation, not the tool (ADR 0014). To add one: a route, a request mod
 model, a use case run by the generic job runner, an entry in the operations catalog, and an engine
 declaring it. The nets, inspection, formula, check, job, trace and replay routes follow that contract; analyses
 and reductions (milestone M4) are not implemented yet.
+
+## Retention and deletion
+User data (nets, descriptions, sessions) can be confidential. Nets and descriptions are shared by
+content (the same upload is one record), so deletion follows references: `DELETE /v1/sessions/{id}`
+cancels the run and deletes the session with its events; `DELETE /v1/nets/{id}` deletes a net that
+nothing uses, or with `?cascade=true` also its jobs, counterexamples, sessions and description
+links (409 while something is queued or running); `DELETE /v1/descriptions/{id}?net_id=` unlinks a
+description, and its text goes when no net links to it. Automatic policy, off by default:
+`PNVERIF_SESSION_RETENTION_DAYS` (sessions not touched for that long, unless running),
+`PNVERIF_UNREFERENCED_NET_RETENTION_DAYS` (nets no job or session uses, and unlinked descriptions),
+`PNVERIF_JOB_RETENTION_DAYS` (finished jobs), `PNVERIF_SESSION_WAITING_EXPIRY_DAYS` (sessions
+waiting for an answer). **There is no authentication yet**: any client can delete; a shared
+deployment must put the API behind authentication first.
 
 ## Logs
 Logs go to standard error as one JSON object per line (`PNVERIF_LOG_LEVEL`, `PNVERIF_LOG_JSON`).
