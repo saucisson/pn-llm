@@ -31,6 +31,7 @@ dev = [
     "jsonschema>=4.20",
     "setuptools>=83",
     "uv>=0.5",
+    "mutmut>=3.8",
     "types-defusedxml>=0.7",
 ]
 
@@ -224,10 +225,21 @@ source = ["app"]
 branch = true
 
 [tool.coverage.report]
-fail_under = 90
+fail_under = 95
 show_missing = true
 skip_covered = true
 exclude_also = [
     "if TYPE_CHECKING:",
     "pragma: no cover",
+]
+
+# ---------------------------------------------------------------------------------------------
+# Mutation testing (make mutation): does the suite notice when the code is changed?
+# ---------------------------------------------------------------------------------------------
+[tool.mutmut]
+source_paths = ["app/domain/", "app/application/"]
+pytest_add_cli_args_test_selection = ["tests/unit", "tests/api"]
+# The rest of the package, and the files the tests read next to it (links made by `make mutation`).
+also_copy = [
+    "app/__init__.py", "app/main.py", "app/settings.py", "app/api", "app/infrastructure", "docs", "engines",
 ]

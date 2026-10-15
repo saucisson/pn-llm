@@ -31,7 +31,7 @@
 ## Coverage
 
 - Measured with branch coverage (`pytest --cov`), on `app/` only.
-- **Minimum 90 %** (`fail_under` in `api/pyproject.toml`), enforced before push and in CI. The
+- **Minimum 95 %** (`fail_under` in `api/pyproject.toml`), enforced before push and in CI. The
   target is to stay near the current level; do not lower the threshold, add tests.
 - `# pragma: no cover` needs a reason on the same line and is the exception.
 - Coverage is a floor, not a goal: a covered line with no assertion proves nothing. Review the
@@ -44,3 +44,13 @@ make test          # fast tests
 make cov           # tests with branch coverage and the threshold
 make check         # everything the CI runs
 ```
+
+## Mutation testing
+Coverage says a line ran, not that a test would notice if it were wrong. `make mutation`
+(`scripts/mutation.sh`, mutmut) changes the code of `app/domain` and `app/application` in small ways
+(a `<` becomes `<=`, a constant changes) and runs the tests: a mutant the tests do not catch
+*survives* and points at a missing assertion. It is slow, so a weekly workflow
+(`.github/workflows/mutation.yml`) runs it and keeps the counts as an artifact and in the run
+summary, to follow the trend. For one module: `scripts/mutation.sh 'app.domain.canonical*'`.
+
+First measure (`app.domain.canonical`, 2026-10-15): 83 mutants killed, 9 survived.

@@ -16,3 +16,4 @@ data/
 .coverage
 coverage.xml
 htmlcov/
+api/mutants/

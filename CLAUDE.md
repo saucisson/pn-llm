@@ -55,7 +55,7 @@ make lint       # ruff check
 make typecheck  # mypy --strict
 make arch       # import-linter: the onion rules
 make docs-check # architecture doc in sync with the modules
-make cov        # tests with branch coverage (minimum 90 %)
+make cov        # tests with branch coverage (minimum 95 %)
 ```
 
 | When | What runs |
@@ -66,7 +66,7 @@ make cov        # tests with branch coverage (minimum 90 %)
 
 Do not bypass hooks (`--no-verify`). If a rule seems wrong, change the rule in a reviewed commit
 (and the ADR/convention doc), do not work around it. Tests policy: `docs/testing.md` (a behaviour
-change always comes with a test; no mocks of our own code; coverage floor 90 %).
+change always comes with a test; no mocks of our own code; coverage floor 95 %).
 
 ## Workflow for a change
 

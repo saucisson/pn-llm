@@ -1,0 +1,32 @@
+name: Release
+
+on:
+  push:
+    tags: ["v[0-9]+.[0-9]+.[0-9]+"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Images build
+        run: |
+          docker build -f api/Dockerfile -t "pn-llm-verif/api:${GITHUB_REF_NAME}" .
+          docker build -f engines/dummy/Dockerfile -t "pn-llm-verif/dummy:${GITHUB_REF_NAME}" .
+      - name: Release notes from the conventional commits
+        id: notes
+        uses: orhun/git-cliff-action@v4
+        with:
+          config: cliff.toml
+          args: --latest --strip header
+        env:
+          OUTPUT: RELEASE_NOTES.md
+      - name: GitHub release
+        run: gh release create "${GITHUB_REF_NAME}" --title "${GITHUB_REF_NAME}" --notes-file RELEASE_NOTES.md
+        env:
+          GH_TOKEN: ${{ github.token }}
