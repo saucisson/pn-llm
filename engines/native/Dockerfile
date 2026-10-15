@@ -1,9 +1,9 @@
 # The platform's own analyses and transformations. Build from the repository root:
-#   docker build -f engines/native/Dockerfile -t pn-llm-verif/native:1.4 .
+#   docker build -f engines/native/Dockerfile -t pn-llm-verif/native:1.5 .
 # Nothing to fetch: the algorithms are in api/app/domain/analyses. The tool version is bumped
 # with every change of an algorithm (results are cached by tool version).
 FROM python:3.14-slim
-ARG TOOL_VERSION=1.4
+ARG TOOL_VERSION=1.5
 LABEL org.opencontainers.image.title="pn-llm-verif engine native" \
       org.opencontainers.image.version="${TOOL_VERSION}"
 

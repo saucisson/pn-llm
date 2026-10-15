@@ -57,6 +57,12 @@ SINKS = pnml_of(
     arcs=[("p", "t"), ("t", "q"), ("t", "s")],
     marking={"p": 1},
 )
+BUFFER = pnml_of(
+    places=["s", "p", "r"],
+    transitions=["t", "u"],
+    arcs=[("s", "t"), ("t", "p"), ("p", "u"), ("u", "r")],
+    marking={"s": 1},
+)
 # operation -> (net, parameters, what its answer must say)
 KNOWN_ANSWERS = {
     "net-class": (
@@ -101,6 +107,8 @@ KNOWN_ANSWERS = {
         {"max_applications": 1},
         lambda d: [r["id"] for r in d["removed"]] == ["mid", "t"],
     ),
+    "pre-agglomeration": (BUFFER, {}, lambda d: [r["id"] for r in d["removed"]] == ["p", "u"]),
+    "post-agglomeration": (BUFFER, {}, lambda d: [r["id"] for r in d["removed"]] == ["p", "u"]),
     "remove-implicit-places": (SINKS, {}, lambda d: [r["id"] for r in d["removed"]] == ["q", "s"]),
 }
 

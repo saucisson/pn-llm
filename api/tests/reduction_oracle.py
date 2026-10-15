@@ -127,6 +127,8 @@ def random_net(*, seed: int):  # noqa: C901, PLR0912 - one generator with severa
             arcs.append((source, "chain_in"))
         arcs.append(("chain_in", mid))
         arcs.append((mid, "chain_out"))
+        if rng.random() < 0.4:  # the consumer waits for something else too: post-agglomeration only
+            arcs.append((rng.choice(places[:-1]), "chain_out"))
         for target in rng.sample(places[:-1], rng.randint(1, min(2, len(places) - 1))):
             arcs.append(("chain_out", target))
         if rng.random() < 0.4:

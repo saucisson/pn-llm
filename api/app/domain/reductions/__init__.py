@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from app.domain.operations import OperationDefinition
 
+from .agglomeration import AGGLOMERATION_PRESERVES, post_agglomeration, pre_agglomeration
 from .implicit import IMPLICIT_PRESERVES, remove_implicit_places
 from .parallel import PARALLEL_PRESERVES, fuse_parallel_places, fuse_parallel_transitions
 from .removals import (
@@ -78,5 +79,23 @@ REDUCTIONS: tuple[OperationDefinition, ...] = (
         result_model=ReductionResult,
         compute=remove_implicit_places,
         preserves=IMPLICIT_PRESERVES,
+    ),
+    OperationDefinition(
+        name="pre-agglomeration",
+        kind="reduction",
+        summary="Remove an empty buffer place whose consumers take nothing else, fusing them.",
+        parameters_model=ReductionParameters,
+        result_model=ReductionResult,
+        compute=pre_agglomeration,
+        preserves=AGGLOMERATION_PRESERVES,
+    ),
+    OperationDefinition(
+        name="post-agglomeration",
+        kind="reduction",
+        summary="Remove an empty buffer place whose producers give nothing else, fusing them.",
+        parameters_model=ReductionParameters,
+        result_model=ReductionResult,
+        compute=post_agglomeration,
+        preserves=AGGLOMERATION_PRESERVES,
     ),
 )
