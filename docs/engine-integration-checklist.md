@@ -43,3 +43,5 @@ the kit and the image template below do the rest.
    disagreement is documented and reported, never hidden (domain rule 8).
 9. **CI.** Add the image to the `docker` job of `.github/workflows/ci.yml` and to the `engines`
    profile of `docker-compose.yml`.
+10. **Document.** Add the engine to `docs/engines.md`: pinned version, licence, build notes,
+    what the adapter does with traces, and the conformance result.

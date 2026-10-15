@@ -51,6 +51,7 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/domain/descriptions.py` | domain | `Description`: immutable text identified by its hash, linked to a net with an origin |
 | `app/domain/mcc.py` | domain | Model Checking Contest catalog: `MccFamily` parsed from the models page, `MccInstance` from archive members, `ModelEntry`, `SeedReport` |
 | `app/domain/mcc_properties.py` | domain | The contest's formula XML read into formula trees (`parse_property_set`), `BoundQuery` for upper bounds; unknown elements are refused, never skipped |
+| `app/domain/mcc_xml.py` | domain | Formula trees written as the contest's property XML (the inverse of `parse_property_set`), which verifypn and others read natively |
 | `app/domain/mcc_results.py` | domain | The contest's published runs: tool names normalized, the contest's own outcome classes kept (never a verdict), success rate and median time per family |
 | `app/domain/splits.py` | domain | Frozen, seeded split of families into balanced development folds and a held-out test set (the family is the unit) |
 | `app/domain/sessions.py` | domain | `Session`, the frozen event vocabulary (`SessionEvent`) and `StoredEvent`; a verdict cannot be built without an engine result |
