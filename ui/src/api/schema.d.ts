@@ -316,6 +316,91 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/nets/{net_id}/analyses/conflict-sets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Groups of transitions that compete for the same input places. */
+        post: operations["analyses.conflict-sets"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/nets/{net_id}/analyses/connected-components": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Parts of the net not linked by any arc, largest first. */
+        post: operations["analyses.connected-components"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/nets/{net_id}/analyses/dead-transitions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Transitions that can never fire, from the structure and the initial marking. */
+        post: operations["analyses.dead-transitions"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/nets/{net_id}/analyses/minimal-siphons": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Minimal siphons: place sets that, once empty, stay empty. */
+        post: operations["analyses.minimal-siphons"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/nets/{net_id}/analyses/minimal-traps": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Minimal traps: place sets that, once marked, stay marked. */
+        post: operations["analyses.minimal-traps"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/nets/{net_id}/analyses/net-class": {
         parameters: {
             query?: never;
@@ -344,6 +429,40 @@ export interface paths {
         put?: never;
         /** Minimal-support place invariants: weighted place sets with a constant token sum. */
         post: operations["analyses.p-invariants"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/nets/{net_id}/analyses/place-bounds": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Bound of each place that the structure shows: finite, unbounded or unknown. */
+        post: operations["analyses.place-bounds"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/nets/{net_id}/analyses/t-invariants": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Minimal-support transition invariants: firing counts that return to the marking. */
+        post: operations["analyses.t-invariants"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1064,6 +1183,81 @@ export interface components {
             right: components["schemas"]["TokenCount"] | components["schemas"]["Constant"];
         };
         /**
+         * Component
+         * @description A weakly connected component.
+         */
+        Component: {
+            /** Elements */
+            elements: components["schemas"]["ElementRef"][];
+            /** Places */
+            places: number;
+            /** Transitions */
+            transitions: number;
+            /** Truncated */
+            truncated: boolean;
+        };
+        /**
+         * ConflictSet
+         * @description Transitions linked, directly or through others, by a shared input place.
+         */
+        ConflictSet: {
+            /** Shared Places */
+            shared_places: components["schemas"]["ElementRef"][];
+            /** Transitions */
+            transitions: components["schemas"]["ElementRef"][];
+        };
+        /**
+         * ConflictSetsParameters
+         * @description Options of the analysis.
+         */
+        ConflictSetsParameters: {
+            /**
+             * Max Groups
+             * @default 200
+             */
+            max_groups: number;
+        };
+        /**
+         * ConflictSetsResult
+         * @description The groups of at least two transitions in structural conflict.
+         */
+        ConflictSetsResult: {
+            /** Groups */
+            groups: components["schemas"]["ConflictSet"][];
+            /** Total */
+            total: number;
+            /** Transitions In Conflict */
+            transitions_in_conflict: number;
+            /** Transitions Without Conflict */
+            transitions_without_conflict: number;
+        };
+        /**
+         * ConnectedComponentsParameters
+         * @description Options of the analysis.
+         */
+        ConnectedComponentsParameters: {
+            /**
+             * Max Components
+             * @default 50
+             */
+            max_components: number;
+            /**
+             * Max Elements
+             * @default 100
+             */
+            max_elements: number;
+        };
+        /**
+         * ConnectedComponentsResult
+         * @description The components, largest first.
+         */
+        ConnectedComponentsResult: {
+            /** Components */
+            components: components["schemas"]["Component"][];
+            /** Total */
+            total: number;
+        };
+        /**
          * Constant
          * @description A term: a non-negative integer.
          */
@@ -1131,6 +1325,21 @@ export interface components {
             op: "AU" | "EU";
             /** Right */
             right: components["schemas"]["Tokens"] | components["schemas"]["Compare"] | components["schemas"]["Enabled"] | components["schemas"]["Deadlock"] | components["schemas"]["Truth"] | components["schemas"]["Not-Output"] | components["schemas"]["And-Output"] | components["schemas"]["Or-Output"] | components["schemas"]["Implies-Output"] | components["schemas"]["LtlUnary-Output"] | components["schemas"]["LtlUntil-Output"] | components["schemas"]["CtlUnary-Output"] | components["schemas"]["CtlUntil-Output"];
+        };
+        /**
+         * DeadTransitionsResult
+         * @description Transitions proven dead, and the places that can never hold a token.
+         */
+        DeadTransitionsResult: {
+            /** Dead Transitions */
+            dead_transitions: components["schemas"]["ElementRef"][];
+            /** Never Marked Places */
+            never_marked_places: components["schemas"]["ElementRef"][];
+            /**
+             * Note
+             * @default A transition not listed is not proven live.
+             */
+            note: string;
         };
         /**
          * Deadlock
@@ -1265,6 +1474,87 @@ export interface components {
             supports_colored: boolean;
             /** Version */
             version: string;
+        };
+        /** Envelope[ConflictSetsResult] */
+        Envelope_ConflictSetsResult_: {
+            data?: components["schemas"]["ConflictSetsResult"] | null;
+            /** Elapsed S */
+            elapsed_s: number;
+            error?: components["schemas"]["ErrorInfo"] | null;
+            /** Net Id */
+            net_id?: string | null;
+            /**
+             * Schema Version
+             * @default 1.0
+             * @constant
+             */
+            schema_version: "1.0";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ok" | "partial" | "failed";
+            tool: components["schemas"]["ToolInfo"];
+            truncated?: components["schemas"]["Page"] | null;
+            /**
+             * Warnings
+             * @default []
+             */
+            warnings: string[];
+        };
+        /** Envelope[ConnectedComponentsResult] */
+        Envelope_ConnectedComponentsResult_: {
+            data?: components["schemas"]["ConnectedComponentsResult"] | null;
+            /** Elapsed S */
+            elapsed_s: number;
+            error?: components["schemas"]["ErrorInfo"] | null;
+            /** Net Id */
+            net_id?: string | null;
+            /**
+             * Schema Version
+             * @default 1.0
+             * @constant
+             */
+            schema_version: "1.0";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ok" | "partial" | "failed";
+            tool: components["schemas"]["ToolInfo"];
+            truncated?: components["schemas"]["Page"] | null;
+            /**
+             * Warnings
+             * @default []
+             */
+            warnings: string[];
+        };
+        /** Envelope[DeadTransitionsResult] */
+        Envelope_DeadTransitionsResult_: {
+            data?: components["schemas"]["DeadTransitionsResult"] | null;
+            /** Elapsed S */
+            elapsed_s: number;
+            error?: components["schemas"]["ErrorInfo"] | null;
+            /** Net Id */
+            net_id?: string | null;
+            /**
+             * Schema Version
+             * @default 1.0
+             * @constant
+             */
+            schema_version: "1.0";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ok" | "partial" | "failed";
+            tool: components["schemas"]["ToolInfo"];
+            truncated?: components["schemas"]["Page"] | null;
+            /**
+             * Warnings
+             * @default []
+             */
+            warnings: string[];
         };
         /** Envelope[Description] */
         Envelope_Description_: {
@@ -1536,6 +1826,33 @@ export interface components {
              */
             warnings: string[];
         };
+        /** Envelope[PlaceBoundsResult] */
+        Envelope_PlaceBoundsResult_: {
+            data?: components["schemas"]["PlaceBoundsResult"] | null;
+            /** Elapsed S */
+            elapsed_s: number;
+            error?: components["schemas"]["ErrorInfo"] | null;
+            /** Net Id */
+            net_id?: string | null;
+            /**
+             * Schema Version
+             * @default 1.0
+             * @constant
+             */
+            schema_version: "1.0";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ok" | "partial" | "failed";
+            tool: components["schemas"]["ToolInfo"];
+            truncated?: components["schemas"]["Page"] | null;
+            /**
+             * Warnings
+             * @default []
+             */
+            warnings: string[];
+        };
         /** Envelope[ReplayResult] */
         Envelope_ReplayResult_: {
             data?: components["schemas"]["ReplayResult"] | null;
@@ -1644,6 +1961,33 @@ export interface components {
              */
             warnings: string[];
         };
+        /** Envelope[SiphonsResult] */
+        Envelope_SiphonsResult_: {
+            data?: components["schemas"]["SiphonsResult"] | null;
+            /** Elapsed S */
+            elapsed_s: number;
+            error?: components["schemas"]["ErrorInfo"] | null;
+            /** Net Id */
+            net_id?: string | null;
+            /**
+             * Schema Version
+             * @default 1.0
+             * @constant
+             */
+            schema_version: "1.0";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ok" | "partial" | "failed";
+            tool: components["schemas"]["ToolInfo"];
+            truncated?: components["schemas"]["Page"] | null;
+            /**
+             * Warnings
+             * @default []
+             */
+            warnings: string[];
+        };
         /** Envelope[Split] */
         Envelope_Split_: {
             data?: components["schemas"]["Split"] | null;
@@ -1698,9 +2042,63 @@ export interface components {
              */
             warnings: string[];
         };
+        /** Envelope[TInvariantsResult] */
+        Envelope_TInvariantsResult_: {
+            data?: components["schemas"]["TInvariantsResult"] | null;
+            /** Elapsed S */
+            elapsed_s: number;
+            error?: components["schemas"]["ErrorInfo"] | null;
+            /** Net Id */
+            net_id?: string | null;
+            /**
+             * Schema Version
+             * @default 1.0
+             * @constant
+             */
+            schema_version: "1.0";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ok" | "partial" | "failed";
+            tool: components["schemas"]["ToolInfo"];
+            truncated?: components["schemas"]["Page"] | null;
+            /**
+             * Warnings
+             * @default []
+             */
+            warnings: string[];
+        };
         /** Envelope[Trace] */
         Envelope_Trace_: {
             data?: components["schemas"]["Trace"] | null;
+            /** Elapsed S */
+            elapsed_s: number;
+            error?: components["schemas"]["ErrorInfo"] | null;
+            /** Net Id */
+            net_id?: string | null;
+            /**
+             * Schema Version
+             * @default 1.0
+             * @constant
+             */
+            schema_version: "1.0";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ok" | "partial" | "failed";
+            tool: components["schemas"]["ToolInfo"];
+            truncated?: components["schemas"]["Page"] | null;
+            /**
+             * Warnings
+             * @default []
+             */
+            warnings: string[];
+        };
+        /** Envelope[TrapsResult] */
+        Envelope_TrapsResult_: {
+            data?: components["schemas"]["TrapsResult"] | null;
             /** Elapsed S */
             elapsed_s: number;
             error?: components["schemas"]["ErrorInfo"] | null;
@@ -2057,6 +2455,19 @@ export interface components {
              * @enum {string}
              */
             role: "dev" | "test";
+        };
+        /**
+         * FiniteBound
+         * @description A bound known to be a number.
+         */
+        FiniteBound: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "finite";
+            /** Value */
+            value: number;
         };
         /**
          * Formula
@@ -2443,6 +2854,38 @@ export interface components {
             text: string;
         };
         /**
+         * MinimalSiphonsParameters
+         * @description Options of the search for minimal siphons.
+         */
+        MinimalSiphonsParameters: {
+            /**
+             * Max Results
+             * @default 100
+             */
+            max_results: number;
+            /**
+             * Max Steps
+             * @default 200000
+             */
+            max_steps: number;
+        };
+        /**
+         * MinimalTrapsParameters
+         * @description Options of the search for minimal traps.
+         */
+        MinimalTrapsParameters: {
+            /**
+             * Max Results
+             * @default 100
+             */
+            max_results: number;
+            /**
+             * Max Steps
+             * @default 200000
+             */
+            max_steps: number;
+        };
+        /**
          * MissingTokens
          * @description A place that holds fewer tokens than a firing needs.
          */
@@ -2656,6 +3099,46 @@ export interface components {
             /** Supports Colored */
             supports_colored: boolean;
         };
+        /** OperationRequest[ConflictSetsParameters] */
+        OperationRequest_ConflictSetsParameters_: {
+            /**
+             * Engine
+             * @default auto
+             */
+            engine: string;
+            limits?: components["schemas"]["Limits"];
+            parameters: components["schemas"]["ConflictSetsParameters"];
+        };
+        /** OperationRequest[ConnectedComponentsParameters] */
+        OperationRequest_ConnectedComponentsParameters_: {
+            /**
+             * Engine
+             * @default auto
+             */
+            engine: string;
+            limits?: components["schemas"]["Limits"];
+            parameters: components["schemas"]["ConnectedComponentsParameters"];
+        };
+        /** OperationRequest[MinimalSiphonsParameters] */
+        OperationRequest_MinimalSiphonsParameters_: {
+            /**
+             * Engine
+             * @default auto
+             */
+            engine: string;
+            limits?: components["schemas"]["Limits"];
+            parameters: components["schemas"]["MinimalSiphonsParameters"];
+        };
+        /** OperationRequest[MinimalTrapsParameters] */
+        OperationRequest_MinimalTrapsParameters_: {
+            /**
+             * Engine
+             * @default auto
+             */
+            engine: string;
+            limits?: components["schemas"]["Limits"];
+            parameters: components["schemas"]["MinimalTrapsParameters"];
+        };
         /** OperationRequest[NoParameters] */
         OperationRequest_NoParameters_: {
             /**
@@ -2675,6 +3158,26 @@ export interface components {
             engine: string;
             limits?: components["schemas"]["Limits"];
             parameters: components["schemas"]["PInvariantsParameters"];
+        };
+        /** OperationRequest[PlaceBoundsParameters] */
+        OperationRequest_PlaceBoundsParameters_: {
+            /**
+             * Engine
+             * @default auto
+             */
+            engine: string;
+            limits?: components["schemas"]["Limits"];
+            parameters: components["schemas"]["PlaceBoundsParameters"];
+        };
+        /** OperationRequest[TInvariantsParameters] */
+        OperationRequest_TInvariantsParameters_: {
+            /**
+             * Engine
+             * @default auto
+             */
+            engine: string;
+            limits?: components["schemas"]["Limits"];
+            parameters: components["schemas"]["TInvariantsParameters"];
         };
         /**
          * Or
@@ -2714,7 +3217,7 @@ export interface components {
         };
         /**
          * PInvariantsParameters
-         * @description Options of the search.
+         * @description Options of the search for place invariants.
          */
         PInvariantsParameters: {
             /**
@@ -2766,6 +3269,59 @@ export interface components {
              * @default 50
              */
             limit: number;
+        };
+        /**
+         * PlaceBound
+         * @description The bound of one place.
+         */
+        PlaceBound: {
+            /** Bound */
+            bound: components["schemas"]["FiniteBound"] | components["schemas"]["UnboundedBound"] | components["schemas"]["UnknownBound"];
+            place: components["schemas"]["ElementRef"];
+        };
+        /**
+         * PlaceBoundsParameters
+         * @description Options of the analysis.
+         */
+        PlaceBoundsParameters: {
+            /**
+             * Max Places
+             * @default 500
+             */
+            max_places: number;
+            /**
+             * Max Rows
+             * @default 20000
+             */
+            max_rows: number;
+        };
+        /**
+         * PlaceBoundsResult
+         * @description Bounds from the P-invariants: a place in an invariant holds at most constant / weight.
+         */
+        PlaceBoundsResult: {
+            /** Bounds */
+            bounds: components["schemas"]["PlaceBound"][];
+            /** Complete */
+            complete: boolean;
+            /** Finite */
+            finite: number;
+            /** Total */
+            total: number;
+            /** Unbounded */
+            unbounded: number;
+            /** Unknown */
+            unknown: number;
+        };
+        /**
+         * PlaceSet
+         * @description A set of places, and whether it holds a token in the initial marking.
+         */
+        PlaceSet: {
+            /** Initially Marked */
+            initially_marked: boolean;
+            /** Places */
+            places: components["schemas"]["ElementRef"][];
         };
         /**
          * PropertyProposed
@@ -3011,6 +3567,18 @@ export interface components {
          */
         SessionState: "queued" | "running" | "waiting_for_user" | "idle" | "cancelled";
         /**
+         * SiphonsResult
+         * @description The minimal siphons found.
+         */
+        SiphonsResult: {
+            /** Complete */
+            complete: boolean;
+            /** Sets */
+            sets: components["schemas"]["PlaceSet"][];
+            /** Total */
+            total: number;
+        };
+        /**
          * Split
          * @description A frozen assignment of families. Once stored under a name it is never changed.
          */
@@ -3051,6 +3619,44 @@ export interface components {
             number: number;
             /** Session Id */
             session_id: string;
+        };
+        /**
+         * TInvariant
+         * @description A transition invariant: firing these transitions, that many times, returns to the marking.
+         */
+        TInvariant: {
+            /** Elements */
+            elements: components["schemas"]["WeightedElement"][];
+        };
+        /**
+         * TInvariantsParameters
+         * @description Options of the search for transition invariants.
+         */
+        TInvariantsParameters: {
+            /**
+             * Max Invariants
+             * @default 200
+             */
+            max_invariants: number;
+            /**
+             * Max Rows
+             * @default 20000
+             */
+            max_rows: number;
+        };
+        /**
+         * TInvariantsResult
+         * @description The minimal-support invariants found, and how far the search went.
+         */
+        TInvariantsResult: {
+            /** Complete */
+            complete: boolean;
+            /** Invariants */
+            invariants: components["schemas"]["TInvariant"][];
+            /** Total */
+            total: number;
+            /** Uncovered Transitions */
+            uncovered_transitions: components["schemas"]["ElementRef"][];
         };
         /**
          * TokenCount
@@ -3154,6 +3760,18 @@ export interface components {
             transition: components["schemas"]["ElementRef"];
         };
         /**
+         * TrapsResult
+         * @description The minimal traps found.
+         */
+        TrapsResult: {
+            /** Complete */
+            complete: boolean;
+            /** Sets */
+            sets: components["schemas"]["PlaceSet"][];
+            /** Total */
+            total: number;
+        };
+        /**
          * Truth
          * @description The constants true and false.
          */
@@ -3165,6 +3783,28 @@ export interface components {
             op: "const";
             /** Value */
             value: boolean;
+        };
+        /**
+         * UnboundedBound
+         * @description A place proven unbounded.
+         */
+        UnboundedBound: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "unbounded";
+        };
+        /**
+         * UnknownBound
+         * @description The tool could not decide; never encoded as null or a magic number.
+         */
+        UnknownBound: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "unknown";
         };
         /**
          * UserMessage
@@ -3771,6 +4411,226 @@ export interface operations {
             };
         };
     };
+    "analyses.conflict-sets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                net_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OperationRequest_ConflictSetsParameters_"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_ConflictSetsResult_"];
+                };
+            };
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_RunHandle_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "analyses.connected-components": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                net_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OperationRequest_ConnectedComponentsParameters_"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_ConnectedComponentsResult_"];
+                };
+            };
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_RunHandle_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "analyses.dead-transitions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                net_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OperationRequest_NoParameters_"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_DeadTransitionsResult_"];
+                };
+            };
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_RunHandle_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "analyses.minimal-siphons": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                net_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OperationRequest_MinimalSiphonsParameters_"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_SiphonsResult_"];
+                };
+            };
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_RunHandle_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "analyses.minimal-traps": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                net_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OperationRequest_MinimalTrapsParameters_"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_TrapsResult_"];
+                };
+            };
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_RunHandle_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     "analyses.net-class": {
         parameters: {
             query?: never;
@@ -3837,6 +4697,94 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Envelope_PInvariantsResult_"];
+                };
+            };
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_RunHandle_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "analyses.place-bounds": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                net_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OperationRequest_PlaceBoundsParameters_"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_PlaceBoundsResult_"];
+                };
+            };
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_RunHandle_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "analyses.t-invariants": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                net_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OperationRequest_TInvariantsParameters_"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_TInvariantsResult_"];
                 };
             };
             /** @description Accepted */

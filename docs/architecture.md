@@ -56,6 +56,14 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/domain/operations.py` | domain | The operations (analyses, reductions): `OperationDefinition`, the request, the run and its outcome |
 | `app/domain/operation_check.py` | domain | Checks what an engine says an operation found: the shape, and only elements the net has, with their names |
 | the package `app/domain/analyses` | domain | The analyses, one module each; its `__init__` is the catalog `ANALYSES` and `find_operation` |
+| `app/domain/analyses/t_invariants.py` | domain | Analysis `t-invariants`: semiflows of the transposed incidence matrix |
+| `app/domain/analyses/place_bounds.py` | domain | Analysis `place-bounds`: bounds from the P-invariants; unbounded only when a source transition feeds a place |
+| `app/domain/analyses/siphons.py` | domain | Analyses `minimal-siphons` and `minimal-traps`: branching search over the violated transitions |
+| `app/domain/analyses/dead_transitions.py` | domain | Analysis `dead-transitions`: least fixpoint of markable places and firable transitions |
+| `app/domain/analyses/conflict_sets.py` | domain | Analysis `conflict-sets`: transitions linked by shared input places |
+| `app/domain/analyses/connected_components.py` | domain | Analysis `connected-components`: weak connectivity of the net |
+| `app/domain/analyses/incidence.py` | domain | The incidence matrix of a P/T net |
+| `app/domain/analyses/invariants.py` | domain | Options and weighted elements shared by the invariant analyses |
 | `app/domain/analyses/net_class.py` | domain | Analysis `net-class`: state machine, marked graph, free choice, workflow-like |
 | `app/domain/analyses/p_invariants.py` | domain | Analysis `p-invariants`: minimal-support place invariants with their constants |
 | `app/domain/analyses/semiflows.py` | domain | Minimal-support semiflows of an integer matrix (Farkas), shared by P- and T-invariants |
