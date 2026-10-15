@@ -67,8 +67,8 @@ DEFAULT_ENGINES: Mapping[str, EngineSpec] = {
     # The platform's own analyses, run in a container (engines/native); bump the version, here
     # and in its Dockerfile, with every change of an algorithm: results are cached by version.
     "native": EngineSpec(
-        image="pn-llm-verif/native:1.3",
-        version="1.3",
+        image="pn-llm-verif/native:1.4",
+        version="1.4",
         logics=(),
         operations=tuple(op.name for op in OPERATIONS),
     ),

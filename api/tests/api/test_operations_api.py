@@ -45,6 +45,18 @@ DEAD = pnml_of(
     arcs=[("p", "live"), ("live", "p"), ("never", "dead"), ("dead", "out")],
     marking={"p": 1},
 )
+CHAIN = pnml_of(
+    places=["a", "mid", "q"],
+    transitions=["x", "t", "y"],
+    arcs=[("a", "x"), ("x", "mid"), ("mid", "t"), ("t", "q"), ("q", "y"), ("y", "a")],
+    marking={"a": 1},
+)
+SINKS = pnml_of(
+    places=["p", "q", "s"],
+    transitions=["t"],
+    arcs=[("p", "t"), ("t", "q"), ("t", "s")],
+    marking={"p": 1},
+)
 # operation -> (net, parameters, what its answer must say)
 KNOWN_ANSWERS = {
     "net-class": (
@@ -76,6 +88,20 @@ KNOWN_ANSWERS = {
         lambda d: [r["id"] for r in d["removed"]] == ["noop"],
     ),
     "remove-dead-transitions": (DEAD, {}, lambda d: [r["id"] for r in d["removed"]] == ["dead"]),
+    "fuse-series-places": (
+        CHAIN,
+        {"max_applications": 1},
+        lambda d: (
+            [r["id"] for r in d["removed"]] == ["mid", "t"]
+            and [e["original"][1]["id"] for e in d["expansions"]] == ["t"]
+        ),
+    ),
+    "fuse-series-transitions": (
+        CHAIN,
+        {"max_applications": 1},
+        lambda d: [r["id"] for r in d["removed"]] == ["mid", "t"],
+    ),
+    "remove-implicit-places": (SINKS, {}, lambda d: [r["id"] for r in d["removed"]] == ["q", "s"]),
 }
 
 

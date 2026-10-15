@@ -141,6 +141,169 @@ def test_the_same_set_of_protected_ids_is_the_same_request():
     assert one.protected == ("a", "b")
 
 
+# ---- series rules and implicit places -------------------------------------------------------
+
+# a --x--> mid --t--> q --y--> a: mid only passes the token on to q.
+CHAIN = structure_of(
+    places=["a", "mid", "q"],
+    transitions=["x", "t", "y"],
+    arcs=[("a", "x"), ("x", "mid"), ("mid", "t"), ("t", "q"), ("q", "y"), ("y", "a")],
+    marking={"a": 1},
+)
+
+
+def expansions_of(result):
+    return [(item.transition.id, ids(item.original)) for item in result.expansions]
+
+
+def test_a_place_that_only_passes_tokens_on_is_removed_and_its_producer_stands_for_two_firings():
+    outcome = reduce_net(rule="fuse-series-places", structure=CHAIN, max_applications=1)
+    assert ids(outcome.result.removed) == ["mid", "t"]
+    assert expansions_of(outcome.result) == [("x", ["x", "t"])]
+    assert sorted((a.source, a.target) for a in outcome.reduced.arcs) == [
+        ("a", "x"),
+        ("q", "y"),
+        ("x", "q"),
+        ("y", "a"),
+    ]
+    # Without a bound the rule goes on: the whole loop collapses into a self-loop of x.
+    everything = reduce_net(rule="fuse-series-places", structure=CHAIN)
+    assert everything.result.applications == 2
+    assert expansions_of(everything.result) == [("x", ["x", "t", "y"])]
+    assert "reachability_of_protected" in outcome.result.preserves
+    assert "ltl_without_next" in outcome.result.preserves
+
+
+def test_a_protected_neighbour_stops_a_series_rule_but_a_far_element_does_not():
+    assert (
+        reduce_net(rule="fuse-series-places", structure=CHAIN, protected=["x"]).result.changed
+        is False
+    )
+    assert (
+        reduce_net(rule="fuse-series-places", structure=CHAIN, protected=["q"]).result.changed
+        is False
+    )
+    far = reduce_net(
+        rule="fuse-series-places", structure=CHAIN, protected=["a"], max_applications=1
+    )
+    assert far.result.changed is True
+
+
+def test_series_places_need_an_empty_place_with_one_consumer():
+    marked = structure_of(
+        places=["a", "mid", "q"],
+        transitions=["x", "t"],
+        arcs=[("a", "x"), ("x", "mid"), ("mid", "t"), ("t", "q")],
+        marking={"a": 1, "mid": 1},
+    )
+    shared = structure_of(
+        places=["a", "mid", "q"],
+        transitions=["x", "t", "z"],
+        arcs=[("a", "x"), ("x", "mid"), ("mid", "t"), ("mid", "z"), ("t", "q")],
+        marking={"a": 1},
+    )
+    for structure in (marked, shared):
+        assert reduce_net(rule="fuse-series-places", structure=structure).result.changed is False
+
+
+def test_a_producer_with_a_weighted_arc_is_followed_by_the_move_that_many_times():
+    weighted = structure_of(
+        places=["a", "mid", "q"],
+        transitions=["x", "t"],
+        arcs=[("a", "x"), ("x", "mid"), ("mid", "t"), ("t", "q")],
+        marking={"a": 1},
+        weights={1: 2},
+    )
+    outcome = reduce_net(rule="fuse-series-places", structure=weighted)
+    assert expansions_of(outcome.result) == [("x", ["x", "t", "t"])]
+    assert {(a.source, a.target): a.weight for a in outcome.reduced.arcs}[("x", "q")] == 2
+
+
+def test_two_transitions_in_a_chain_are_fused_into_the_first():
+    outcome = reduce_net(rule="fuse-series-transitions", structure=CHAIN, max_applications=1)
+    assert ids(outcome.result.removed) == ["mid", "t"]
+    assert expansions_of(outcome.result) == [("x", ["x", "t"])]
+    assert (
+        reduce_net(rule="fuse-series-transitions", structure=CHAIN, protected=["a"]).result.changed
+        is False
+    )
+    far = reduce_net(
+        rule="fuse-series-transitions", structure=CHAIN, protected=["y"], max_applications=1
+    )
+    assert far.result.changed is True
+
+
+def test_the_second_transition_must_take_nothing_but_the_chain_place():
+    greedy = structure_of(
+        places=["a", "mid", "extra", "q"],
+        transitions=["x", "t"],
+        arcs=[("a", "x"), ("x", "mid"), ("mid", "t"), ("extra", "t"), ("t", "q")],
+        marking={"a": 1, "extra": 1},
+    )
+    assert reduce_net(rule="fuse-series-transitions", structure=greedy).result.changed is False
+
+
+def test_series_rules_compose_into_one_expansion_over_the_original_net():
+    two_links = structure_of(
+        places=["a", "m1", "m2", "q"],
+        transitions=["x", "t1", "t2", "y"],
+        arcs=[
+            ("a", "x"),
+            ("x", "m1"),
+            ("m1", "t1"),
+            ("t1", "m2"),
+            ("m2", "t2"),
+            ("t2", "q"),
+            ("q", "y"),
+            ("y", "a"),
+        ],
+        marking={"a": 1},
+    )
+    outcome = reduce_net(rule="fuse-series-places", structure=two_links)
+    assert outcome.result.applications == 3
+    assert expansions_of(outcome.result) == [("x", ["x", "t1", "t2", "y"])]
+
+
+def test_a_place_nobody_consumes_is_implicit_and_so_is_one_dominated_by_another():
+    sink = structure_of(
+        places=["p", "q", "s"],
+        transitions=["t"],
+        arcs=[("p", "t"), ("t", "q"), ("t", "s")],
+        marking={"p": 1},
+    )
+    assert ids(reduce_net(rule="remove-implicit-places", structure=sink).result.removed) == [
+        "q",
+        "s",
+    ]
+    # b always holds at least what a holds, and its consumer needs a as much as b: b is implicit.
+    dominated = structure_of(
+        places=["a", "b", "c"],
+        transitions=["t", "u"],
+        arcs=[("a", "t"), ("b", "t"), ("t", "c"), ("c", "u"), ("u", "a"), ("u", "b")],
+        marking={"a": 1, "b": 2, "c": 0},
+    )
+    outcome = reduce_net(rule="remove-implicit-places", structure=dominated)
+    assert ids(outcome.result.removed) == ["b"]
+    assert "boundedness" not in outcome.result.preserves
+
+
+def test_implicit_places_keep_what_a_consumer_needs_and_what_is_protected():
+    needed = structure_of(
+        places=["a", "b"],
+        transitions=["t", "u"],
+        arcs=[("a", "t"), ("t", "b"), ("b", "u"), ("u", "a")],
+        marking={"a": 1},
+    )
+    assert reduce_net(rule="remove-implicit-places", structure=needed).result.changed is False
+    sink = structure_of(
+        places=["p", "s"], transitions=["t"], arcs=[("p", "t"), ("t", "s")], marking={"p": 1}
+    )
+    assert (
+        reduce_net(rule="remove-implicit-places", structure=sink, protected=["s"]).result.changed
+        is False
+    )
+
+
 # ---- the claim of every rule, checked on the state spaces of random nets ---------------------
 
 
@@ -148,14 +311,14 @@ def test_the_same_set_of_protected_ids_is_the_same_request():
 def test_a_reduction_preserves_what_it_says_it_preserves_on_random_nets(definition):
     checked = 0
     changed = 0
-    for seed in range(300):
+    for seed in range(500):
         structure = random_net(seed=seed)
         original = explore(structure=structure)
         if original is None:
             continue
         rng = random.Random(seed)  # noqa: S311 - a seeded generator for test nets, not for secrets
         every = place_ids(structure) + transition_ids(structure)
-        protected = rng.sample(every, rng.randint(0, min(2, len(every))))
+        protected = rng.sample(every, rng.randint(0, min(5, len(every))))
         outcome = compute_on(
             definition=definition,
             structure=structure,
@@ -171,9 +334,18 @@ def test_a_reduction_preserves_what_it_says_it_preserves_on_random_nets(definiti
         reduced = explore(structure=outcome.reduced)
         assert reduced is not None
         kept = place_ids(outcome.reduced)
-        if "reachability" in result.preserves:
-            assert project(markings=original[0], structure=structure, onto=kept) == project(
-                markings=reduced[0], structure=outcome.reduced, onto=kept
+        # What is compared: all the kept places for a rule that keeps them as they were, only the
+        # protected ones for a rule that changes how tokens pass through unprotected places.
+        onto = (
+            kept
+            if "reachability" in result.preserves
+            else [p for p in protected if p in kept]
+            if "reachability_of_protected" in result.preserves
+            else []
+        )
+        if onto:
+            assert project(markings=original[0], structure=structure, onto=onto) == project(
+                markings=reduced[0], structure=outcome.reduced, onto=onto
             ), (definition.name, seed)
         if "deadlock_freedom" in result.preserves:
             assert bool(original[1]) == bool(reduced[1]), (definition.name, seed)

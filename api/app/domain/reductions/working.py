@@ -52,6 +52,28 @@ class WorkingNet:
         del self.places[place]
         del self.tokens[place]
 
+    def neighbourhood(self, *, ids: set[str]) -> set[str]:
+        """Return the elements given and every element joined to one of them by an arc."""
+        around = set(ids)
+        for identifier in ids:
+            if identifier in self.transitions:
+                around |= self.pre[identifier].keys() | self.post[identifier].keys()
+            else:
+                around |= self.consumers[identifier] | self.producers[identifier]
+        return around
+
+    def move_output(self, *, transition: str, old: str, new: str) -> None:
+        """Make a transition put in ``new`` the tokens it put in ``old`` (added to what it had)."""
+        weight = self.post[transition].pop(old)
+        self.producers[old].discard(transition)
+        self.post[transition][new] = self.post[transition].get(new, 0) + weight
+        self.producers[new].add(transition)
+
+    def add_output(self, *, transition: str, place: str, weight: int) -> None:
+        """Make a transition put ``weight`` more tokens in a place."""
+        self.post[transition][place] = self.post[transition].get(place, 0) + weight
+        self.producers[place].add(transition)
+
     def structure(self) -> NetStructure:
         """Freeze the net: nodes sorted by id, an arc keeping its id when its ends are unchanged."""
         arcs = []
