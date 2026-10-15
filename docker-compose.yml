@@ -35,6 +35,13 @@ services:
     image: pn-llm-verif/dummy:latest
     profiles: ["engines"]
 
+  engine-itstools:
+    build:
+      context: .
+      dockerfile: engines/itstools/Dockerfile
+    image: pn-llm-verif/itstools:1.0.0.202609112134
+    profiles: ["engines"]
+
   engine-tapaal:
     build:
       context: .
