@@ -43,6 +43,6 @@ jobs:
       - name: Build images
         run: |
           docker build -t pn-llm-verif/api:ci api
-          docker build -t pn-llm-verif/dummy:latest engines/dummy
+          docker build -f engines/dummy/Dockerfile -t pn-llm-verif/dummy:latest .
       - name: Integration tests against the real dummy engine image
         run: cd api && pytest -q -m docker

@@ -15,12 +15,12 @@ setup:  ## Create api/.venv, install dependencies and git hooks (run once)
 	api/.venv/bin/pre-commit install
 
 format:  ## Format and autofix (ruff)
-	ruff format $(RUFF_CONFIG) api scripts
-	ruff check $(RUFF_CONFIG) --fix api scripts
+	ruff format $(RUFF_CONFIG) api scripts engines
+	ruff check $(RUFF_CONFIG) --fix api scripts engines
 
 lint:  ## Lint (ruff)
-	ruff check $(RUFF_CONFIG) api scripts
-	ruff format $(RUFF_CONFIG) --check api scripts
+	ruff check $(RUFF_CONFIG) api scripts engines
+	ruff format $(RUFF_CONFIG) --check api scripts engines
 
 typecheck:  ## Types (mypy --strict)
 	cd api && mypy

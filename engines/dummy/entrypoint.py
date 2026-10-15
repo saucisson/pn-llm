@@ -1,39 +1,24 @@
-"""Dummy engine following the entrypoint contract version 1 (docs/engine-contract.md).
+"""Dummy engine: the smallest adapter, and the test of the Docker runner.
 
-Template for the real adapters and test of the Docker runner. Verifies nothing: answers UNKNOWN.
+Verifies nothing: answers UNKNOWN for every formula.
 """
 
-import json
-import time
-from pathlib import Path
+from pnverif_engine import AdapterAnswer, AdapterInput, normalize_verdict, run_adapter
 
 VERSION = "0.2"
 
-inp = Path("/work/input")
-out = Path("/work/output")
 
-started = time.monotonic()
-request = json.loads((inp / "request.json").read_text())
-results = [
-    {
-        "id": formula["id"],
-        "verdict": "UNKNOWN",
-        "time_s": 0.0,
-        "rendered": None,
-        "trace": None,
-        "warnings": ["dummy_engine_no_verification"],
-    }
-    for formula in request["formulas"]
-]
-envelope = {
-    "schema_version": "1.0",
-    "tool": {"name": "dummy-docker", "version": VERSION},
-    "net_id": request["net_id"],
-    "status": "ok",
-    "data": {"results": results},
-    "warnings": [],
-    "truncated": None,
-    "error": None,
-    "elapsed_s": time.monotonic() - started,
-}
-(out / "result.json").write_text(json.dumps(envelope))
+def check(given: AdapterInput) -> tuple[AdapterAnswer, ...]:  # noqa: PLR0917 - callback of run_adapter
+    """Answer UNKNOWN for each formula, with a warning that nothing was verified."""
+    return tuple(
+        AdapterAnswer(
+            formula_id=formula.id,
+            verdict=normalize_verdict(raw="cannot compute"),
+            warnings=("dummy_engine_no_verification",),
+        )
+        for formula in given.request.formulas
+    )
+
+
+if __name__ == "__main__":
+    run_adapter(tool_name="dummy-docker", tool_version=VERSION, check=check)

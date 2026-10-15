@@ -161,7 +161,7 @@ unconventional ways where a deterministic judge stands between it and the user.
 
 ```
 api/            the application (app/) and its tests (tests/); pyproject.toml holds all tool config
-engines/<name>/ one Docker image per engine, common contract (docs/engine-contract.md)
+engines/<name>/ one Docker image per engine, common contract (docs/engine-contract.md); engines/common = adapter kit, engines/template = image template
 bench/          evaluation scripts and MCC import (models themselves are not versioned)
 scripts/        create_issues.sh (backlog), check_architecture_doc.py (docs sync hook)
 docs/           objective, roadmap (order of the backlog), evaluation protocol, publication targets, JSON contract, net document, architecture, conventions, testing, ADRs, engine contract, MCC tools, exploration

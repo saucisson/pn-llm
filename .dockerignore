@@ -1,0 +1,12 @@
+# Engine images are built from the repository root: send only what they copy.
+.git
+**/.venv
+**/__pycache__
+**/.pytest_cache
+**/.mypy_cache
+**/.ruff_cache
+**/*.pyc
+data
+bench/models
+api/tests
+docs
