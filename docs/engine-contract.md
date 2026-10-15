@@ -16,7 +16,8 @@ request and the envelope; their operations arrive with milestone M4. The models 
   deterministically from the stored net document, so it is the same PNML as `GET` with
   `Accept: application/pnml+xml`. The only non-JSON input. Engines needing another format convert
   it inside the image.
-- `request.json`: a serialized engine request. Formulas are syntax trees whose atoms cite ids
+- `request.json`: a serialized engine request (`reduce: false` asks a checking engine not to reduce
+  the net internally; one that cannot says so in a warning). Formulas are syntax trees whose atoms cite ids
   (the adapter renders the tool's own syntax and writes it to `rendered`, see below).
 
 ```json

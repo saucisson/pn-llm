@@ -57,6 +57,7 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/domain/operation_check.py` | domain | Checks what an engine says an operation found: the shape, and only elements the net has, with their names |
 | `app/domain/catalog.py` | domain | Every operation (analyses and reductions) and `find_operation` |
 | `app/domain/perform.py` | domain | Perform a named operation on a document: its result, and for a reduction the net it produced |
+| `app/domain/lifting.py` | domain | A counterexample of a reduced net expressed on the original, through the expansions of each reduction |
 | `app/domain/analysis_summary.py` | domain | The size-bounded digest of the analyses given to the LLM: exact counts, a few named examples, and what could not be computed |
 | the package `app/domain/analyses` | domain | The analyses, one module each; its `__init__` is the catalog `ANALYSES` and `find_operation` |
 | `app/domain/reductions/result.py` | domain | The request and answer of every reduction rule: protected ids, removed, merged, expansions, preserved properties |
@@ -105,6 +106,7 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/application/operations.py` | application | `OperationService`: describe, submit, run and read operations; a finished run is the cache of its key |
 | `app/application/tool_kit.py` | application | What every tool is made of: context, outcome, trimmed JSON answers |
 | `app/application/analysis_tools.py` | application | The tools `analysis_summary` and `analyze`: the operation runner as the agent's tools |
+| `app/application/traces.py` | application | `TraceService`: counterexamples on the original net or the reduced one they were found on |
 | `app/application/results.py` | application | `ResultsService`: import the published results (all or nothing) and summarize them |
 | `app/application/splits.py` | application | `SplitService`: freeze a split of the catalog's families and read it back |
 | `app/application/leases.py` | application | `LeaseKeeper`: renews a running job's lease so other processes know its owner is alive |

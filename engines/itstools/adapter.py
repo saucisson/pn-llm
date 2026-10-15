@@ -93,7 +93,8 @@ def check(given: AdapterInput) -> tuple[AdapterAnswer, ...]:  # noqa: PLR0917 - 
                 if transitions
                 else "<true/>",
             )
-        warnings: list[str] = []
+        # The tool always reduces; the request is answered, with the limit of the tool said.
+        warnings: list[str] = [] if given.request.reduce else ["reductions_cannot_be_disabled"]
         verdicts: dict[str, Verdict] = {}
         with tempfile.TemporaryDirectory() as scratch:
             folder = Path(scratch) / "input"

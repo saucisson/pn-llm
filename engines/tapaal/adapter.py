@@ -79,6 +79,7 @@ def check(given: AdapterInput) -> tuple[AdapterAnswer, ...]:  # noqa: PLR0917 - 
                         "1",
                         "-t",
                         *ALGORITHM_OPTIONS[formula.logic],
+                        *(() if given.request.reduce else ("-r", "0")),
                         str(given.net_path),
                         str(query),
                     ],

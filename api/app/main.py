@@ -41,6 +41,7 @@ from app.application.results import ResultsService
 from app.application.retention import RetentionService
 from app.application.splits import SplitService
 from app.application.tools import ToolFacade
+from app.application.traces import TraceService
 from app.application.workers import WorkerPool
 from app.infrastructure.anthropic_llm import AnthropicLlm
 from app.infrastructure.docker_runner import DockerRunner
@@ -249,6 +250,9 @@ def create_app(
     app.state.results = ResultsService(results=SqliteResults(path=config.database_path))
     app.state.checks = checks
     app.state.operations = operations_service
+    app.state.traces = TraceService(
+        checks=checks, nets=store, lineage=SqliteOperations(path=config.database_path)
+    )
     app.state.inspection = InspectionService(nets=store)
     app.state.formulas = FormulaService(nets=store)
     app.state.descriptions = DescriptionService(

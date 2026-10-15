@@ -49,6 +49,9 @@ class CheckRequest(DomainModel):
     formulas: tuple[Formula, ...] = Field(min_length=1)
     engine: str = "auto"
     limits: Limits = Field(default_factory=Limits)
+    # Let the engine reduce the net internally (most do, whatever is asked). False asks it not to,
+    # to compare: an engine that cannot switch its reductions off says so in a warning.
+    reduce: bool = True
 
     @model_validator(mode="after")
     def _formula_ids_are_unique(self) -> CheckRequest:

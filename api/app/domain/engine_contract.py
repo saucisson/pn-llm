@@ -27,6 +27,8 @@ class EngineRequest(DomainModel):
     net_id: str
     formulas: tuple[Formula, ...] = ()
     limits: Limits = Field(default_factory=Limits)
+    # Whether the engine may reduce the net internally (see ``CheckRequest.reduce``).
+    reduce: bool = True
     # Analyses and reductions name the single operation to perform (ADR 0014).
     operation: str | None = None
     # The options of that operation, as JSON; the engine validates them with the operation's model.
