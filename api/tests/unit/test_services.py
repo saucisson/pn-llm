@@ -3,9 +3,10 @@ import pytest
 from app.application.checks import CheckService
 from app.application.engines import EngineService
 from app.application.nets import NetService
-from app.domain import pnml
 from app.domain.errors import InvalidRequestError, NotFoundError, PayloadTooLargeError
 from app.domain.models import JobState, Verdict
+from app.domain.net_validation import DocumentLimits
+from app.domain.nets import NetFormat
 from app.infrastructure.docker_runner import DockerRunner
 from app.infrastructure.engine_registry import DEFAULT_ENGINES, EngineRegistry
 from tests.support import LEASE, make_request
@@ -23,7 +24,7 @@ def registry():
 
 @pytest.fixture
 def nets(store):
-    return NetService(nets=store, max_pnml_bytes=1_000_000)
+    return NetService(nets=store, max_upload_bytes=1_000_000, limits=DocumentLimits())
 
 
 @pytest.fixture
@@ -33,21 +34,24 @@ def checks(store, registry):
 
 @pytest.fixture
 def net_id(nets, mutex_pnml):
-    return nets.register(payload=mutex_pnml).net_id
+    return nets.register(payload=mutex_pnml, format=NetFormat.PNML).stored.summary.net_id
 
 
 # ---- NetService -----------------------------------------------------------------------------
 
 
 def test_registering_the_same_content_twice_is_a_no_op(nets, mutex_pnml):
-    assert nets.register(payload=mutex_pnml) == nets.register(payload=mutex_pnml)
-    assert nets.get(net_id=pnml.summarize(pnml=mutex_pnml).net_id).places == 3
+    first = nets.register(payload=mutex_pnml, format=NetFormat.PNML)
+    again = nets.register(payload=mutex_pnml, format=NetFormat.PNML)
+    assert (first.created, again.created) == (True, False)
+    assert first.stored == again.stored
+    assert nets.get(net_id=first.stored.summary.net_id).summary.places == 3
 
 
 def test_oversized_payloads_are_rejected(store):
-    small = NetService(nets=store, max_pnml_bytes=10)
+    small = NetService(nets=store, max_upload_bytes=10, limits=DocumentLimits())
     with pytest.raises(PayloadTooLargeError):
-        small.register(payload=b"x" * 11)
+        small.register(payload=b"x" * 11, format=NetFormat.JSON)
 
 
 def test_getting_an_unknown_net_raises(nets):

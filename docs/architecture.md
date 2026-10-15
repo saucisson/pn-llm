@@ -36,11 +36,11 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/domain/net_validation.py` | domain | Validation shared by both formats (ids, arcs, references, P/T integers, bounds) and the JSON reader |
 | `app/domain/pnml_import.py` | domain | Hardened PNML reader producing a `NetDocument`; errors located by line |
 | `app/domain/pnml_export.py` | domain | Deterministic PNML rendered from a `NetDocument` (engine input and `Accept: application/pnml+xml`) |
+| `app/domain/nets.py` | domain | `NetSummary`, `StoredNet`, `SavedNet`, `NetFormat`; summary of a document |
 | `app/domain/errors.py` | domain | Domain errors, the failures that are part of the API contract |
 | `app/domain/contract.py` | domain | Shared JSON contract: `Envelope`, `ElementRef`, `Marking`, `Bound`, `Page` (docs/json-contract.md) |
-| `app/domain/pnml.py` | domain | Parse a PNML document into a `NetSummary` (hardened XML parsing) |
 | `app/application/ports.py` | application | Protocols the use cases need: `NetRepository`, `JobRepository`, `EngineGateway` |
-| `app/application/nets.py` | application | `NetService`: register and read nets |
+| `app/application/nets.py` | application | `NetService`: convert an upload to the canonical document, store and read nets |
 | `app/application/leases.py` | application | `LeaseKeeper`: renews a running job's lease so other processes know its owner is alive |
 | `app/application/checks.py` | application | `CheckService`: submit, execute, read and cancel checks |
 | `app/application/engines.py` | application | `EngineService`: list engines |
@@ -49,7 +49,8 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/infrastructure/engine_registry.py` | infrastructure | Engine specs and `EngineGateway` implementation |
 | `app/api/deps.py` | api | FastAPI dependencies giving routes their services |
 | `app/api/errors.py` | api | Domain error to RFC 9457 problem response, in one place |
-| `app/api/nets.py` | api | Routes `/v1/nets` |
+| `app/api/nets.py` | api | Routes `/v1/nets`: upload JSON or PNML, download JSON or PNML |
+| `app/api/negotiation.py` | api | `Content-Type` and `Accept` negotiation |
 | `app/api/jobs.py` | api | Routes for checks and jobs |
 | `app/api/engines.py` | api | Route `/v1/engines` |
 | `app/settings.py` | (config) | Pydantic settings from `PNVERIF_*` environment variables |
@@ -80,10 +81,16 @@ add `from app.infrastructure import sqlite_store` to `app/application/nets.py` a
 
 ## Data model
 
-SQLite file, WAL mode. Table `nets` holds the summary and (target, ADR 0015) the canonical net
-document, compressed; nets are immutable and identified by the hash of that document, whatever
+SQLite file, WAL mode. Table `nets` holds the summary and the canonical net document, compressed
+(zlib); nets are immutable and identified by the hash of that document, whatever
 format they were uploaded in. Table `jobs` holds state, request, results
 and an idempotency key; a unique index guarantees one live job per key.
+
+**Migration of a first-schema database** (nets stored as raw PNML under a file hash): opening the
+database re-imports every stored net, stores its canonical document under the new id, repoints
+the jobs (they get a fresh idempotency key), and swaps the table, all in one transaction. If a
+stored net no longer imports, startup fails with the list of ids and the database is unchanged:
+fix or delete those rows, then restart. General schema migrations are tracked in issue #5.
 
 ## How to extend
 

@@ -7,9 +7,15 @@ dropped. See docs/net-document.md for the shape and the mapping from PNML.
 
 from __future__ import annotations
 
-from typing import Literal, Self
+from typing import Any, Literal, Self
 
-from pydantic import Field, computed_field, field_validator
+from pydantic import (
+    Field,
+    SerializerFunctionWrapHandler,
+    computed_field,
+    field_validator,
+    model_serializer,
+)
 
 from .models import DomainModel
 
@@ -277,6 +283,15 @@ class NetDocument(Container):
     schema_version: Literal["1.0"] = NET_DOCUMENT_VERSION
     source_id: str = Field(min_length=1)
     type_uri: str
+
+    @model_serializer(mode="wrap")
+    def _always_carry_the_version(  # noqa: PLR0917 - pydantic calls serializers positionally
+        self, handler: SerializerFunctionWrapHandler
+    ) -> dict[str, Any]:
+        """Keep ``schema_version`` in every output, even when defaults are omitted."""
+        data: dict[str, Any] = handler(self)
+        data.setdefault("schema_version", self.schema_version)
+        return data
 
     @computed_field  # type: ignore[prop-decorator]  # mypy does not model computed_field over property
     @property

@@ -15,27 +15,25 @@ import contextlib
 import hashlib
 import sqlite3
 import time
+import zlib
 from collections.abc import Iterator
 from pathlib import Path
 
 from pydantic import TypeAdapter
 
-from app.domain.errors import NotFoundError
-from app.domain.models import (
-    CheckRequest,
-    FormulaResult,
-    Job,
-    JobState,
-    JobSubmission,
-    NetSummary,
-    StoredNet,
-)
+from app.domain.canonical import canonical_bytes, net_id_of
+from app.domain.errors import InvalidNetError, NotFoundError
+from app.domain.models import CheckRequest, FormulaResult, Job, JobState, JobSubmission
+from app.domain.net_document import NetDocument
+from app.domain.net_validation import DocumentLimits
+from app.domain.nets import NetSummary, SavedNet, StoredNet, summarize_document
+from app.domain.pnml_import import import_pnml
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS nets (
     net_id     TEXT PRIMARY KEY,
     summary    TEXT NOT NULL,          -- NetSummary as JSON
-    pnml       BLOB NOT NULL,          -- original bytes, never modified (nets are immutable)
+    document   BLOB NOT NULL,          -- canonical NetDocument JSON, zlib-compressed, immutable
     created_at REAL NOT NULL
 );
 CREATE TABLE IF NOT EXISTS jobs (
@@ -58,6 +56,86 @@ CREATE UNIQUE INDEX IF NOT EXISTS jobs_live_key ON jobs(job_key)
 _RESULTS = TypeAdapter(tuple[FormulaResult, ...])
 
 
+class StoreMigrationError(Exception):
+    """Stored data cannot be migrated to the current schema; the database was left unchanged."""
+
+
+def migrate_legacy_nets(*, path: Path) -> int:
+    """Re-import the nets of a first-schema database as canonical documents; return how many.
+
+    The first schema kept the uploaded PNML bytes under a hash of the file. Each net is imported
+    again, gets its canonical id, and the jobs that point to it follow. All or nothing: a net that
+    no longer imports (the rules are stricter now) aborts the migration and nothing changes.
+    Migrated jobs get a fresh idempotency key, so two nets that collapse into one cannot collide.
+
+    Raises:
+        StoreMigrationError: if a stored net cannot be imported.
+    """
+    conn = sqlite3.connect(path, timeout=30, isolation_level=None)
+    conn.row_factory = sqlite3.Row
+    try:
+        conn.execute("PRAGMA foreign_keys=OFF")  # jobs reference nets while we swap the table
+        conn.execute("BEGIN IMMEDIATE")  # another process may be migrating: re-check inside
+        columns = {row["name"] for row in conn.execute("PRAGMA table_info(nets)")}
+        if "pnml" not in columns:
+            conn.execute("ROLLBACK")
+            return 0
+        limits = DocumentLimits()
+        new_id_of: dict[str, str] = {}
+        new_rows: list[tuple[str, str, bytes, float]] = []
+        failures: list[str] = []
+        for row in conn.execute("SELECT net_id, pnml, created_at FROM nets").fetchall():
+            try:
+                document = import_pnml(payload=bytes(row["pnml"]), limits=limits)
+                new_id = net_id_of(document=document)
+                summary = summarize_document(document=document, net_id=new_id)
+            except InvalidNetError as exc:
+                failures.append(f"{row['net_id']}: {exc}")
+                continue
+            new_id_of[row["net_id"]] = new_id
+            new_rows.append(
+                (
+                    new_id,
+                    summary.model_dump_json(),
+                    zlib.compress(canonical_bytes(document=document)),
+                    row["created_at"],
+                )
+            )
+        if failures:
+            conn.execute("ROLLBACK")
+            raise StoreMigrationError(
+                "These stored nets no longer import, nothing was migrated: " + "; ".join(failures)
+            )
+        conn.execute(
+            "CREATE TABLE nets_new (net_id TEXT PRIMARY KEY, summary TEXT NOT NULL,"
+            " document BLOB NOT NULL, created_at REAL NOT NULL)"
+        )
+        conn.executemany("INSERT OR IGNORE INTO nets_new VALUES (?,?,?,?)", new_rows)
+        has_jobs = conn.execute(
+            "SELECT 1 FROM sqlite_master WHERE type='table' AND name='jobs'"
+        ).fetchone()
+        if has_jobs:
+            for job in conn.execute("SELECT job_id, net_id, request FROM jobs").fetchall():
+                new_id = new_id_of[job["net_id"]]
+                key = hashlib.sha256(
+                    f"{new_id}|{job['request']}|{job['job_id']}".encode()
+                ).hexdigest()
+                conn.execute(
+                    "UPDATE jobs SET net_id=?, job_key=? WHERE job_id=?",
+                    (new_id, key, job["job_id"]),
+                )
+        conn.execute("DROP TABLE nets")
+        conn.execute("ALTER TABLE nets_new RENAME TO nets")
+        conn.execute("COMMIT")
+    except BaseException:
+        if conn.in_transaction:
+            conn.execute("ROLLBACK")
+        raise
+    finally:
+        conn.close()
+    return len(new_rows)
+
+
 class SqliteStore:
     """Nets and jobs, persisted in one SQLite file."""
 
@@ -65,6 +143,7 @@ class SqliteStore:
         """Open (and create if needed) the database at ``path``."""
         self._path = path
         path.parent.mkdir(parents=True, exist_ok=True)
+        migrate_legacy_nets(path=path)
         with self._connection() as conn:
             conn.executescript(SCHEMA)
 
@@ -92,25 +171,29 @@ class SqliteStore:
 
     # ---- NetRepository --------------------------------------------------------------------
 
-    def save_net(self, *, summary: NetSummary, pnml: bytes) -> StoredNet:
+    def save_net(self, *, summary: NetSummary, document: NetDocument) -> SavedNet:
         """Store a net if it is new; return what is stored (the existing net if already known)."""
+        compressed = zlib.compress(canonical_bytes(document=document))
         with self._connection() as conn:
-            conn.execute(
-                "INSERT OR IGNORE INTO nets(net_id, summary, pnml, created_at) VALUES (?,?,?,?)",
-                (summary.net_id, summary.model_dump_json(), pnml, time.time()),
+            cursor = conn.execute(
+                "INSERT OR IGNORE INTO nets(net_id, summary, document, created_at)"
+                " VALUES (?,?,?,?)",
+                (summary.net_id, summary.model_dump_json(), compressed, time.time()),
             )
-        return self.load_net(net_id=summary.net_id)
+            created = cursor.rowcount == 1
+        return SavedNet(stored=self.load_net(net_id=summary.net_id), created=created)
 
     def load_net(self, *, net_id: str) -> StoredNet:
         """Return a stored net, or raise NotFoundError."""
         with self._connection() as conn:
             row = conn.execute(
-                "SELECT summary, pnml FROM nets WHERE net_id=?", (net_id,)
+                "SELECT summary, document FROM nets WHERE net_id=?", (net_id,)
             ).fetchone()
         if row is None:
             raise NotFoundError(f"Unknown net: {net_id}")
         return StoredNet(
-            summary=NetSummary.model_validate_json(row["summary"]), pnml=bytes(row["pnml"])
+            summary=NetSummary.model_validate_json(row["summary"]),
+            document=NetDocument.model_validate_json(zlib.decompress(row["document"])),
         )
 
     # ---- JobRepository --------------------------------------------------------------------

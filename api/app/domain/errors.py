@@ -29,3 +29,11 @@ class PayloadTooLargeError(DomainError):
 
 class PnmlError(InvalidNetError):
     """The PNML document is not valid XML or does not describe a usable net."""
+
+
+class UnsupportedMediaTypeError(DomainError):
+    """The request body has a media type the endpoint does not accept (HTTP 415)."""
+
+
+class NotAcceptableError(DomainError):
+    """The endpoint cannot produce any of the media types the client accepts (HTTP 406)."""

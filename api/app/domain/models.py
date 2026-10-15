@@ -38,28 +38,6 @@ class JobState(StrEnum):
     INTERRUPTED = "interrupted"  # the API restarted while the job was queued or running
 
 
-class NetSummary(DomainModel):
-    """What the API knows about a stored net. Nets are immutable."""
-
-    net_id: str
-    net_type: Literal["pt", "colored"] = "pt"
-    parent_id: str | None = None
-    reductions_applied: tuple[str, ...] = ()
-    places: int
-    transitions: int
-    arcs: int
-    place_names: tuple[str, ...]
-    transition_names: tuple[str, ...]
-    initial_tokens: int
-
-
-class StoredNet(DomainModel):
-    """A net as stored: its summary and the original PNML bytes, never modified."""
-
-    summary: NetSummary
-    pnml: bytes
-
-
 class Formula(DomainModel):
     """A property to check, with its origin for later evaluation."""
 

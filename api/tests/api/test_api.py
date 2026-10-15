@@ -7,13 +7,14 @@ from app.main import create_app
 from app.settings import Settings
 from tests.support import CHECK_BODY, MUTEX_PNML, make_request
 
-XML = {"Content-Type": "application/xml"}
+XML = {"Content-Type": "application/pnml+xml"}
 
 
 def upload(client):
     response = client.post("/v1/nets", content=MUTEX_PNML, headers=XML)
-    assert response.status_code == 201
-    return response.json()
+    assert response.status_code in {200, 201}
+    body = response.json()
+    return {"net_id": body["net_id"], "created": body["created"], "summary": body["summary"]}
 
 
 def start(client, net_id, body=CHECK_BODY):
@@ -25,18 +26,22 @@ def start(client, net_id, body=CHECK_BODY):
 
 def test_upload_summarizes_the_net_and_keeps_names(client):
     net = upload(client)
-    assert (net["places"], net["transitions"], net["arcs"]) == (3, 2, 6)
-    assert "lock" in net["place_names"]
-    assert net["net_type"] == "pt"
+    summary = net["summary"]
+    assert (summary["places"], summary["transitions"], summary["arcs"]) == (3, 2, 6)
+    assert net["summary"]["kind"] == "pt"
+    assert net["summary"]["initial_tokens"] == 2
+    assert "place_names" not in net["summary"]
 
 
 def test_upload_is_idempotent(client):
     assert upload(client)["net_id"] == upload(client)["net_id"]
 
 
-def test_get_net(client):
+def test_get_net_returns_the_document(client):
     net_id = upload(client)["net_id"]
-    assert client.get(f"/v1/nets/{net_id}").json()["net_id"] == net_id
+    document = client.get(f"/v1/nets/{net_id}").json()
+    assert document["source_id"] == "mutex"
+    assert [place["id"] for place in document["pages"][0]["places"]] == ["crit1", "idle1", "lock"]
 
 
 def test_invalid_pnml_is_a_422_problem(client):
@@ -44,16 +49,24 @@ def test_invalid_pnml_is_a_422_problem(client):
     assert response.status_code == 422
     assert response.headers["content-type"].startswith("application/problem+json")
     assert "Invalid XML" in response.json()["detail"]
+    assert response.json()["location"] == "line 1"
 
 
 def test_empty_net_is_rejected(client):
-    assert client.post("/v1/nets", content=b"<pnml><net><page/></net></pnml>").status_code == 422
+    assert (
+        client.post(
+            "/v1/nets",
+            content=b"<pnml><net id='n' type='t'><page id='p'/></net></pnml>",
+            headers=XML,
+        ).status_code
+        == 422
+    )
 
 
 def test_oversized_upload_is_a_413(tmp_path):
-    settings = Settings(database_path=tmp_path / "small.sqlite", max_pnml_bytes=10)
+    settings = Settings(database_path=tmp_path / "small.sqlite", max_upload_bytes=10)
     small = TestClient(create_app(settings=settings))
-    assert small.post("/v1/nets", content=MUTEX_PNML).status_code == 413
+    assert small.post("/v1/nets", content=MUTEX_PNML, headers=XML).status_code == 413
 
 
 def test_unknown_net_is_a_404_problem(client):
@@ -134,7 +147,7 @@ def test_nets_and_jobs_survive_a_restart(settings):
     job_id = start(first, net_id).json()["job_id"]
 
     second = TestClient(create_app(settings=settings))  # new process, same database file
-    assert second.get(f"/v1/nets/{net_id}").json()["places"] == 3
+    assert len(second.get(f"/v1/nets/{net_id}").json()["pages"][0]["places"]) == 3
     job = second.get(f"/v1/jobs/{job_id}").json()
     assert job["state"] == "done"
     assert job["results"][0]["engine"] == "dummy"

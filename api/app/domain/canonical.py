@@ -54,8 +54,9 @@ def canonical_json(*, value: JsonValue) -> str:
 def canonical_bytes(*, document: NetDocument) -> bytes:
     """Return the canonical UTF-8 bytes of a document: what is stored and hashed."""
     plain = document.sorted_by_id().model_dump(
-        mode="json", exclude_none=True, exclude_defaults=True, exclude={"schema_version"}
+        mode="json", exclude_none=True, exclude_defaults=True
     )
+    del plain["schema_version"]  # not part of the identity
     return canonical_json(value=plain).encode("utf-8")
 
 
