@@ -60,3 +60,17 @@ def test_published_results_are_summarized_per_tool_with_their_provenance(client)
     sets = client.get("/v1/models/results/sets").json()["data"]
     assert (sets[0]["year"], sets[0]["runs"]) == (2026, 5)
     assert sets[0]["sha256"]
+
+
+def test_a_frozen_split_is_served_by_name(client):
+    from app.domain.mcc import parse_catalog
+    from tests.unit.test_mcc import PAGE
+
+    catalog = client.app.state.splits._catalog
+    for family in parse_catalog(page=PAGE):
+        catalog.save_family(family=family)
+    client.app.state.splits.create(name="v1", seed="s", folds=2, test_fraction=0.0)
+    assert client.get("/v1/models/splits").json()["data"] == ["v1"]
+    served = client.get("/v1/models/splits/v1").json()["data"]
+    assert {a["family"] for a in served["assignments"]} == {"Big", "Col", "Fs"}
+    assert client.get("/v1/models/splits/nope").status_code == 404

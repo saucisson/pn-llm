@@ -12,16 +12,18 @@ import sys
 from app.application.models import ModelCatalogService
 from app.application.nets import NetService
 from app.application.results import ResultsService
+from app.application.splits import SplitService
 from app.infrastructure.json_logging import configure_logging
 from app.infrastructure.mcc_source import MccDirectory
 from app.infrastructure.sqlite_catalog import SqliteCatalog
 from app.infrastructure.sqlite_results import SqliteResults
+from app.infrastructure.sqlite_splits import SqliteSplits
 from app.infrastructure.sqlite_store import SqliteStore
 from app.settings import Settings
 
 
 def seed_main() -> None:
-    """Download and store the chosen families (or the results), then print the report as JSON."""
+    """Download and store families, results or a split, then print the outcome as JSON."""
     parser = argparse.ArgumentParser(description="Seed the platform with contest models.")
     parser.add_argument("families", nargs="*", help="family names (default: all of them)")
     parser.add_argument("--max-nets-per-family", type=int, default=None)
@@ -30,6 +32,14 @@ def seed_main() -> None:
         action="store_true",
         help="store the published results (about 5 MB) of the contest year and stop",
     )
+    parser.add_argument(
+        "--split",
+        metavar="NAME",
+        help="freeze a split of the stored families into folds and a test set under this name",
+    )
+    parser.add_argument("--split-seed", default="pn-llm")
+    parser.add_argument("--folds", type=int, default=5)
+    parser.add_argument("--test-fraction", type=float, default=0.2)
     parser.add_argument(
         "--properties",
         action="store_true",
@@ -55,6 +65,18 @@ def seed_main() -> None:
             source=source, year=config.mcc_year
         )
         sys.stdout.write(stored.model_dump_json(indent=2) + "\n")
+        return
+    if arguments.split:
+        split = SplitService(
+            splits=SqliteSplits(path=config.database_path),
+            catalog=SqliteCatalog(path=config.database_path),
+        ).create(
+            name=arguments.split,
+            seed=arguments.split_seed,
+            folds=arguments.folds,
+            test_fraction=arguments.test_fraction,
+        )
+        sys.stdout.write(split.model_dump_json(indent=2) + "\n")
         return
     report = service.seed(
         source=source,

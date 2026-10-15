@@ -2158,6 +2158,89 @@
         "title": "Envelope[Session]",
         "type": "object"
       },
+      "Envelope_Split_": {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Split"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "elapsed_s": {
+            "minimum": 0.0,
+            "title": "Elapsed S",
+            "type": "number"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorInfo"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "net_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Net Id"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "default": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "partial",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "tool": {
+            "$ref": "#/components/schemas/ToolInfo"
+          },
+          "truncated": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Page"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "warnings": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "tool",
+          "status",
+          "elapsed_s"
+        ],
+        "title": "Envelope[Split]",
+        "type": "object"
+      },
       "Envelope_StoredEvent_": {
         "properties": {
           "data": {
@@ -3107,6 +3190,93 @@
         "title": "Envelope[tuple[RunStatistics, ...]]",
         "type": "object"
       },
+      "Envelope_tuple_str__________": {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data"
+          },
+          "elapsed_s": {
+            "minimum": 0.0,
+            "title": "Elapsed S",
+            "type": "number"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorInfo"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "net_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Net Id"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "default": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "partial",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "tool": {
+            "$ref": "#/components/schemas/ToolInfo"
+          },
+          "truncated": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Page"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "warnings": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "tool",
+          "status",
+          "elapsed_s"
+        ],
+        "title": "Envelope[tuple[str, ...]]",
+        "type": "object"
+      },
       "ErrorInfo": {
         "description": "Expected failure of a tool (timeout, out of memory, ...), reported in the envelope.",
         "properties": {
@@ -3124,6 +3294,40 @@
           "message"
         ],
         "title": "ErrorInfo",
+        "type": "object"
+      },
+      "FamilyAssignment": {
+        "description": "Where a family goes: a development fold, or the held-out test set (no fold).",
+        "properties": {
+          "family": {
+            "title": "Family",
+            "type": "string"
+          },
+          "fold": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fold"
+          },
+          "role": {
+            "enum": [
+              "dev",
+              "test"
+            ],
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "family",
+          "role"
+        ],
+        "title": "FamilyAssignment",
         "type": "object"
       },
       "Formula-Input": {
@@ -5931,6 +6135,47 @@
         "title": "SessionState",
         "type": "string"
       },
+      "Split": {
+        "description": "A frozen assignment of families. Once stored under a name it is never changed.",
+        "properties": {
+          "assignments": {
+            "items": {
+              "$ref": "#/components/schemas/FamilyAssignment"
+            },
+            "title": "Assignments",
+            "type": "array"
+          },
+          "folds": {
+            "minimum": 2.0,
+            "title": "Folds",
+            "type": "integer"
+          },
+          "name": {
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "seed": {
+            "title": "Seed",
+            "type": "string"
+          },
+          "test_fraction": {
+            "exclusiveMaximum": 1.0,
+            "minimum": 0.0,
+            "title": "Test Fraction",
+            "type": "number"
+          }
+        },
+        "required": [
+          "name",
+          "seed",
+          "folds",
+          "test_fraction",
+          "assignments"
+        ],
+        "title": "Split",
+        "type": "object"
+      },
       "StartSessionRequest": {
         "description": "Body of ``POST /v1/sessions``: the net, an optional description and the goal.",
         "properties": {
@@ -7017,6 +7262,71 @@
           }
         },
         "summary": "Get Result Summary",
+        "tags": [
+          "models"
+        ]
+      }
+    },
+    "/v1/models/splits": {
+      "get": {
+        "description": "List the names of the frozen splits of the families.",
+        "operationId": "get_split_names_v1_models_splits_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_tuple_str__________"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Split Names",
+        "tags": [
+          "models"
+        ]
+      }
+    },
+    "/v1/models/splits/{name}": {
+      "get": {
+        "description": "Return a frozen split: each family's role (dev fold or held-out test).",
+        "operationId": "get_split_v1_models_splits__name__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "title": "Name",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_Split_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Split",
         "tags": [
           "models"
         ]

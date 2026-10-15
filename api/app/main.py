@@ -27,6 +27,7 @@ from app.application.nets import NetService
 from app.application.ports import EngineGateway, LlmGateway
 from app.application.results import ResultsService
 from app.application.retention import RetentionService
+from app.application.splits import SplitService
 from app.application.tools import ToolFacade
 from app.application.workers import WorkerPool
 from app.infrastructure.anthropic_llm import AnthropicLlm
@@ -37,6 +38,7 @@ from app.infrastructure.scripted_llm import DemoLlm
 from app.infrastructure.sqlite_catalog import SqliteCatalog
 from app.infrastructure.sqlite_results import SqliteResults
 from app.infrastructure.sqlite_retention import SqliteRetention
+from app.infrastructure.sqlite_splits import SqliteSplits
 from app.infrastructure.sqlite_store import SqliteStore
 from app.infrastructure.unavailable_llm import UnavailableLlm
 from app.settings import Settings
@@ -181,6 +183,10 @@ def create_app(
         catalog=SqliteCatalog(path=config.database_path),
         nets=app.state.nets,
         descriptions=store,
+    )
+    app.state.splits = SplitService(
+        splits=SqliteSplits(path=config.database_path),
+        catalog=SqliteCatalog(path=config.database_path),
     )
     app.state.results = ResultsService(results=SqliteResults(path=config.database_path))
     app.state.checks = checks

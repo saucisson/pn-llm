@@ -212,6 +212,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/models/splits": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Split Names
+         * @description List the names of the frozen splits of the families.
+         */
+        get: operations["get_split_names_v1_models_splits_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/models/splits/{name}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Split
+         * @description Return a frozen split: each family's role (dev fold or held-out test).
+         */
+        get: operations["get_split_v1_models_splits__name__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/models/{net_id}/properties/{examination}": {
         parameters: {
             query?: never;
@@ -1413,6 +1453,33 @@ export interface components {
              */
             warnings: string[];
         };
+        /** Envelope[Split] */
+        Envelope_Split_: {
+            data?: components["schemas"]["Split"] | null;
+            /** Elapsed S */
+            elapsed_s: number;
+            error?: components["schemas"]["ErrorInfo"] | null;
+            /** Net Id */
+            net_id?: string | null;
+            /**
+             * Schema Version
+             * @default 1.0
+             * @constant
+             */
+            schema_version: "1.0";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ok" | "partial" | "failed";
+            tool: components["schemas"]["ToolInfo"];
+            truncated?: components["schemas"]["Page"] | null;
+            /**
+             * Warnings
+             * @default []
+             */
+            warnings: string[];
+        };
         /** Envelope[StoredEvent] */
         Envelope_StoredEvent_: {
             data?: components["schemas"]["StoredEvent"] | null;
@@ -1719,6 +1786,34 @@ export interface components {
              */
             warnings: string[];
         };
+        /** Envelope[tuple[str, ...]] */
+        Envelope_tuple_str__________: {
+            /** Data */
+            data?: string[] | null;
+            /** Elapsed S */
+            elapsed_s: number;
+            error?: components["schemas"]["ErrorInfo"] | null;
+            /** Net Id */
+            net_id?: string | null;
+            /**
+             * Schema Version
+             * @default 1.0
+             * @constant
+             */
+            schema_version: "1.0";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ok" | "partial" | "failed";
+            tool: components["schemas"]["ToolInfo"];
+            truncated?: components["schemas"]["Page"] | null;
+            /**
+             * Warnings
+             * @default []
+             */
+            warnings: string[];
+        };
         /**
          * ErrorInfo
          * @description Expected failure of a tool (timeout, out of memory, ...), reported in the envelope.
@@ -1728,6 +1823,21 @@ export interface components {
             code: string;
             /** Message */
             message: string;
+        };
+        /**
+         * FamilyAssignment
+         * @description Where a family goes: a development fold, or the held-out test set (no fold).
+         */
+        FamilyAssignment: {
+            /** Family */
+            family: string;
+            /** Fold */
+            fold?: number | null;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "dev" | "test";
         };
         /**
          * Formula
@@ -2543,6 +2653,22 @@ export interface components {
          */
         SessionState: "queued" | "running" | "waiting_for_user" | "idle" | "cancelled";
         /**
+         * Split
+         * @description A frozen assignment of families. Once stored under a name it is never changed.
+         */
+        Split: {
+            /** Assignments */
+            assignments: components["schemas"]["FamilyAssignment"][];
+            /** Folds */
+            folds: number;
+            /** Name */
+            name: string;
+            /** Seed */
+            seed: string;
+            /** Test Fraction */
+            test_fraction: number;
+        };
+        /**
          * StartSessionRequest
          * @description Body of ``POST /v1/sessions``: the net, an optional description and the goal.
          */
@@ -3099,6 +3225,57 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Envelope_tuple_RunStatistics__________"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_split_names_v1_models_splits_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_tuple_str__________"];
+                };
+            };
+        };
+    };
+    get_split_v1_models_splits__name__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_Split_"];
                 };
             };
             /** @description Validation Error */

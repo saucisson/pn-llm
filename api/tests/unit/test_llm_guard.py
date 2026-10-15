@@ -9,14 +9,21 @@ from jsonschema import validate
 from app.api.llm_tools import Operation, offered_to_llm
 from app.domain.mcc_properties import MccProperties
 from app.domain.net_leak import contains_net
+from app.domain.splits import Split
 from app.infrastructure.sqlite_catalog import SqliteCatalog
+from app.infrastructure.sqlite_splits import SqliteSplits
 from tests.support import CHECK_BODY, MUTEX_DOCUMENT, MUTEX_PNML
 
 SCHEMAS = Path(__file__).resolve().parents[3] / "docs" / "schemas"
 XML = {"Content-Type": "application/pnml+xml"}
 
 # Values for the parameters of the routes, to call every tool once.
-PATH_VALUES = {"element_id": "enter1", "result_index": "0", "examination": "CTLCardinality"}
+PATH_VALUES = {
+    "element_id": "enter1",
+    "result_index": "0",
+    "examination": "CTLCardinality",
+    "name": "v1",
+}
 QUERY_VALUES = {"ids": "enter1", "q": "e"}
 
 
@@ -70,6 +77,9 @@ def test_no_tool_declares_a_net_in_its_responses(client):
 def test_no_tool_returns_a_net_when_called(scripted_client, settings):
     client = scripted_client
     net_id = client.post("/v1/nets", content=MUTEX_PNML, headers=XML).json()["net_id"]
+    SqliteSplits(path=settings.database_path).save_split(
+        split=Split(name="v1", seed="s", folds=2, test_fraction=0, assignments=())
+    )
     SqliteCatalog(path=settings.database_path).save_properties(
         net_id=net_id, properties=MccProperties(examination="CTLCardinality")
     )
