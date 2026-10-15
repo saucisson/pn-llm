@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Literal
 
+from pydantic import AliasChoices, Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 DEFAULT_MAX_UPLOAD_BYTES = 20 * 1024 * 1024
@@ -55,3 +56,12 @@ class Settings(BaseSettings):
     tool_poll_seconds: float = 0.2
     # A session waiting for the user for this many days is cancelled; None waits for ever.
     session_waiting_expiry_days: float | None = 7.0
+
+    # The Anthropic provider: the key (PNVERIF_ANTHROPIC_API_KEY, or the usual ANTHROPIC_API_KEY),
+    # the model and the largest answer of one step. The key is never logged nor put in events.
+    anthropic_api_key: SecretStr | None = Field(
+        default=None,
+        validation_alias=AliasChoices("PNVERIF_ANTHROPIC_API_KEY", "ANTHROPIC_API_KEY"),
+    )
+    anthropic_model: str = "claude-opus-4-8"
+    anthropic_max_tokens: int = 8_000

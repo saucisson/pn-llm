@@ -34,7 +34,8 @@ cd api && PNVERIF_LLM_PROVIDER=scripted PNVERIF_UI_DIR=../ui/dist \
 The database file defaults to `data/pnverif.sqlite`; override with
 `PNVERIF_DATABASE_PATH=/path/to/file`. Several API processes and worker processes can share the
 file (`python -m app.main` runs workers only). Without `PNVERIF_LLM_PROVIDER` a session ends with
-an error that says so.
+an error that says so; `PNVERIF_LLM_PROVIDER=anthropic` with `PNVERIF_ANTHROPIC_API_KEY` uses the
+real model.
 
 ```bash
 curl -X POST localhost:8000/v1/nets -H 'Content-Type: application/pnml+xml' --data-binary @my_net.pnml

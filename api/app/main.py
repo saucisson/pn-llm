@@ -26,6 +26,7 @@ from app.application.ports import EngineGateway, LlmGateway
 from app.application.tools import ToolFacade
 from app.application.workers import WorkerPool
 from app.domain.net_validation import DocumentLimits
+from app.infrastructure.anthropic_llm import AnthropicLlm
 from app.infrastructure.docker_runner import DockerRunner
 from app.infrastructure.engine_registry import DEFAULT_ENGINES, EngineRegistry
 from app.infrastructure.scripted_llm import DemoLlm
@@ -40,6 +41,16 @@ def build_llm(*, config: Settings) -> LlmGateway:
     """Return the language model the settings ask for."""
     if config.llm_provider == "scripted":
         return DemoLlm()
+    if config.llm_provider == "anthropic":
+        if config.anthropic_api_key is None:
+            return UnavailableLlm(
+                reason="PNVERIF_ANTHROPIC_API_KEY (or ANTHROPIC_API_KEY) is not set"
+            )
+        return AnthropicLlm(
+            api_key=config.anthropic_api_key.get_secret_value(),
+            model=config.anthropic_model,
+            max_tokens=config.anthropic_max_tokens,
+        )
     return UnavailableLlm()
 
 
