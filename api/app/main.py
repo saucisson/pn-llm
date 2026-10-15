@@ -13,7 +13,17 @@ from fastapi.staticfiles import StaticFiles
 from starlette.concurrency import run_in_threadpool
 
 from app import __version__
-from app.api import descriptions, engines, formulas, inspection, jobs, models, nets, sessions
+from app.api import (
+    descriptions,
+    engines,
+    formulas,
+    inspection,
+    jobs,
+    models,
+    nets,
+    operations,
+    sessions,
+)
 from app.api.errors import register_error_handlers
 from app.api.middleware import log_requests
 from app.application.agent import AgentConfig, AgentService
@@ -24,6 +34,7 @@ from app.application.formulas import FormulaService
 from app.application.inspection import InspectionService
 from app.application.models import ModelCatalogService
 from app.application.nets import NetService
+from app.application.operations import OperationService
 from app.application.ports import EngineGateway, LlmGateway
 from app.application.results import ResultsService
 from app.application.retention import RetentionService
@@ -36,6 +47,7 @@ from app.infrastructure.engine_registry import DEFAULT_ENGINES, EngineRegistry
 from app.infrastructure.json_logging import configure_logging
 from app.infrastructure.scripted_llm import DemoLlm
 from app.infrastructure.sqlite_catalog import SqliteCatalog
+from app.infrastructure.sqlite_operations import SqliteOperations
 from app.infrastructure.sqlite_results import SqliteResults
 from app.infrastructure.sqlite_retention import SqliteRetention
 from app.infrastructure.sqlite_splits import SqliteSplits
@@ -102,14 +114,34 @@ def build_retention(
     )
 
 
+def build_operations(
+    *, config: Settings, store: SqliteStore, engines: EngineGateway
+) -> OperationService:
+    """Return the operation service over the database and the engines."""
+    return OperationService(
+        nets=store,
+        runs=SqliteOperations(path=config.database_path),
+        engines=engines,
+        lease_seconds=config.job_lease_seconds,
+        wait_seconds=config.operation_wait_seconds,
+    )
+
+
 def sweep_once(
-    *, config: Settings, checks: CheckService, agent: AgentService, retention: RetentionService
+    *,
+    config: Settings,
+    checks: CheckService,
+    operations: OperationService,
+    agent: AgentService,
+    retention: RetentionService,
 ) -> None:
     """Find lost work and apply the retention policy: leases, runs, old jobs, sessions, nets."""
     checks.recover_interrupted()
+    operations.recover_interrupted()
     agent.recover_lost_runs()
     if config.job_retention_days is not None:
         checks.purge_old_jobs(retention_s=config.job_retention_days * SECONDS_PER_DAY)
+        operations.purge_old_runs(retention_s=config.job_retention_days * SECONDS_PER_DAY)
     if config.session_waiting_expiry_days is not None:
         agent.expire_waiting(older_than_s=config.session_waiting_expiry_days * SECONDS_PER_DAY)
     retention.expire(
@@ -141,6 +173,7 @@ def create_app(
     checks = CheckService(
         nets=store, jobs=store, engines=registry, lease_seconds=config.job_lease_seconds
     )
+    operations_service = build_operations(config=config, store=store, engines=registry)
     agent = build_agent(
         config=config, store=store, checks=checks, llm=llm_gateway or build_llm(config=config)
     )
@@ -152,7 +185,12 @@ def create_app(
         async def sweep() -> None:
             while True:
                 await run_in_threadpool(
-                    sweep_once, config=config, checks=checks, agent=agent, retention=retention
+                    sweep_once,
+                    config=config,
+                    checks=checks,
+                    operations=operations_service,
+                    agent=agent,
+                    retention=retention,
                 )
                 await asyncio.sleep(config.job_lease_seconds / 2)
 
@@ -161,7 +199,7 @@ def create_app(
             if config.embedded_workers > 0:
                 workers.enter_context(
                     WorkerPool(
-                        runners=(checks.run_next, agent.run_next),
+                        runners=(checks.run_next, operations_service.run_next, agent.run_next),
                         size=config.embedded_workers,
                         poll_seconds=config.worker_poll_seconds,
                     )
@@ -190,6 +228,7 @@ def create_app(
     )
     app.state.results = ResultsService(results=SqliteResults(path=config.database_path))
     app.state.checks = checks
+    app.state.operations = operations_service
     app.state.inspection = InspectionService(nets=store)
     app.state.formulas = FormulaService(nets=store)
     app.state.descriptions = DescriptionService(
@@ -202,7 +241,17 @@ def create_app(
     app.middleware("http")(log_requests)
     if config.ui_dir is not None and config.ui_dir.is_dir():
         app.mount("/ui", StaticFiles(directory=config.ui_dir, html=True), name="ui")
-    for module in (nets, descriptions, inspection, formulas, jobs, sessions, engines, models):
+    for module in (
+        nets,
+        descriptions,
+        inspection,
+        formulas,
+        jobs,
+        operations,
+        sessions,
+        engines,
+        models,
+    ):
         app.include_router(module.router)
     return app
 
@@ -216,12 +265,11 @@ def worker_main() -> None:
     config = Settings()
     configure_logging(level=config.log_level, as_json=config.log_json)
     store = SqliteStore(path=config.database_path)
+    registry = EngineRegistry(specs=DEFAULT_ENGINES, docker=DockerRunner())
     checks = CheckService(
-        nets=store,
-        jobs=store,
-        engines=EngineRegistry(specs=DEFAULT_ENGINES, docker=DockerRunner()),
-        lease_seconds=config.job_lease_seconds,
+        nets=store, jobs=store, engines=registry, lease_seconds=config.job_lease_seconds
     )
+    operations_service = build_operations(config=config, store=store, engines=registry)
     agent = build_agent(config=config, store=store, checks=checks, llm=build_llm(config=config))
     retention = build_retention(config=config, store=store, agent=agent)
     stopping = threading.Event()
@@ -229,12 +277,18 @@ def worker_main() -> None:
     for signum in (signal.SIGINT, signal.SIGTERM):
         signal.signal(signum, handler)
     with WorkerPool(
-        runners=(checks.run_next, agent.run_next),
+        runners=(checks.run_next, operations_service.run_next, agent.run_next),
         size=config.worker_threads,
         poll_seconds=config.worker_poll_seconds,
     ):
         while not stopping.wait(timeout=config.job_lease_seconds / 2):
-            sweep_once(config=config, checks=checks, agent=agent, retention=retention)
+            sweep_once(
+                config=config,
+                checks=checks,
+                operations=operations_service,
+                agent=agent,
+                retention=retention,
+            )
 
 
 if __name__ == "__main__":

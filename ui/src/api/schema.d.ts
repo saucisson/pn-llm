@@ -316,6 +316,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/nets/{net_id}/analyses/net-class": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Structural classes: state machine, marked graph, free choice, workflow-like. */
+        post: operations["analyses.net-class"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/nets/{net_id}/analyses/p-invariants": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Minimal-support place invariants: weighted place sets with a constant token sum. */
+        post: operations["analyses.p-invariants"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/nets/{net_id}/arcs": {
         parameters: {
             query?: never;
@@ -555,6 +589,50 @@ export interface paths {
         put?: never;
         post?: never;
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Operations
+         * @description List the analyses and reductions: route, parameters, result and the engines that run them.
+         */
+        get: operations["get_operations_v1_operations_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/runs/{run_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Run
+         * @description Follow the run of an operation: its state and, once it has finished, its result.
+         */
+        get: operations["get_run_v1_runs__run_id__get"];
+        put?: never;
+        post?: never;
+        /**
+         * Cancel Run
+         * @description Cancel a queued or running operation; a finished one keeps its result.
+         */
+        delete: operations["cancel_run_v1_runs__run_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1176,6 +1254,11 @@ export interface components {
             /** Name */
             name: string;
             /**
+             * Operations
+             * @default []
+             */
+            operations: string[];
+            /**
              * Supports Colored
              * @default false
              */
@@ -1372,6 +1455,33 @@ export interface components {
              */
             warnings: string[];
         };
+        /** Envelope[NetClassResult] */
+        Envelope_NetClassResult_: {
+            data?: components["schemas"]["NetClassResult"] | null;
+            /** Elapsed S */
+            elapsed_s: number;
+            error?: components["schemas"]["ErrorInfo"] | null;
+            /** Net Id */
+            net_id?: string | null;
+            /**
+             * Schema Version
+             * @default 1.0
+             * @constant
+             */
+            schema_version: "1.0";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ok" | "partial" | "failed";
+            tool: components["schemas"]["ToolInfo"];
+            truncated?: components["schemas"]["Page"] | null;
+            /**
+             * Warnings
+             * @default []
+             */
+            warnings: string[];
+        };
         /** Envelope[NetOverview] */
         Envelope_NetOverview_: {
             data?: components["schemas"]["NetOverview"] | null;
@@ -1399,9 +1509,90 @@ export interface components {
              */
             warnings: string[];
         };
+        /** Envelope[PInvariantsResult] */
+        Envelope_PInvariantsResult_: {
+            data?: components["schemas"]["PInvariantsResult"] | null;
+            /** Elapsed S */
+            elapsed_s: number;
+            error?: components["schemas"]["ErrorInfo"] | null;
+            /** Net Id */
+            net_id?: string | null;
+            /**
+             * Schema Version
+             * @default 1.0
+             * @constant
+             */
+            schema_version: "1.0";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ok" | "partial" | "failed";
+            tool: components["schemas"]["ToolInfo"];
+            truncated?: components["schemas"]["Page"] | null;
+            /**
+             * Warnings
+             * @default []
+             */
+            warnings: string[];
+        };
         /** Envelope[ReplayResult] */
         Envelope_ReplayResult_: {
             data?: components["schemas"]["ReplayResult"] | null;
+            /** Elapsed S */
+            elapsed_s: number;
+            error?: components["schemas"]["ErrorInfo"] | null;
+            /** Net Id */
+            net_id?: string | null;
+            /**
+             * Schema Version
+             * @default 1.0
+             * @constant
+             */
+            schema_version: "1.0";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ok" | "partial" | "failed";
+            tool: components["schemas"]["ToolInfo"];
+            truncated?: components["schemas"]["Page"] | null;
+            /**
+             * Warnings
+             * @default []
+             */
+            warnings: string[];
+        };
+        /** Envelope[RunHandle] */
+        Envelope_RunHandle_: {
+            data?: components["schemas"]["RunHandle"] | null;
+            /** Elapsed S */
+            elapsed_s: number;
+            error?: components["schemas"]["ErrorInfo"] | null;
+            /** Net Id */
+            net_id?: string | null;
+            /**
+             * Schema Version
+             * @default 1.0
+             * @constant
+             */
+            schema_version: "1.0";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ok" | "partial" | "failed";
+            tool: components["schemas"]["ToolInfo"];
+            truncated?: components["schemas"]["Page"] | null;
+            /**
+             * Warnings
+             * @default []
+             */
+            warnings: string[];
+        };
+        /** Envelope[RunView] */
+        Envelope_RunView_: {
+            data?: components["schemas"]["RunView"] | null;
             /** Elapsed S */
             elapsed_s: number;
             error?: components["schemas"]["ErrorInfo"] | null;
@@ -1706,6 +1897,34 @@ export interface components {
         Envelope_tuple_NameGroup__________: {
             /** Data */
             data?: components["schemas"]["NameGroup"][] | null;
+            /** Elapsed S */
+            elapsed_s: number;
+            error?: components["schemas"]["ErrorInfo"] | null;
+            /** Net Id */
+            net_id?: string | null;
+            /**
+             * Schema Version
+             * @default 1.0
+             * @constant
+             */
+            schema_version: "1.0";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ok" | "partial" | "failed";
+            tool: components["schemas"]["ToolInfo"];
+            truncated?: components["schemas"]["Page"] | null;
+            /**
+             * Warnings
+             * @default []
+             */
+            warnings: string[];
+        };
+        /** Envelope[tuple[OperationDescription, ...]] */
+        Envelope_tuple_OperationDescription__________: {
+            /** Data */
+            data?: components["schemas"]["OperationDescription"][] | null;
             /** Elapsed S */
             elapsed_s: number;
             error?: components["schemas"]["ErrorInfo"] | null;
@@ -2058,6 +2277,7 @@ export interface components {
          * @enum {string}
          */
         JobState: "queued" | "running" | "done" | "cancelled" | "interrupted";
+        JsonValue: unknown;
         /**
          * Limits
          * @description Resource limits applied to one engine run.
@@ -2299,6 +2519,24 @@ export interface components {
             total: number;
         };
         /**
+         * NetClassResult
+         * @description The structural classes of a net, each decided from its arcs alone.
+         */
+        NetClassResult: {
+            /** Extended Free Choice */
+            extended_free_choice: boolean;
+            /** Free Choice */
+            free_choice: boolean;
+            /** Marked Graph */
+            marked_graph: boolean;
+            /** Ordinary */
+            ordinary: boolean;
+            /** State Machine */
+            state_machine: boolean;
+            /** Workflow Like */
+            workflow_like: boolean;
+        };
+        /**
          * NetOverview
          * @description Counts and structural flags of a net: no names.
          */
@@ -2363,6 +2601,11 @@ export interface components {
             transitions: number;
         };
         /**
+         * NoParameters
+         * @description Parameters of an operation that has no option.
+         */
+        NoParameters: Record<string, never>;
+        /**
          * Not
          * @description Negation.
          */
@@ -2389,6 +2632,51 @@ export interface components {
             op: "not";
         };
         /**
+         * OperationDescription
+         * @description One entry of the catalog (``GET /v1/operations``).
+         */
+        OperationDescription: {
+            /** Engines */
+            engines: string[];
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "analysis" | "reduction";
+            /** Name */
+            name: string;
+            parameters_schema: components["schemas"]["JsonValue"];
+            /** Preserves */
+            preserves: string[];
+            result_schema: components["schemas"]["JsonValue"];
+            /** Route */
+            route: string;
+            /** Summary */
+            summary: string;
+            /** Supports Colored */
+            supports_colored: boolean;
+        };
+        /** OperationRequest[NoParameters] */
+        OperationRequest_NoParameters_: {
+            /**
+             * Engine
+             * @default auto
+             */
+            engine: string;
+            limits?: components["schemas"]["Limits"];
+            parameters: components["schemas"]["NoParameters"];
+        };
+        /** OperationRequest[PInvariantsParameters] */
+        OperationRequest_PInvariantsParameters_: {
+            /**
+             * Engine
+             * @default auto
+             */
+            engine: string;
+            limits?: components["schemas"]["Limits"];
+            parameters: components["schemas"]["PInvariantsParameters"];
+        };
+        /**
          * Or
          * @description Disjunction of at least two operands.
          */
@@ -2413,6 +2701,46 @@ export interface components {
              * @enum {string}
              */
             op: "or";
+        };
+        /**
+         * PInvariant
+         * @description A place invariant: the weighted sum of the tokens of its places never changes.
+         */
+        PInvariant: {
+            /** Constant */
+            constant: number;
+            /** Elements */
+            elements: components["schemas"]["WeightedElement"][];
+        };
+        /**
+         * PInvariantsParameters
+         * @description Options of the search.
+         */
+        PInvariantsParameters: {
+            /**
+             * Max Invariants
+             * @default 200
+             */
+            max_invariants: number;
+            /**
+             * Max Rows
+             * @default 20000
+             */
+            max_rows: number;
+        };
+        /**
+         * PInvariantsResult
+         * @description The minimal-support invariants found, and how far the search went.
+         */
+        PInvariantsResult: {
+            /** Complete */
+            complete: boolean;
+            /** Invariants */
+            invariants: components["schemas"]["PInvariant"][];
+            /** Total */
+            total: number;
+            /** Uncovered Places */
+            uncovered_places: components["schemas"]["ElementRef"][];
         };
         /**
          * Page
@@ -2561,6 +2889,23 @@ export interface components {
             reason: "completed" | "waiting_for_user" | "budget_exhausted" | "error" | "cancelled";
         };
         /**
+         * RunHandle
+         * @description The ``data`` of a ``202``: where to follow the run.
+         */
+        RunHandle: {
+            /** Location */
+            location: string;
+            /** Run Id */
+            run_id: string;
+            state: components["schemas"]["RunState"];
+        };
+        /**
+         * RunState
+         * @description Lifecycle of the run of an operation, the same as a check's plus a failure.
+         * @enum {string}
+         */
+        RunState: "queued" | "running" | "done" | "failed" | "cancelled" | "interrupted";
+        /**
          * RunStatistics
          * @description How a tool did on an examination over the instances of a family.
          */
@@ -2583,6 +2928,19 @@ export interface components {
             timeouts: number;
             /** Tool */
             tool: string;
+        };
+        /**
+         * RunView
+         * @description The ``data`` of a run being followed: its state and, once finished, its result.
+         */
+        RunView: {
+            error?: components["schemas"]["ErrorInfo"] | null;
+            /** Operation */
+            operation: string;
+            result?: components["schemas"]["JsonValue"];
+            /** Run Id */
+            run_id: string;
+            state: components["schemas"]["RunState"];
         };
         /**
          * Session
@@ -2833,6 +3191,15 @@ export interface components {
             msg: string;
             /** Error Type */
             type: string;
+        };
+        /**
+         * WeightedElement
+         * @description An element of an invariant and its weight.
+         */
+        WeightedElement: {
+            element: components["schemas"]["ElementRef"];
+            /** Weight */
+            weight: number;
         };
         /**
          * WeightedRef
@@ -3404,6 +3771,94 @@ export interface operations {
             };
         };
     };
+    "analyses.net-class": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                net_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OperationRequest_NoParameters_"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_NetClassResult_"];
+                };
+            };
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_RunHandle_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "analyses.p-invariants": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                net_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OperationRequest_PInvariantsParameters_"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_PInvariantsResult_"];
+                };
+            };
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_RunHandle_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_arcs_v1_nets__net_id__arcs_get: {
         parameters: {
             query?: {
@@ -3845,6 +4300,86 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["Envelope_tuple_ElementRef__________"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_operations_v1_operations_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_tuple_OperationDescription__________"];
+                };
+            };
+        };
+    };
+    get_run_v1_runs__run_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_RunView_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    cancel_run_v1_runs__run_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {

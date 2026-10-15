@@ -14,6 +14,7 @@ from app.application.formulas import FormulaService
 from app.application.inspection import InspectionService
 from app.application.models import ModelCatalogService
 from app.application.nets import NetService
+from app.application.operations import OperationService
 from app.application.results import ResultsService
 from app.application.retention import RetentionService
 from app.application.splits import SplitService
@@ -74,6 +75,11 @@ def get_splits(*, request: Request) -> SplitService:
     return cast("SplitService", request.app.state.splits)
 
 
+def get_operations(*, request: Request) -> OperationService:
+    """Return the operation service of the running application."""
+    return cast("OperationService", request.app.state.operations)
+
+
 NetsDep = Annotated[NetService, Depends(get_nets)]
 ChecksDep = Annotated[CheckService, Depends(get_checks)]
 EnginesDep = Annotated[EngineService, Depends(get_engines)]
@@ -85,3 +91,4 @@ RetentionDep = Annotated[RetentionService, Depends(get_retention)]
 ModelsDep = Annotated[ModelCatalogService, Depends(get_models)]
 ResultsDep = Annotated[ResultsService, Depends(get_results)]
 SplitsDep = Annotated[SplitService, Depends(get_splits)]
+OperationsDep = Annotated[OperationService, Depends(get_operations)]

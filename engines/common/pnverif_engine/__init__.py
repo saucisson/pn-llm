@@ -3,6 +3,7 @@
 from .adapter import (
     AdapterAnswer,
     AdapterInput,
+    OperationAnswer,
     normalize_verdict,
     read_request,
     run_adapter,
@@ -13,6 +14,7 @@ from .adapter import (
 __all__ = [
     "AdapterAnswer",
     "AdapterInput",
+    "OperationAnswer",
     "normalize_verdict",
     "read_request",
     "run_adapter",

@@ -8,13 +8,20 @@ from pydantic import BaseModel
 
 from .contract import ElementRef, Envelope, Marking, Page, PageRequest
 from .descriptions import Description
-from .engine_contract import EngineCheckData, EngineRequest, EngineTrace, Trace
+from .engine_contract import (
+    EngineCheckData,
+    EngineOperationData,
+    EngineRequest,
+    EngineTrace,
+    Trace,
+)
 from .formula import Formula
 from .formula_check import FormulaReport, FormulaValidationRequest
 from .inspection import ArcView, ElementDetail, NameGroup, Neighbourhood, NetOverview
 from .models import CheckRequest, EngineInfo, FormulaResult
 from .net_document import NetDocument
 from .nets import NetRegistration
+from .operations import OperationDescription
 from .replay import ReplayRequest, ReplayResult
 from .report import SessionReport
 from .sessions import Session, StoredEvent
@@ -27,6 +34,7 @@ EXPORTED_MODELS: tuple[type[BaseModel], ...] = (
     ElementRef,
     EngineCheckData,
     EngineInfo,
+    EngineOperationData,
     EngineRequest,
     EngineTrace,
     Envelope,
@@ -40,6 +48,7 @@ EXPORTED_MODELS: tuple[type[BaseModel], ...] = (
     NetDocument,
     NetOverview,
     NetRegistration,
+    OperationDescription,
     Page,
     PageRequest,
     ReplayRequest,

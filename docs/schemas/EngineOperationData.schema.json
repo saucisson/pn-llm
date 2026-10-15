@@ -1,0 +1,16 @@
+{
+  "$defs": {
+    "JsonValue": {}
+  },
+  "description": "The ``data`` of the envelope of an analysis or a reduction: the result, as JSON.",
+  "properties": {
+    "result": {
+      "$ref": "#/$defs/JsonValue"
+    }
+  },
+  "required": [
+    "result"
+  ],
+  "title": "EngineOperationData",
+  "type": "object"
+}

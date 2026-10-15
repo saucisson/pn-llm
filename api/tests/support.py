@@ -156,6 +156,81 @@ class ScriptedEngines:
         return self.tamper(report) if self.tamper else report
 
 
+class InProcessNative:
+    """The native engine without its container: the same operations, called as functions.
+
+    The process boundary double for operations. ``gate`` (an Event) holds a run until the test
+    lets it go, to test the slow path; ``tamper`` modifies the report, to test the checks.
+    """
+
+    def __init__(self, *, gate=None, tamper=None, available=True):
+        self.gate = gate
+        self.tamper = tamper
+        self.available = available
+        self.calls = []
+        self.stopped = []
+
+    def list_engines(self):
+        from app.domain.analyses import ANALYSES
+        from app.domain.models import EngineInfo
+
+        return (
+            EngineInfo(
+                name="native",
+                version="1.0",
+                logics=(),
+                operations=tuple(op.name for op in ANALYSES),
+                available=self.available,
+            ),
+        )
+
+    def is_known(self, *, name):
+        return False
+
+    def choose(self, *, requested):
+        return requested
+
+    def choose_for(self, *, operation, requested):
+        from app.domain.errors import InvalidRequestError
+
+        if requested not in {"auto", "native"} or not self.available:
+            raise InvalidRequestError(f"No engine for {operation} ({requested})")
+        return "native"
+
+    def version_of(self, *, engine):
+        return "1.0"
+
+    def stop(self, *, job_id):
+        self.stopped.append(job_id)
+
+    def run_operation(self, *, engine, pnml, request, job_id):
+        from app.domain.analyses import find_operation
+        from app.domain.engine_contract import EngineOperationReport
+        from app.domain.net_structure import build_structure
+        from app.domain.net_validation import DocumentLimits
+        from app.domain.operations import compute_on
+        from app.domain.pnml_import import import_pnml
+
+        self.calls.append(request.operation)
+        if self.gate is not None:
+            self.gate.wait(timeout=10)
+        document = import_pnml(payload=pnml, limits=DocumentLimits())
+        structure = build_structure(document=document, net_id=request.net_id)
+        result = compute_on(
+            definition=find_operation(name=request.operation),
+            structure=structure,
+            parameters=request.parameters,
+        )
+        report = EngineOperationReport(
+            tool_name=engine,
+            tool_version="1.0",
+            status="ok",
+            result=result.model_dump(mode="json"),
+            elapsed_s=0.01,
+        )
+        return self.tamper(report) if self.tamper else report
+
+
 def query(*, path, sql, params=()):
     """Run one read-only SQL statement on a database file and close the connection."""
     import contextlib

@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from typing import Literal
 
-from pydantic import Field, model_validator
+from pydantic import Field, JsonValue, model_validator
 
 from .contract import ElementRef, Marking
 from .formula import Formula
@@ -29,6 +29,8 @@ class EngineRequest(DomainModel):
     limits: Limits = Field(default_factory=Limits)
     # Analyses and reductions name the single operation to perform (ADR 0014).
     operation: str | None = None
+    # The options of that operation, as JSON; the engine validates them with the operation's model.
+    parameters: JsonValue = None
     protected: tuple[str, ...] = ()
 
     @model_validator(mode="after")
@@ -60,6 +62,12 @@ class EngineCheckData(DomainModel):
     """The ``data`` of the envelope of a check."""
 
     results: tuple[EngineFormulaResult, ...]
+
+
+class EngineOperationData(DomainModel):
+    """The ``data`` of the envelope of an analysis or a reduction: the result, as JSON."""
+
+    result: JsonValue
 
 
 class EngineTraceStep(DomainModel):
@@ -113,3 +121,15 @@ class EngineReport(DomainModel):
     status: Literal["ok", "partial", "failed"]
     error_code: str | None = None
     results: tuple[ReportedResult, ...] = ()
+
+
+class EngineOperationReport(DomainModel):
+    """What one engine run of an operation produced, before the platform checks it."""
+
+    tool_name: str | None = None
+    tool_version: str | None = None
+    status: Literal["ok", "partial", "failed"]
+    error_code: str | None = None
+    result: JsonValue = None
+    warnings: tuple[str, ...] = ()
+    elapsed_s: float = 0.0

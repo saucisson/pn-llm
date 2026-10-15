@@ -16,6 +16,14 @@
       "title": "Name",
       "type": "string"
     },
+    "operations": {
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "title": "Operations",
+      "type": "array"
+    },
     "supports_colored": {
       "default": false,
       "title": "Supports Colored",

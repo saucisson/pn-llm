@@ -35,6 +35,13 @@ services:
     image: pn-llm-verif/dummy:latest
     profiles: ["engines"]
 
+  engine-native:
+    build:
+      context: .
+      dockerfile: engines/native/Dockerfile
+    image: pn-llm-verif/native:1.0
+    profiles: ["engines"]
+
   engine-itstools:
     build:
       context: .

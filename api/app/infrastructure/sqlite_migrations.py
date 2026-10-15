@@ -190,6 +190,33 @@ MIGRATIONS = (
 )""",
         ),
     ),
+    Migration(
+        version=9,
+        description="runs of operations (analyses and reductions) and their cached results",
+        statements=(
+            """CREATE TABLE operation_runs (
+    run_id           TEXT PRIMARY KEY,
+    net_id           TEXT NOT NULL REFERENCES nets(net_id),
+    operation        TEXT NOT NULL,
+    engine           TEXT NOT NULL,
+    tool_version     TEXT NOT NULL,
+    run_key          TEXT NOT NULL,    -- hash(net, operation, parameters, engine, tool version)
+    parameters       TEXT NOT NULL,    -- JSON
+    limits           TEXT NOT NULL,    -- JSON
+    state            TEXT NOT NULL,
+    outcome          TEXT,             -- the OperationOutcome as JSON, once finished
+    lease_expires_at REAL NOT NULL DEFAULT 0,
+    created_at       REAL NOT NULL,
+    updated_at       REAL NOT NULL
+)""",
+            "CREATE INDEX operation_runs_net ON operation_runs(net_id)",
+            "CREATE INDEX operation_runs_state ON operation_runs(state, created_at)",
+            # One live or finished run per key, even under concurrent submissions: that run is
+            # the cache of the operation.
+            """CREATE UNIQUE INDEX operation_runs_live_key ON operation_runs(run_key)
+    WHERE state IN ('queued', 'running', 'done')""",
+        ),
+    ),
 )
 LATEST_VERSION = MIGRATIONS[-1].version
 WAL_ATTEMPTS = 50

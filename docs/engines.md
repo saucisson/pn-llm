@@ -6,6 +6,7 @@ How to add one: `docs/adding-an-engine.md` (the path) and `docs/engine-integrati
 | Engine | Tool and version | Licence | Logics | Colored | Image |
 |---|---|---|---|---|---|
 | `dummy` | none (answers UNKNOWN) | — | all | no | `pn-llm-verif/dummy` |
+| `native` | the platform's own analyses (`api/app/domain/analyses`), version 1.0 | same as the project | none (analyses) | P/T | `pn-llm-verif/native:1.0` |
 | `itstools` | ITS-Tools 1.0.0.202609112134 (product built 2026-09-11), archive SHA-256 `faef344a…bae5f` | GPL-3.0 | state, CTL, LTL | yes | `pn-llm-verif/itstools:1.0.0.202609112134` |
 | `tapaal` | verifypn 4.4.2, commit `0f4862d296918434c7cd75adf424d27fecd0bba6` | GPL-3.0-or-later | state, CTL, LTL | yes | `pn-llm-verif/tapaal:4.4.2` |
 
@@ -63,3 +64,10 @@ How to add one: `docs/adding-an-engine.md` (the path) and `docs/engine-integrati
 - **Conformance** (same protocol as Tapaal, 120 s per examination, 2 GB): 44 of 48 answers equal
   the contest's reference answers, none differs. The 4 others are timeouts on the colored
   instance, on formulas the reference has no answer for either.
+
+## native
+
+The analyses of the platform (`GET /v1/operations` lists them), run in a container like any
+engine (ADR 0019). Nothing is fetched or built: the image holds the platform's domain code. The
+version is bumped, in the registry and in the Dockerfile, with every change of an algorithm,
+because results are cached by tool version. P/T nets only for now.

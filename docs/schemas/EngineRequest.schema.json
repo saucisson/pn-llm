@@ -732,6 +732,7 @@
       "title": "Implies",
       "type": "object"
     },
+    "JsonValue": {},
     "Limits": {
       "description": "Resource limits applied to one engine run.",
       "properties": {
@@ -1298,6 +1299,10 @@
       ],
       "default": null,
       "title": "Operation"
+    },
+    "parameters": {
+      "$ref": "#/$defs/JsonValue",
+      "default": null
     },
     "protected": {
       "default": [],

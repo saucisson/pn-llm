@@ -53,6 +53,13 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/domain/mcc_properties.py` | domain | The contest's formula XML read into formula trees (`parse_property_set`), `BoundQuery` for upper bounds; unknown elements are refused, never skipped |
 | `app/domain/mcc_xml.py` | domain | Formula trees written as the contest's property XML (the inverse of `parse_property_set`), which verifypn and others read natively |
 | `app/domain/conformance.py` | domain | Conformance cases, the engine-by-case matrix, wrong answers and contradictions flagged for triage |
+| `app/domain/operations.py` | domain | The operations (analyses, reductions): `OperationDefinition`, the request, the run and its outcome |
+| `app/domain/operation_check.py` | domain | Checks what an engine says an operation found: the shape, and only elements the net has, with their names |
+| the package `app/domain/analyses` | domain | The analyses, one module each; its `__init__` is the catalog `ANALYSES` and `find_operation` |
+| `app/domain/analyses/net_class.py` | domain | Analysis `net-class`: state machine, marked graph, free choice, workflow-like |
+| `app/domain/analyses/p_invariants.py` | domain | Analysis `p-invariants`: minimal-support place invariants with their constants |
+| `app/domain/analyses/semiflows.py` | domain | Minimal-support semiflows of an integer matrix (Farkas), shared by P- and T-invariants |
+| `app/domain/analyses/graph.py` | domain | Arc adjacency and reachability shared by the analyses |
 | `app/domain/mcc_results.py` | domain | The contest's published runs: tool names normalized, the contest's own outcome classes kept (never a verdict), success rate and median time per family |
 | `app/domain/splits.py` | domain | Frozen, seeded split of families into balanced development folds and a held-out test set (the family is the unit) |
 | `app/domain/sessions.py` | domain | `Session`, the frozen event vocabulary (`SessionEvent`) and `StoredEvent`; a verdict cannot be built without an engine result |
@@ -74,6 +81,7 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/application/retention.py` | application | `RetentionService`: delete sessions, nets and descriptions, and apply the retention policy |
 | `app/application/models.py` | application | `ModelCatalogService`: seed the platform with contest nets (family, instance, `mcc` description) and list them |
 | `app/application/conformance.py` | application | `ConformanceService`: the same cases through the engine gateway for several engines |
+| `app/application/operations.py` | application | `OperationService`: describe, submit, run and read operations; a finished run is the cache of its key |
 | `app/application/results.py` | application | `ResultsService`: import the published results (all or nothing) and summarize them |
 | `app/application/splits.py` | application | `SplitService`: freeze a split of the catalog's families and read it back |
 | `app/application/leases.py` | application | `LeaseKeeper`: renews a running job's lease so other processes know its owner is alive |
@@ -85,6 +93,7 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/infrastructure/sqlite_catalog.py` | infrastructure | Contest families and the nets that are their instances |
 | `app/infrastructure/sqlite_results.py` | infrastructure | Published runs and the provenance of each result set |
 | `app/infrastructure/sqlite_splits.py` | infrastructure | Frozen splits; a name can be stored once |
+| `app/infrastructure/sqlite_operations.py` | infrastructure | Runs of operations: an atomically claimed queue, leases, and the result cache |
 | `app/infrastructure/mcc_source.py` | infrastructure | Contest files on disk: resumable download, SHA-256 recorded on first download and checked afterwards, reading of family archives |
 | `app/infrastructure/sqlite_migrations.py` | infrastructure | Numbered schema migrations (`PRAGMA user_version`), including the conversion of first-schema databases |
 | `app/infrastructure/sqlite_backup.py` | infrastructure | Online backup and offline restore of the database |
@@ -101,6 +110,7 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/api/jobs.py` | api | Routes for checks and jobs |
 | `app/api/engines.py` | api | Route `/v1/engines` |
 | `app/api/models.py` | api | Routes `/v1/models` and `/v1/models/families` |
+| `app/api/operations.py` | api | `GET /v1/operations`, one `POST` route per operation built from its definition, `GET`/`DELETE /v1/runs/{id}` |
 | `app/api/inspection.py` | api | Read-only inspection routes under `/v1/nets/{id}` |
 | `app/api/formulas.py` | api | Route `POST /v1/formulas/validate` |
 | `app/api/descriptions.py` | api | Routes for net descriptions |
