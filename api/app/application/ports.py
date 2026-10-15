@@ -9,6 +9,7 @@ from typing import Protocol
 
 from app.domain.descriptions import Description, DescriptionOrigin, SavedDescription
 from app.domain.engine_contract import EngineReport, EngineRequest, Trace
+from app.domain.llm import LlmMessage, LlmStep, ToolSpec
 from app.domain.models import (
     EngineInfo,
     FormulaResult,
@@ -176,4 +177,14 @@ class EngineGateway(Protocol):
 
     def stop(self, *, job_id: str) -> None:
         """Kill the engine run of a job, if one is in progress (cancellation)."""
+        ...
+
+
+class LlmGateway(Protocol):
+    """The language model, behind a port: the provider SDK is imported in one adapter only."""
+
+    def next_step(
+        self, *, system: str, messages: tuple[LlmMessage, ...], tools: tuple[ToolSpec, ...]
+    ) -> LlmStep:
+        """Return what the model does next, given the conversation so far and the tools."""
         ...
