@@ -1,6 +1,6 @@
 # 8. A conversation is a persisted sequence of events
 
-Status: proposed (review before any code)
+Status: accepted
 
 ## Context
 The user hands over a net and a description in a chat. The LLM works for a while, shows what it
@@ -18,9 +18,16 @@ the API may run several processes (ADR 0003), and the work must be replayable an
   immutable and content-addressed (ADR 0005), and the same net can be described differently by
   different users. Description and goal are size-limited and are untrusted text like net names
   (ADR 0009).
-- Events are frozen pydantic models in the domain, discriminated by `kind`:
-  `session_started`, `user_message`, `assistant_message`, `tool_call`, `tool_result`, `property_proposed`,
-  `check_submitted`, `verdict`, `question`, `answer`, `budget_exhausted`, `session_error`.
+- Events are frozen pydantic models in the domain, discriminated by `kind`. **Vocabulary, version 1
+  (frozen):** `session_started`, `user_message`, `assistant_message`, `tool_call`, `tool_result`,
+  `property_proposed`, `check_submitted`, `verdict`, `question`, `answer`, `budget_exhausted`,
+  `session_error`, plus `run_finished` (the agent ended its turn: the user may write again) and
+  `session_cancelled`. A `verdict` event carries the job id, the result index, the formula, the
+  verdict, the engine and its version: it cannot be built without them.
+- A **session run** is queued in the database like a check job (ADR 0018): a user message or an
+  answer queues the run, a worker claims it with one atomic update and renews a lease while it
+  works. The run is event-sourced (its state is the event log), so a run whose worker died is
+  simply queued again.
 - **Provenance is part of the event.** A `verdict` event references the job and result produced by
   an engine; the UI and the LLM can only show a verdict taken from such an event (ADR 0006).
   Text written by the LLM is always labelled as such.

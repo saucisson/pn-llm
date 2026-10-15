@@ -148,6 +148,11 @@ most 5, cap at most 500). `/name-groups` reports each family as `pattern` (numbe
 `/summary` returns counts, the net kind, a size category and structural flags, never names.
 Reference places and transitions are resolved: arcs always join real nodes.
 
+### Descriptions (ADR 0011)
+`POST /v1/nets/{id}/descriptions` (`text/plain` or `text/markdown`, `?origin=user|mcc|llm`, UTF-8,
+stored exactly as sent, idempotent: 201 the first time, 200 after), `GET /v1/nets/{id}/descriptions`
+and `GET /v1/descriptions/{id}` (one entry per net and origin). The id is a hash of the text.
+
 ### Analyses (`POST /analyses/{operation}`, one per operation)
 | Operation | Result `data` |
 |---|---|

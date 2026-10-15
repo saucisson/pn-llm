@@ -71,7 +71,12 @@ def test_no_tool_returns_a_net_when_called(scripted_client):
     job_id = client.post(f"/v1/nets/{net_id}/checks", json=CHECK_BODY).json()["data"]["job_id"]
     client.app.state.checks.drain()
     envelope = json.loads((SCHEMAS / "Envelope.schema.json").read_text())
-    values = {**PATH_VALUES, "job_id": job_id}
+    description = client.post(
+        f"/v1/nets/{net_id}/descriptions",
+        content=b"two processes",
+        headers={"Content-Type": "text/plain"},
+    ).json()["data"]["description_id"]
+    values = {**PATH_VALUES, "job_id": job_id, "description_id": description}
     called = 0
     for method, path, operation in llm_operations(app=client.app):
         if method != "get":

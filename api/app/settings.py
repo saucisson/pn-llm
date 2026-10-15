@@ -37,3 +37,5 @@ class Settings(BaseSettings):
     worker_poll_seconds: float = 0.5
     # Worker threads of ``python -m app.main``.
     worker_threads: int = 2
+    # Largest accepted description of a net (UTF-8 bytes).
+    max_description_bytes: int = 65_536

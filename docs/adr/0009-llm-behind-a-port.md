@@ -1,6 +1,6 @@
 # 9. The LLM is an outbound port with a scripted fake
 
-Status: proposed (review before any code)
+Status: accepted
 
 ## Context
 The agent loop must be testable without network, cost or randomness, and the LLM provider must be

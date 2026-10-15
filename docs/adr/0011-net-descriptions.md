@@ -1,6 +1,6 @@
 # 11. Net descriptions are stored by the API
 
-Status: proposed (review before any code)
+Status: accepted
 
 ## Context
 Users send a net together with a description in their own words: what the model represents, what

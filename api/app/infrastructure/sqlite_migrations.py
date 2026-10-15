@@ -74,6 +74,24 @@ MIGRATIONS = (
         description="index for the retention of finished jobs and for claiming queued jobs",
         statements=("CREATE INDEX IF NOT EXISTS jobs_state_updated ON jobs(state, updated_at)",),
     ),
+    Migration(
+        version=3,
+        description="net descriptions and their links to nets",
+        statements=(
+            """CREATE TABLE descriptions (
+    description_id TEXT PRIMARY KEY,
+    text           TEXT NOT NULL,      -- exactly as sent, UTF-8
+    created_at     REAL NOT NULL
+)""",
+            """CREATE TABLE net_descriptions (
+    net_id         TEXT NOT NULL REFERENCES nets(net_id),
+    description_id TEXT NOT NULL REFERENCES descriptions(description_id),
+    origin         TEXT NOT NULL,      -- user, mcc or llm
+    created_at     REAL NOT NULL,
+    PRIMARY KEY (net_id, description_id, origin)
+)""",
+        ),
+    ),
 )
 LATEST_VERSION = MIGRATIONS[-1].version
 WAL_ATTEMPTS = 50
