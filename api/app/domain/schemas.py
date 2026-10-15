@@ -16,6 +16,7 @@ from .models import CheckRequest, EngineInfo, FormulaResult
 from .net_document import NetDocument
 from .nets import NetRegistration
 from .replay import ReplayRequest, ReplayResult
+from .sessions import Session, StoredEvent
 
 EXPORTED_MODELS: tuple[type[BaseModel], ...] = (
     ArcView,
@@ -42,6 +43,8 @@ EXPORTED_MODELS: tuple[type[BaseModel], ...] = (
     PageRequest,
     ReplayRequest,
     ReplayResult,
+    Session,
+    StoredEvent,
     Trace,
 )
 

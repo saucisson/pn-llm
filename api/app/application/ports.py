@@ -17,6 +17,13 @@ from app.domain.models import (
 )
 from app.domain.net_document import NetDocument
 from app.domain.nets import NetSummary, SavedNet, StoredNet
+from app.domain.sessions import (
+    Session,
+    SessionEvent,
+    SessionState,
+    StartedSession,
+    StoredEvent,
+)
 
 
 class NetRepository(Protocol):
@@ -50,6 +57,48 @@ class DescriptionRepository(Protocol):
         Raises:
             NotFoundError: if the description is unknown.
         """
+        ...
+
+
+class SessionRepository(Protocol):
+    """Persistent storage of sessions and their events. Every operation is atomic."""
+
+    def create_session(self, *, session: Session, started: SessionEvent) -> StartedSession:
+        """Store a new session and its first event together."""
+        ...
+
+    def load_session(self, *, session_id: str) -> Session:
+        """Return a session, or raise NotFoundError."""
+        ...
+
+    def append_event(self, *, session_id: str, event: SessionEvent) -> StoredEvent:
+        """Add an event with the next number of the session (strictly increasing, no gap)."""
+        ...
+
+    def events_after(self, *, session_id: str, after: int, limit: int) -> tuple[StoredEvent, ...]:
+        """Return up to ``limit`` events whose number is above ``after``, in order."""
+        ...
+
+    def move_session(
+        self, *, session_id: str, allowed_from: tuple[SessionState, ...], to: SessionState
+    ) -> bool:
+        """Change the state if it is one of ``allowed_from``; False if it was not."""
+        ...
+
+    def claim_next_run(self, *, lease_seconds: float) -> Session | None:
+        """Atomically claim the oldest queued session for this process; None if none waits."""
+        ...
+
+    def renew_run_lease(self, *, session_id: str, lease_seconds: float) -> bool:
+        """Extend the lease of a running session; False if it is no longer running."""
+        ...
+
+    def finish_run(self, *, session_id: str, to: SessionState) -> bool:
+        """Leave the running state, only if the session is still running."""
+        ...
+
+    def requeue_lost_runs(self) -> int:
+        """Queue again the running sessions whose lease expired: a run resumes from its events."""
         ...
 
 

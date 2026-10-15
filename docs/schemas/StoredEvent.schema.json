@@ -1,0 +1,1761 @@
+{
+  "$defs": {
+    "And": {
+      "description": "Conjunction of at least two operands.",
+      "properties": {
+        "args": {
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "AF": "#/$defs/CtlUnary",
+                "AG": "#/$defs/CtlUnary",
+                "AU": "#/$defs/CtlUntil",
+                "AX": "#/$defs/CtlUnary",
+                "EF": "#/$defs/CtlUnary",
+                "EG": "#/$defs/CtlUnary",
+                "EU": "#/$defs/CtlUntil",
+                "EX": "#/$defs/CtlUnary",
+                "F": "#/$defs/LtlUnary",
+                "G": "#/$defs/LtlUnary",
+                "U": "#/$defs/LtlUntil",
+                "X": "#/$defs/LtlUnary",
+                "and": "#/$defs/And",
+                "compare": "#/$defs/Compare",
+                "const": "#/$defs/Truth",
+                "deadlock": "#/$defs/Deadlock",
+                "enabled": "#/$defs/Enabled",
+                "implies": "#/$defs/Implies",
+                "not": "#/$defs/Not",
+                "or": "#/$defs/Or",
+                "tokens": "#/$defs/Tokens"
+              },
+              "propertyName": "op"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/Tokens"
+              },
+              {
+                "$ref": "#/$defs/Compare"
+              },
+              {
+                "$ref": "#/$defs/Enabled"
+              },
+              {
+                "$ref": "#/$defs/Deadlock"
+              },
+              {
+                "$ref": "#/$defs/Truth"
+              },
+              {
+                "$ref": "#/$defs/Not"
+              },
+              {
+                "$ref": "#/$defs/And"
+              },
+              {
+                "$ref": "#/$defs/Or"
+              },
+              {
+                "$ref": "#/$defs/Implies"
+              },
+              {
+                "$ref": "#/$defs/LtlUnary"
+              },
+              {
+                "$ref": "#/$defs/LtlUntil"
+              },
+              {
+                "$ref": "#/$defs/CtlUnary"
+              },
+              {
+                "$ref": "#/$defs/CtlUntil"
+              }
+            ]
+          },
+          "minItems": 2,
+          "title": "Args",
+          "type": "array"
+        },
+        "op": {
+          "const": "and",
+          "default": "and",
+          "title": "Op",
+          "type": "string"
+        }
+      },
+      "required": [
+        "args"
+      ],
+      "title": "And",
+      "type": "object"
+    },
+    "Answer": {
+      "description": "The answer of the user to an open question.",
+      "properties": {
+        "kind": {
+          "const": "answer",
+          "default": "answer",
+          "title": "Kind",
+          "type": "string"
+        },
+        "question_id": {
+          "title": "Question Id",
+          "type": "string"
+        },
+        "text": {
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "question_id",
+        "text"
+      ],
+      "title": "Answer",
+      "type": "object"
+    },
+    "AssistantMessage": {
+      "description": "Text written by the LLM. It is labelled as such: never a verdict, never a fact of the net.",
+      "properties": {
+        "kind": {
+          "const": "assistant_message",
+          "default": "assistant_message",
+          "title": "Kind",
+          "type": "string"
+        },
+        "source": {
+          "const": "llm",
+          "default": "llm",
+          "title": "Source",
+          "type": "string"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "text"
+      ],
+      "title": "AssistantMessage",
+      "type": "object"
+    },
+    "BudgetExhausted": {
+      "description": "The run stopped because it reached a budget.",
+      "properties": {
+        "budget": {
+          "enum": [
+            "steps",
+            "tool_calls",
+            "tokens",
+            "wall_time"
+          ],
+          "title": "Budget",
+          "type": "string"
+        },
+        "kind": {
+          "const": "budget_exhausted",
+          "default": "budget_exhausted",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "budget"
+      ],
+      "title": "BudgetExhausted",
+      "type": "object"
+    },
+    "CheckSubmitted": {
+      "description": "A check was queued on the platform for some formulas.",
+      "properties": {
+        "formula_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Formula Ids",
+          "type": "array"
+        },
+        "job_id": {
+          "title": "Job Id",
+          "type": "string"
+        },
+        "kind": {
+          "const": "check_submitted",
+          "default": "check_submitted",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "job_id",
+        "formula_ids"
+      ],
+      "title": "CheckSubmitted",
+      "type": "object"
+    },
+    "Compare": {
+      "description": "Cardinality atom on general terms, such as ``p1 + p2 <= p3``.",
+      "properties": {
+        "cmp": {
+          "enum": [
+            "<",
+            "<=",
+            "==",
+            "!=",
+            ">=",
+            ">"
+          ],
+          "title": "Cmp",
+          "type": "string"
+        },
+        "left": {
+          "discriminator": {
+            "mapping": {
+              "const": "#/$defs/Constant",
+              "tokens": "#/$defs/TokenCount"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/TokenCount"
+            },
+            {
+              "$ref": "#/$defs/Constant"
+            }
+          ],
+          "title": "Left"
+        },
+        "op": {
+          "const": "compare",
+          "default": "compare",
+          "title": "Op",
+          "type": "string"
+        },
+        "right": {
+          "discriminator": {
+            "mapping": {
+              "const": "#/$defs/Constant",
+              "tokens": "#/$defs/TokenCount"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/TokenCount"
+            },
+            {
+              "$ref": "#/$defs/Constant"
+            }
+          ],
+          "title": "Right"
+        }
+      },
+      "required": [
+        "left",
+        "cmp",
+        "right"
+      ],
+      "title": "Compare",
+      "type": "object"
+    },
+    "Constant": {
+      "description": "A term: a non-negative integer.",
+      "properties": {
+        "kind": {
+          "const": "const",
+          "default": "const",
+          "title": "Kind",
+          "type": "string"
+        },
+        "value": {
+          "minimum": 0,
+          "title": "Value",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "value"
+      ],
+      "title": "Constant",
+      "type": "object"
+    },
+    "CtlUnary": {
+      "description": "CTL operators with one operand: a path quantifier and a temporal operator.",
+      "properties": {
+        "arg": {
+          "discriminator": {
+            "mapping": {
+              "AF": "#/$defs/CtlUnary",
+              "AG": "#/$defs/CtlUnary",
+              "AU": "#/$defs/CtlUntil",
+              "AX": "#/$defs/CtlUnary",
+              "EF": "#/$defs/CtlUnary",
+              "EG": "#/$defs/CtlUnary",
+              "EU": "#/$defs/CtlUntil",
+              "EX": "#/$defs/CtlUnary",
+              "F": "#/$defs/LtlUnary",
+              "G": "#/$defs/LtlUnary",
+              "U": "#/$defs/LtlUntil",
+              "X": "#/$defs/LtlUnary",
+              "and": "#/$defs/And",
+              "compare": "#/$defs/Compare",
+              "const": "#/$defs/Truth",
+              "deadlock": "#/$defs/Deadlock",
+              "enabled": "#/$defs/Enabled",
+              "implies": "#/$defs/Implies",
+              "not": "#/$defs/Not",
+              "or": "#/$defs/Or",
+              "tokens": "#/$defs/Tokens"
+            },
+            "propertyName": "op"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Tokens"
+            },
+            {
+              "$ref": "#/$defs/Compare"
+            },
+            {
+              "$ref": "#/$defs/Enabled"
+            },
+            {
+              "$ref": "#/$defs/Deadlock"
+            },
+            {
+              "$ref": "#/$defs/Truth"
+            },
+            {
+              "$ref": "#/$defs/Not"
+            },
+            {
+              "$ref": "#/$defs/And"
+            },
+            {
+              "$ref": "#/$defs/Or"
+            },
+            {
+              "$ref": "#/$defs/Implies"
+            },
+            {
+              "$ref": "#/$defs/LtlUnary"
+            },
+            {
+              "$ref": "#/$defs/LtlUntil"
+            },
+            {
+              "$ref": "#/$defs/CtlUnary"
+            },
+            {
+              "$ref": "#/$defs/CtlUntil"
+            }
+          ],
+          "title": "Arg"
+        },
+        "op": {
+          "enum": [
+            "AG",
+            "AF",
+            "AX",
+            "EG",
+            "EF",
+            "EX"
+          ],
+          "title": "Op",
+          "type": "string"
+        }
+      },
+      "required": [
+        "op",
+        "arg"
+      ],
+      "title": "CtlUnary",
+      "type": "object"
+    },
+    "CtlUntil": {
+      "description": "CTL until under a path quantifier.",
+      "properties": {
+        "left": {
+          "discriminator": {
+            "mapping": {
+              "AF": "#/$defs/CtlUnary",
+              "AG": "#/$defs/CtlUnary",
+              "AU": "#/$defs/CtlUntil",
+              "AX": "#/$defs/CtlUnary",
+              "EF": "#/$defs/CtlUnary",
+              "EG": "#/$defs/CtlUnary",
+              "EU": "#/$defs/CtlUntil",
+              "EX": "#/$defs/CtlUnary",
+              "F": "#/$defs/LtlUnary",
+              "G": "#/$defs/LtlUnary",
+              "U": "#/$defs/LtlUntil",
+              "X": "#/$defs/LtlUnary",
+              "and": "#/$defs/And",
+              "compare": "#/$defs/Compare",
+              "const": "#/$defs/Truth",
+              "deadlock": "#/$defs/Deadlock",
+              "enabled": "#/$defs/Enabled",
+              "implies": "#/$defs/Implies",
+              "not": "#/$defs/Not",
+              "or": "#/$defs/Or",
+              "tokens": "#/$defs/Tokens"
+            },
+            "propertyName": "op"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Tokens"
+            },
+            {
+              "$ref": "#/$defs/Compare"
+            },
+            {
+              "$ref": "#/$defs/Enabled"
+            },
+            {
+              "$ref": "#/$defs/Deadlock"
+            },
+            {
+              "$ref": "#/$defs/Truth"
+            },
+            {
+              "$ref": "#/$defs/Not"
+            },
+            {
+              "$ref": "#/$defs/And"
+            },
+            {
+              "$ref": "#/$defs/Or"
+            },
+            {
+              "$ref": "#/$defs/Implies"
+            },
+            {
+              "$ref": "#/$defs/LtlUnary"
+            },
+            {
+              "$ref": "#/$defs/LtlUntil"
+            },
+            {
+              "$ref": "#/$defs/CtlUnary"
+            },
+            {
+              "$ref": "#/$defs/CtlUntil"
+            }
+          ],
+          "title": "Left"
+        },
+        "op": {
+          "enum": [
+            "AU",
+            "EU"
+          ],
+          "title": "Op",
+          "type": "string"
+        },
+        "right": {
+          "discriminator": {
+            "mapping": {
+              "AF": "#/$defs/CtlUnary",
+              "AG": "#/$defs/CtlUnary",
+              "AU": "#/$defs/CtlUntil",
+              "AX": "#/$defs/CtlUnary",
+              "EF": "#/$defs/CtlUnary",
+              "EG": "#/$defs/CtlUnary",
+              "EU": "#/$defs/CtlUntil",
+              "EX": "#/$defs/CtlUnary",
+              "F": "#/$defs/LtlUnary",
+              "G": "#/$defs/LtlUnary",
+              "U": "#/$defs/LtlUntil",
+              "X": "#/$defs/LtlUnary",
+              "and": "#/$defs/And",
+              "compare": "#/$defs/Compare",
+              "const": "#/$defs/Truth",
+              "deadlock": "#/$defs/Deadlock",
+              "enabled": "#/$defs/Enabled",
+              "implies": "#/$defs/Implies",
+              "not": "#/$defs/Not",
+              "or": "#/$defs/Or",
+              "tokens": "#/$defs/Tokens"
+            },
+            "propertyName": "op"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Tokens"
+            },
+            {
+              "$ref": "#/$defs/Compare"
+            },
+            {
+              "$ref": "#/$defs/Enabled"
+            },
+            {
+              "$ref": "#/$defs/Deadlock"
+            },
+            {
+              "$ref": "#/$defs/Truth"
+            },
+            {
+              "$ref": "#/$defs/Not"
+            },
+            {
+              "$ref": "#/$defs/And"
+            },
+            {
+              "$ref": "#/$defs/Or"
+            },
+            {
+              "$ref": "#/$defs/Implies"
+            },
+            {
+              "$ref": "#/$defs/LtlUnary"
+            },
+            {
+              "$ref": "#/$defs/LtlUntil"
+            },
+            {
+              "$ref": "#/$defs/CtlUnary"
+            },
+            {
+              "$ref": "#/$defs/CtlUntil"
+            }
+          ],
+          "title": "Right"
+        }
+      },
+      "required": [
+        "op",
+        "left",
+        "right"
+      ],
+      "title": "CtlUntil",
+      "type": "object"
+    },
+    "Deadlock": {
+      "description": "Atom: no transition can fire.",
+      "properties": {
+        "op": {
+          "const": "deadlock",
+          "default": "deadlock",
+          "title": "Op",
+          "type": "string"
+        }
+      },
+      "title": "Deadlock",
+      "type": "object"
+    },
+    "Enabled": {
+      "description": "Fireability atom: the transition can fire.",
+      "properties": {
+        "op": {
+          "const": "enabled",
+          "default": "enabled",
+          "title": "Op",
+          "type": "string"
+        },
+        "transition": {
+          "title": "Transition",
+          "type": "string"
+        }
+      },
+      "required": [
+        "transition"
+      ],
+      "title": "Enabled",
+      "type": "object"
+    },
+    "Formula": {
+      "description": "A property to check, with the plain-language gloss its proposer gave and its origin.\n\n``logic`` is ``ltl`` (checked on every run), ``ctl`` (branching time) or ``state`` (a\ncondition on one marking, checked for reachability: some reachable marking satisfies it).",
+      "properties": {
+        "ast": {
+          "discriminator": {
+            "mapping": {
+              "AF": "#/$defs/CtlUnary",
+              "AG": "#/$defs/CtlUnary",
+              "AU": "#/$defs/CtlUntil",
+              "AX": "#/$defs/CtlUnary",
+              "EF": "#/$defs/CtlUnary",
+              "EG": "#/$defs/CtlUnary",
+              "EU": "#/$defs/CtlUntil",
+              "EX": "#/$defs/CtlUnary",
+              "F": "#/$defs/LtlUnary",
+              "G": "#/$defs/LtlUnary",
+              "U": "#/$defs/LtlUntil",
+              "X": "#/$defs/LtlUnary",
+              "and": "#/$defs/And",
+              "compare": "#/$defs/Compare",
+              "const": "#/$defs/Truth",
+              "deadlock": "#/$defs/Deadlock",
+              "enabled": "#/$defs/Enabled",
+              "implies": "#/$defs/Implies",
+              "not": "#/$defs/Not",
+              "or": "#/$defs/Or",
+              "tokens": "#/$defs/Tokens"
+            },
+            "propertyName": "op"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Tokens"
+            },
+            {
+              "$ref": "#/$defs/Compare"
+            },
+            {
+              "$ref": "#/$defs/Enabled"
+            },
+            {
+              "$ref": "#/$defs/Deadlock"
+            },
+            {
+              "$ref": "#/$defs/Truth"
+            },
+            {
+              "$ref": "#/$defs/Not"
+            },
+            {
+              "$ref": "#/$defs/And"
+            },
+            {
+              "$ref": "#/$defs/Or"
+            },
+            {
+              "$ref": "#/$defs/Implies"
+            },
+            {
+              "$ref": "#/$defs/LtlUnary"
+            },
+            {
+              "$ref": "#/$defs/LtlUntil"
+            },
+            {
+              "$ref": "#/$defs/CtlUnary"
+            },
+            {
+              "$ref": "#/$defs/CtlUntil"
+            }
+          ],
+          "title": "Ast"
+        },
+        "gloss": {
+          "default": "",
+          "title": "Gloss",
+          "type": "string"
+        },
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "logic": {
+          "enum": [
+            "ltl",
+            "ctl",
+            "state"
+          ],
+          "title": "Logic",
+          "type": "string"
+        },
+        "origin": {
+          "default": "user",
+          "enum": [
+            "user",
+            "llm",
+            "template",
+            "mcc"
+          ],
+          "title": "Origin",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "logic",
+        "ast"
+      ],
+      "title": "Formula",
+      "type": "object"
+    },
+    "Implies": {
+      "description": "Implication.",
+      "properties": {
+        "left": {
+          "discriminator": {
+            "mapping": {
+              "AF": "#/$defs/CtlUnary",
+              "AG": "#/$defs/CtlUnary",
+              "AU": "#/$defs/CtlUntil",
+              "AX": "#/$defs/CtlUnary",
+              "EF": "#/$defs/CtlUnary",
+              "EG": "#/$defs/CtlUnary",
+              "EU": "#/$defs/CtlUntil",
+              "EX": "#/$defs/CtlUnary",
+              "F": "#/$defs/LtlUnary",
+              "G": "#/$defs/LtlUnary",
+              "U": "#/$defs/LtlUntil",
+              "X": "#/$defs/LtlUnary",
+              "and": "#/$defs/And",
+              "compare": "#/$defs/Compare",
+              "const": "#/$defs/Truth",
+              "deadlock": "#/$defs/Deadlock",
+              "enabled": "#/$defs/Enabled",
+              "implies": "#/$defs/Implies",
+              "not": "#/$defs/Not",
+              "or": "#/$defs/Or",
+              "tokens": "#/$defs/Tokens"
+            },
+            "propertyName": "op"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Tokens"
+            },
+            {
+              "$ref": "#/$defs/Compare"
+            },
+            {
+              "$ref": "#/$defs/Enabled"
+            },
+            {
+              "$ref": "#/$defs/Deadlock"
+            },
+            {
+              "$ref": "#/$defs/Truth"
+            },
+            {
+              "$ref": "#/$defs/Not"
+            },
+            {
+              "$ref": "#/$defs/And"
+            },
+            {
+              "$ref": "#/$defs/Or"
+            },
+            {
+              "$ref": "#/$defs/Implies"
+            },
+            {
+              "$ref": "#/$defs/LtlUnary"
+            },
+            {
+              "$ref": "#/$defs/LtlUntil"
+            },
+            {
+              "$ref": "#/$defs/CtlUnary"
+            },
+            {
+              "$ref": "#/$defs/CtlUntil"
+            }
+          ],
+          "title": "Left"
+        },
+        "op": {
+          "const": "implies",
+          "default": "implies",
+          "title": "Op",
+          "type": "string"
+        },
+        "right": {
+          "discriminator": {
+            "mapping": {
+              "AF": "#/$defs/CtlUnary",
+              "AG": "#/$defs/CtlUnary",
+              "AU": "#/$defs/CtlUntil",
+              "AX": "#/$defs/CtlUnary",
+              "EF": "#/$defs/CtlUnary",
+              "EG": "#/$defs/CtlUnary",
+              "EU": "#/$defs/CtlUntil",
+              "EX": "#/$defs/CtlUnary",
+              "F": "#/$defs/LtlUnary",
+              "G": "#/$defs/LtlUnary",
+              "U": "#/$defs/LtlUntil",
+              "X": "#/$defs/LtlUnary",
+              "and": "#/$defs/And",
+              "compare": "#/$defs/Compare",
+              "const": "#/$defs/Truth",
+              "deadlock": "#/$defs/Deadlock",
+              "enabled": "#/$defs/Enabled",
+              "implies": "#/$defs/Implies",
+              "not": "#/$defs/Not",
+              "or": "#/$defs/Or",
+              "tokens": "#/$defs/Tokens"
+            },
+            "propertyName": "op"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Tokens"
+            },
+            {
+              "$ref": "#/$defs/Compare"
+            },
+            {
+              "$ref": "#/$defs/Enabled"
+            },
+            {
+              "$ref": "#/$defs/Deadlock"
+            },
+            {
+              "$ref": "#/$defs/Truth"
+            },
+            {
+              "$ref": "#/$defs/Not"
+            },
+            {
+              "$ref": "#/$defs/And"
+            },
+            {
+              "$ref": "#/$defs/Or"
+            },
+            {
+              "$ref": "#/$defs/Implies"
+            },
+            {
+              "$ref": "#/$defs/LtlUnary"
+            },
+            {
+              "$ref": "#/$defs/LtlUntil"
+            },
+            {
+              "$ref": "#/$defs/CtlUnary"
+            },
+            {
+              "$ref": "#/$defs/CtlUntil"
+            }
+          ],
+          "title": "Right"
+        }
+      },
+      "required": [
+        "left",
+        "right"
+      ],
+      "title": "Implies",
+      "type": "object"
+    },
+    "LtlUnary": {
+      "description": "LTL operators with one operand: always, eventually, next.",
+      "properties": {
+        "arg": {
+          "discriminator": {
+            "mapping": {
+              "AF": "#/$defs/CtlUnary",
+              "AG": "#/$defs/CtlUnary",
+              "AU": "#/$defs/CtlUntil",
+              "AX": "#/$defs/CtlUnary",
+              "EF": "#/$defs/CtlUnary",
+              "EG": "#/$defs/CtlUnary",
+              "EU": "#/$defs/CtlUntil",
+              "EX": "#/$defs/CtlUnary",
+              "F": "#/$defs/LtlUnary",
+              "G": "#/$defs/LtlUnary",
+              "U": "#/$defs/LtlUntil",
+              "X": "#/$defs/LtlUnary",
+              "and": "#/$defs/And",
+              "compare": "#/$defs/Compare",
+              "const": "#/$defs/Truth",
+              "deadlock": "#/$defs/Deadlock",
+              "enabled": "#/$defs/Enabled",
+              "implies": "#/$defs/Implies",
+              "not": "#/$defs/Not",
+              "or": "#/$defs/Or",
+              "tokens": "#/$defs/Tokens"
+            },
+            "propertyName": "op"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Tokens"
+            },
+            {
+              "$ref": "#/$defs/Compare"
+            },
+            {
+              "$ref": "#/$defs/Enabled"
+            },
+            {
+              "$ref": "#/$defs/Deadlock"
+            },
+            {
+              "$ref": "#/$defs/Truth"
+            },
+            {
+              "$ref": "#/$defs/Not"
+            },
+            {
+              "$ref": "#/$defs/And"
+            },
+            {
+              "$ref": "#/$defs/Or"
+            },
+            {
+              "$ref": "#/$defs/Implies"
+            },
+            {
+              "$ref": "#/$defs/LtlUnary"
+            },
+            {
+              "$ref": "#/$defs/LtlUntil"
+            },
+            {
+              "$ref": "#/$defs/CtlUnary"
+            },
+            {
+              "$ref": "#/$defs/CtlUntil"
+            }
+          ],
+          "title": "Arg"
+        },
+        "op": {
+          "enum": [
+            "G",
+            "F",
+            "X"
+          ],
+          "title": "Op",
+          "type": "string"
+        }
+      },
+      "required": [
+        "op",
+        "arg"
+      ],
+      "title": "LtlUnary",
+      "type": "object"
+    },
+    "LtlUntil": {
+      "description": "LTL strong until.",
+      "properties": {
+        "left": {
+          "discriminator": {
+            "mapping": {
+              "AF": "#/$defs/CtlUnary",
+              "AG": "#/$defs/CtlUnary",
+              "AU": "#/$defs/CtlUntil",
+              "AX": "#/$defs/CtlUnary",
+              "EF": "#/$defs/CtlUnary",
+              "EG": "#/$defs/CtlUnary",
+              "EU": "#/$defs/CtlUntil",
+              "EX": "#/$defs/CtlUnary",
+              "F": "#/$defs/LtlUnary",
+              "G": "#/$defs/LtlUnary",
+              "U": "#/$defs/LtlUntil",
+              "X": "#/$defs/LtlUnary",
+              "and": "#/$defs/And",
+              "compare": "#/$defs/Compare",
+              "const": "#/$defs/Truth",
+              "deadlock": "#/$defs/Deadlock",
+              "enabled": "#/$defs/Enabled",
+              "implies": "#/$defs/Implies",
+              "not": "#/$defs/Not",
+              "or": "#/$defs/Or",
+              "tokens": "#/$defs/Tokens"
+            },
+            "propertyName": "op"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Tokens"
+            },
+            {
+              "$ref": "#/$defs/Compare"
+            },
+            {
+              "$ref": "#/$defs/Enabled"
+            },
+            {
+              "$ref": "#/$defs/Deadlock"
+            },
+            {
+              "$ref": "#/$defs/Truth"
+            },
+            {
+              "$ref": "#/$defs/Not"
+            },
+            {
+              "$ref": "#/$defs/And"
+            },
+            {
+              "$ref": "#/$defs/Or"
+            },
+            {
+              "$ref": "#/$defs/Implies"
+            },
+            {
+              "$ref": "#/$defs/LtlUnary"
+            },
+            {
+              "$ref": "#/$defs/LtlUntil"
+            },
+            {
+              "$ref": "#/$defs/CtlUnary"
+            },
+            {
+              "$ref": "#/$defs/CtlUntil"
+            }
+          ],
+          "title": "Left"
+        },
+        "op": {
+          "const": "U",
+          "default": "U",
+          "title": "Op",
+          "type": "string"
+        },
+        "right": {
+          "discriminator": {
+            "mapping": {
+              "AF": "#/$defs/CtlUnary",
+              "AG": "#/$defs/CtlUnary",
+              "AU": "#/$defs/CtlUntil",
+              "AX": "#/$defs/CtlUnary",
+              "EF": "#/$defs/CtlUnary",
+              "EG": "#/$defs/CtlUnary",
+              "EU": "#/$defs/CtlUntil",
+              "EX": "#/$defs/CtlUnary",
+              "F": "#/$defs/LtlUnary",
+              "G": "#/$defs/LtlUnary",
+              "U": "#/$defs/LtlUntil",
+              "X": "#/$defs/LtlUnary",
+              "and": "#/$defs/And",
+              "compare": "#/$defs/Compare",
+              "const": "#/$defs/Truth",
+              "deadlock": "#/$defs/Deadlock",
+              "enabled": "#/$defs/Enabled",
+              "implies": "#/$defs/Implies",
+              "not": "#/$defs/Not",
+              "or": "#/$defs/Or",
+              "tokens": "#/$defs/Tokens"
+            },
+            "propertyName": "op"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Tokens"
+            },
+            {
+              "$ref": "#/$defs/Compare"
+            },
+            {
+              "$ref": "#/$defs/Enabled"
+            },
+            {
+              "$ref": "#/$defs/Deadlock"
+            },
+            {
+              "$ref": "#/$defs/Truth"
+            },
+            {
+              "$ref": "#/$defs/Not"
+            },
+            {
+              "$ref": "#/$defs/And"
+            },
+            {
+              "$ref": "#/$defs/Or"
+            },
+            {
+              "$ref": "#/$defs/Implies"
+            },
+            {
+              "$ref": "#/$defs/LtlUnary"
+            },
+            {
+              "$ref": "#/$defs/LtlUntil"
+            },
+            {
+              "$ref": "#/$defs/CtlUnary"
+            },
+            {
+              "$ref": "#/$defs/CtlUntil"
+            }
+          ],
+          "title": "Right"
+        }
+      },
+      "required": [
+        "left",
+        "right"
+      ],
+      "title": "LtlUntil",
+      "type": "object"
+    },
+    "Not": {
+      "description": "Negation.",
+      "properties": {
+        "arg": {
+          "discriminator": {
+            "mapping": {
+              "AF": "#/$defs/CtlUnary",
+              "AG": "#/$defs/CtlUnary",
+              "AU": "#/$defs/CtlUntil",
+              "AX": "#/$defs/CtlUnary",
+              "EF": "#/$defs/CtlUnary",
+              "EG": "#/$defs/CtlUnary",
+              "EU": "#/$defs/CtlUntil",
+              "EX": "#/$defs/CtlUnary",
+              "F": "#/$defs/LtlUnary",
+              "G": "#/$defs/LtlUnary",
+              "U": "#/$defs/LtlUntil",
+              "X": "#/$defs/LtlUnary",
+              "and": "#/$defs/And",
+              "compare": "#/$defs/Compare",
+              "const": "#/$defs/Truth",
+              "deadlock": "#/$defs/Deadlock",
+              "enabled": "#/$defs/Enabled",
+              "implies": "#/$defs/Implies",
+              "not": "#/$defs/Not",
+              "or": "#/$defs/Or",
+              "tokens": "#/$defs/Tokens"
+            },
+            "propertyName": "op"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Tokens"
+            },
+            {
+              "$ref": "#/$defs/Compare"
+            },
+            {
+              "$ref": "#/$defs/Enabled"
+            },
+            {
+              "$ref": "#/$defs/Deadlock"
+            },
+            {
+              "$ref": "#/$defs/Truth"
+            },
+            {
+              "$ref": "#/$defs/Not"
+            },
+            {
+              "$ref": "#/$defs/And"
+            },
+            {
+              "$ref": "#/$defs/Or"
+            },
+            {
+              "$ref": "#/$defs/Implies"
+            },
+            {
+              "$ref": "#/$defs/LtlUnary"
+            },
+            {
+              "$ref": "#/$defs/LtlUntil"
+            },
+            {
+              "$ref": "#/$defs/CtlUnary"
+            },
+            {
+              "$ref": "#/$defs/CtlUntil"
+            }
+          ],
+          "title": "Arg"
+        },
+        "op": {
+          "const": "not",
+          "default": "not",
+          "title": "Op",
+          "type": "string"
+        }
+      },
+      "required": [
+        "arg"
+      ],
+      "title": "Not",
+      "type": "object"
+    },
+    "Or": {
+      "description": "Disjunction of at least two operands.",
+      "properties": {
+        "args": {
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "AF": "#/$defs/CtlUnary",
+                "AG": "#/$defs/CtlUnary",
+                "AU": "#/$defs/CtlUntil",
+                "AX": "#/$defs/CtlUnary",
+                "EF": "#/$defs/CtlUnary",
+                "EG": "#/$defs/CtlUnary",
+                "EU": "#/$defs/CtlUntil",
+                "EX": "#/$defs/CtlUnary",
+                "F": "#/$defs/LtlUnary",
+                "G": "#/$defs/LtlUnary",
+                "U": "#/$defs/LtlUntil",
+                "X": "#/$defs/LtlUnary",
+                "and": "#/$defs/And",
+                "compare": "#/$defs/Compare",
+                "const": "#/$defs/Truth",
+                "deadlock": "#/$defs/Deadlock",
+                "enabled": "#/$defs/Enabled",
+                "implies": "#/$defs/Implies",
+                "not": "#/$defs/Not",
+                "or": "#/$defs/Or",
+                "tokens": "#/$defs/Tokens"
+              },
+              "propertyName": "op"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/Tokens"
+              },
+              {
+                "$ref": "#/$defs/Compare"
+              },
+              {
+                "$ref": "#/$defs/Enabled"
+              },
+              {
+                "$ref": "#/$defs/Deadlock"
+              },
+              {
+                "$ref": "#/$defs/Truth"
+              },
+              {
+                "$ref": "#/$defs/Not"
+              },
+              {
+                "$ref": "#/$defs/And"
+              },
+              {
+                "$ref": "#/$defs/Or"
+              },
+              {
+                "$ref": "#/$defs/Implies"
+              },
+              {
+                "$ref": "#/$defs/LtlUnary"
+              },
+              {
+                "$ref": "#/$defs/LtlUntil"
+              },
+              {
+                "$ref": "#/$defs/CtlUnary"
+              },
+              {
+                "$ref": "#/$defs/CtlUntil"
+              }
+            ]
+          },
+          "minItems": 2,
+          "title": "Args",
+          "type": "array"
+        },
+        "op": {
+          "const": "or",
+          "default": "or",
+          "title": "Op",
+          "type": "string"
+        }
+      },
+      "required": [
+        "args"
+      ],
+      "title": "Or",
+      "type": "object"
+    },
+    "PropertyProposed": {
+      "description": "A property the LLM proposes to check, with its reason.",
+      "properties": {
+        "formula": {
+          "$ref": "#/$defs/Formula"
+        },
+        "kind": {
+          "const": "property_proposed",
+          "default": "property_proposed",
+          "title": "Kind",
+          "type": "string"
+        },
+        "rationale": {
+          "default": "",
+          "title": "Rationale",
+          "type": "string"
+        }
+      },
+      "required": [
+        "formula"
+      ],
+      "title": "PropertyProposed",
+      "type": "object"
+    },
+    "Question": {
+      "description": "The LLM asks the user something; the session waits for the answer.",
+      "properties": {
+        "kind": {
+          "const": "question",
+          "default": "question",
+          "title": "Kind",
+          "type": "string"
+        },
+        "question_id": {
+          "title": "Question Id",
+          "type": "string"
+        },
+        "text": {
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "question_id",
+        "text"
+      ],
+      "title": "Question",
+      "type": "object"
+    },
+    "RunFinished": {
+      "description": "The agent ended its turn.",
+      "properties": {
+        "kind": {
+          "const": "run_finished",
+          "default": "run_finished",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reason": {
+          "enum": [
+            "completed",
+            "waiting_for_user",
+            "budget_exhausted",
+            "error",
+            "cancelled"
+          ],
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "reason"
+      ],
+      "title": "RunFinished",
+      "type": "object"
+    },
+    "SessionCancelled": {
+      "description": "The user cancelled the session.",
+      "properties": {
+        "kind": {
+          "const": "session_cancelled",
+          "default": "session_cancelled",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "title": "SessionCancelled",
+      "type": "object"
+    },
+    "SessionError": {
+      "description": "The run failed for a reason that is not the user's.",
+      "properties": {
+        "code": {
+          "title": "Code",
+          "type": "string"
+        },
+        "kind": {
+          "const": "session_error",
+          "default": "session_error",
+          "title": "Kind",
+          "type": "string"
+        },
+        "message": {
+          "title": "Message",
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message"
+      ],
+      "title": "SessionError",
+      "type": "object"
+    },
+    "SessionStarted": {
+      "description": "The inputs of the user: the net, an optional description and the goal.",
+      "properties": {
+        "description_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description Id"
+        },
+        "description_origin": {
+          "anyOf": [
+            {
+              "enum": [
+                "user",
+                "mcc",
+                "llm"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description Origin"
+        },
+        "goal": {
+          "minLength": 1,
+          "title": "Goal",
+          "type": "string"
+        },
+        "kind": {
+          "const": "session_started",
+          "default": "session_started",
+          "title": "Kind",
+          "type": "string"
+        },
+        "net_id": {
+          "title": "Net Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "net_id",
+        "goal"
+      ],
+      "title": "SessionStarted",
+      "type": "object"
+    },
+    "TokenCount": {
+      "description": "A term: the sum of the tokens held by some places.",
+      "properties": {
+        "kind": {
+          "const": "tokens",
+          "default": "tokens",
+          "title": "Kind",
+          "type": "string"
+        },
+        "places": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Places",
+          "type": "array"
+        }
+      },
+      "required": [
+        "places"
+      ],
+      "title": "TokenCount",
+      "type": "object"
+    },
+    "Tokens": {
+      "description": "Cardinality atom on one place: its tokens compared with a constant.",
+      "properties": {
+        "cmp": {
+          "enum": [
+            "<",
+            "<=",
+            "==",
+            "!=",
+            ">=",
+            ">"
+          ],
+          "title": "Cmp",
+          "type": "string"
+        },
+        "op": {
+          "const": "tokens",
+          "default": "tokens",
+          "title": "Op",
+          "type": "string"
+        },
+        "place": {
+          "title": "Place",
+          "type": "string"
+        },
+        "value": {
+          "minimum": 0,
+          "title": "Value",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "place",
+        "cmp",
+        "value"
+      ],
+      "title": "Tokens",
+      "type": "object"
+    },
+    "ToolCall": {
+      "description": "The LLM asked for a tool; ``arguments`` is the JSON text it gave.",
+      "properties": {
+        "arguments": {
+          "title": "Arguments",
+          "type": "string"
+        },
+        "call_id": {
+          "title": "Call Id",
+          "type": "string"
+        },
+        "kind": {
+          "const": "tool_call",
+          "default": "tool_call",
+          "title": "Kind",
+          "type": "string"
+        },
+        "tool": {
+          "title": "Tool",
+          "type": "string"
+        }
+      },
+      "required": [
+        "call_id",
+        "tool",
+        "arguments"
+      ],
+      "title": "ToolCall",
+      "type": "object"
+    },
+    "ToolResult": {
+      "description": "What a tool answered, as text, exactly as the model saw it (ADR 0017).",
+      "properties": {
+        "call_id": {
+          "title": "Call Id",
+          "type": "string"
+        },
+        "content": {
+          "title": "Content",
+          "type": "string"
+        },
+        "kind": {
+          "const": "tool_result",
+          "default": "tool_result",
+          "title": "Kind",
+          "type": "string"
+        },
+        "ok": {
+          "title": "Ok",
+          "type": "boolean"
+        },
+        "tool": {
+          "title": "Tool",
+          "type": "string"
+        }
+      },
+      "required": [
+        "call_id",
+        "tool",
+        "ok",
+        "content"
+      ],
+      "title": "ToolResult",
+      "type": "object"
+    },
+    "Truth": {
+      "description": "The constants true and false.",
+      "properties": {
+        "op": {
+          "const": "const",
+          "default": "const",
+          "title": "Op",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "value"
+      ],
+      "title": "Truth",
+      "type": "object"
+    },
+    "UserMessage": {
+      "description": "A message of the user.",
+      "properties": {
+        "kind": {
+          "const": "user_message",
+          "default": "user_message",
+          "title": "Kind",
+          "type": "string"
+        },
+        "text": {
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "text"
+      ],
+      "title": "UserMessage",
+      "type": "object"
+    },
+    "app__domain__models__Verdict": {
+      "description": "Outcome of one verification. UNKNOWN must never be confused with FALSE.",
+      "enum": [
+        "TRUE",
+        "FALSE",
+        "UNKNOWN",
+        "TIMEOUT",
+        "OOM",
+        "ERROR"
+      ],
+      "title": "Verdict",
+      "type": "string"
+    },
+    "app__domain__sessions__Verdict": {
+      "description": "The verdict an engine gave: the only way a verdict enters a conversation (ADR 0006).\n\nIt refers to the job and the result of the engine that produced it, and names the engine and\nits version. It cannot be built without them.",
+      "properties": {
+        "engine": {
+          "minLength": 1,
+          "title": "Engine",
+          "type": "string"
+        },
+        "engine_version": {
+          "minLength": 1,
+          "title": "Engine Version",
+          "type": "string"
+        },
+        "formula_id": {
+          "minLength": 1,
+          "title": "Formula Id",
+          "type": "string"
+        },
+        "has_trace": {
+          "default": false,
+          "title": "Has Trace",
+          "type": "boolean"
+        },
+        "job_id": {
+          "minLength": 1,
+          "title": "Job Id",
+          "type": "string"
+        },
+        "kind": {
+          "const": "verdict",
+          "default": "verdict",
+          "title": "Kind",
+          "type": "string"
+        },
+        "result_index": {
+          "minimum": 0,
+          "title": "Result Index",
+          "type": "integer"
+        },
+        "verdict": {
+          "$ref": "#/$defs/app__domain__models__Verdict"
+        }
+      },
+      "required": [
+        "job_id",
+        "result_index",
+        "formula_id",
+        "verdict",
+        "engine",
+        "engine_version"
+      ],
+      "title": "Verdict",
+      "type": "object"
+    }
+  },
+  "description": "An event with its place in the session: numbers start at 1 and only grow by one.",
+  "properties": {
+    "at": {
+      "title": "At",
+      "type": "number"
+    },
+    "event": {
+      "discriminator": {
+        "mapping": {
+          "answer": "#/$defs/Answer",
+          "assistant_message": "#/$defs/AssistantMessage",
+          "budget_exhausted": "#/$defs/BudgetExhausted",
+          "check_submitted": "#/$defs/CheckSubmitted",
+          "property_proposed": "#/$defs/PropertyProposed",
+          "question": "#/$defs/Question",
+          "run_finished": "#/$defs/RunFinished",
+          "session_cancelled": "#/$defs/SessionCancelled",
+          "session_error": "#/$defs/SessionError",
+          "session_started": "#/$defs/SessionStarted",
+          "tool_call": "#/$defs/ToolCall",
+          "tool_result": "#/$defs/ToolResult",
+          "user_message": "#/$defs/UserMessage",
+          "verdict": "#/$defs/app__domain__sessions__Verdict"
+        },
+        "propertyName": "kind"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/SessionStarted"
+        },
+        {
+          "$ref": "#/$defs/UserMessage"
+        },
+        {
+          "$ref": "#/$defs/AssistantMessage"
+        },
+        {
+          "$ref": "#/$defs/ToolCall"
+        },
+        {
+          "$ref": "#/$defs/ToolResult"
+        },
+        {
+          "$ref": "#/$defs/PropertyProposed"
+        },
+        {
+          "$ref": "#/$defs/CheckSubmitted"
+        },
+        {
+          "$ref": "#/$defs/app__domain__sessions__Verdict"
+        },
+        {
+          "$ref": "#/$defs/Question"
+        },
+        {
+          "$ref": "#/$defs/Answer"
+        },
+        {
+          "$ref": "#/$defs/BudgetExhausted"
+        },
+        {
+          "$ref": "#/$defs/SessionError"
+        },
+        {
+          "$ref": "#/$defs/RunFinished"
+        },
+        {
+          "$ref": "#/$defs/SessionCancelled"
+        }
+      ],
+      "title": "Event"
+    },
+    "number": {
+      "minimum": 1,
+      "title": "Number",
+      "type": "integer"
+    },
+    "session_id": {
+      "title": "Session Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "session_id",
+    "number",
+    "at",
+    "event"
+  ],
+  "title": "StoredEvent",
+  "type": "object"
+}

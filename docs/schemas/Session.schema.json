@@ -1,0 +1,59 @@
+{
+  "$defs": {
+    "SessionState": {
+      "description": "Where a session is in its life.",
+      "enum": [
+        "queued",
+        "running",
+        "waiting_for_user",
+        "idle",
+        "cancelled"
+      ],
+      "title": "SessionState",
+      "type": "string"
+    }
+  },
+  "description": "A conversation about one net, with an optional description and the goal of the user.",
+  "properties": {
+    "created_at": {
+      "title": "Created At",
+      "type": "number"
+    },
+    "description_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Description Id"
+    },
+    "net_id": {
+      "title": "Net Id",
+      "type": "string"
+    },
+    "session_id": {
+      "title": "Session Id",
+      "type": "string"
+    },
+    "state": {
+      "$ref": "#/$defs/SessionState"
+    },
+    "updated_at": {
+      "title": "Updated At",
+      "type": "number"
+    }
+  },
+  "required": [
+    "session_id",
+    "net_id",
+    "state",
+    "created_at",
+    "updated_at"
+  ],
+  "title": "Session",
+  "type": "object"
+}

@@ -49,6 +49,7 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/domain/engine_check.py` | domain | Check an engine report against the request and the net; ERROR for everything unusable |
 | `app/domain/replay.py` | domain | Replay firings on a P/T net; evaluate a state condition on a marking |
 | `app/domain/descriptions.py` | domain | `Description`: immutable text identified by its hash, linked to a net with an origin |
+| `app/domain/sessions.py` | domain | `Session`, the frozen event vocabulary (`SessionEvent`) and `StoredEvent`; a verdict cannot be built without an engine result |
 | `app/domain/errors.py` | domain | Domain errors, the failures that are part of the API contract |
 | `app/domain/contract.py` | domain | Shared JSON contract: `Envelope`, `ElementRef`, `Marking`, `Bound`, `Page` (docs/json-contract.md) |
 | `app/application/ports.py` | application | Protocols the use cases need: `NetRepository`, `JobRepository`, `EngineGateway` |
@@ -118,7 +119,8 @@ add `from app.infrastructure import sqlite_store` to `app/application/nets.py` a
 
 SQLite file, WAL mode. Table `nets` holds the summary and the canonical net document, compressed
 (zlib); nets are immutable and identified by the hash of that document, whatever
-format they were uploaded in. Table `jobs` holds state, request, results
+format they were uploaded in. Tables `sessions` and `events` hold conversations (ADR 0008): events are numbered 1, 2, 3... per
+session by the INSERT itself, so concurrent writers never share or skip a number. Table `jobs` holds state, request, results
 and an idempotency key; a unique index guarantees one live job per key.
 
 **Schema versions.** The version is `PRAGMA user_version`; migrations are numbered, applied in
