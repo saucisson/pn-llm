@@ -1,7 +1,7 @@
 # Build from the repository root:  docker build -f api/Dockerfile -t pn-llm-verif/api .
 
 # ---- Stage 1: the UI (Node is needed to build it, not to run the API) ------------------------
-FROM node:22-slim AS ui
+FROM node:24-slim AS ui
 WORKDIR /ui
 COPY ui/package.json ui/package-lock.json ./
 RUN npm ci
