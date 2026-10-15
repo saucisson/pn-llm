@@ -154,3 +154,12 @@ class ScriptedEngines:
             ),
         )
         return self.tamper(report) if self.tamper else report
+
+
+def query(*, path, sql, params=()):
+    """Run one read-only SQL statement on a database file and close the connection."""
+    import contextlib
+    import sqlite3
+
+    with contextlib.closing(sqlite3.connect(path)) as conn:
+        return conn.execute(sql, params).fetchall()

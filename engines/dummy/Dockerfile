@@ -1,6 +1,6 @@
 # Build from the repository root:  docker build -f engines/dummy/Dockerfile -t pn-llm-verif/dummy:latest .
 # The structure follows engines/template/Dockerfile; this engine has no tool to build.
-FROM python:3.12-slim
+FROM python:3.14-slim
 
 RUN useradd --system --uid 10001 --no-create-home runner \
  && pip install --no-cache-dir "pydantic>=2.6"

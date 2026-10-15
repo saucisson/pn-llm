@@ -98,7 +98,7 @@ class DockerRunner:
         """Return True if ``image`` exists locally (False if Docker is unreachable)."""
         try:
             self.client().images.get(image)
-        except (DockerUnavailableError, ImageNotFound):
+        except DockerUnavailableError, ImageNotFound:
             return False
         except DockerException:
             return False

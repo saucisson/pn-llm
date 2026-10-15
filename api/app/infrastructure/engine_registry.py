@@ -121,7 +121,7 @@ def read_report(*, output_dir: Path) -> EngineReport:
                 if trace_file.stat().st_size > MAX_OUTPUT_FILE_BYTES:
                     raise ValueError(trace_file.name)
                 trace = EngineTrace.model_validate_json(trace_file.read_text())
-            except (OSError, ValueError):
+            except OSError, ValueError:
                 result = result.model_copy(  # noqa: PLW2901 - the loop variable is replaced by its annotated copy
                     update={"warnings": (*result.warnings, "unreadable_trace")}
                 )

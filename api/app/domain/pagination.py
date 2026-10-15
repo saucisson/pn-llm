@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import base64
 import binascii
-from typing import Generic, TypeVar
+from typing import TypeVar
 
 from .contract import Page, PageRequest
 from .errors import InvalidRequestError
@@ -13,7 +13,7 @@ from .models import DomainModel
 T = TypeVar("T")
 
 
-class Paged(DomainModel, Generic[T]):
+class Paged[T](DomainModel):
     """One page of a list, with how much exists and how to get the rest."""
 
     items: tuple[T, ...]
@@ -40,7 +40,7 @@ def decode_cursor(*, cursor: str) -> int:
         raise InvalidRequestError(f"Invalid cursor {cursor!r}") from exc
 
 
-def paginate(*, items: tuple[T, ...], request: PageRequest) -> Paged[T]:
+def paginate[T](*, items: tuple[T, ...], request: PageRequest) -> Paged[T]:
     """Return the page of ``items`` that ``request`` asks for.
 
     The list must be deterministic and unchanged between calls: nets are immutable, so it is.

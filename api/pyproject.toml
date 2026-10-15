@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "pn-llm-verif"
 version = "0.1.0"
 description = "REST API for static analysis and model checking of Petri nets, drivable by an LLM"
-requires-python = ">=3.11"
+requires-python = ">=3.14"
 dependencies = [
     "fastapi>=0.110",
     "uvicorn[standard]>=0.29",
@@ -39,7 +39,7 @@ include = ["app*"]
 # ---------------------------------------------------------------------------------------------
 [tool.ruff]
 line-length = 100
-target-version = "py311"
+target-version = "py314"
 src = ["."]
 
 [tool.ruff.lint]

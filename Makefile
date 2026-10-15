@@ -10,7 +10,7 @@ help:  ## List the targets
 	@grep -E '^[a-z-]+:.*##' $(MAKEFILE_LIST) | sed 's/:.*## /\t/'
 
 setup:  ## Create api/.venv, install dependencies and git hooks (run once)
-	python3 -m venv api/.venv
+	python3.14 -m venv api/.venv
 	api/.venv/bin/pip install --quiet -e "api[dev]"
 	api/.venv/bin/pre-commit install
 

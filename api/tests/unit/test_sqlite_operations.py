@@ -10,7 +10,7 @@ from app.domain.nets import summarize_document
 from app.infrastructure.sqlite_backup import backup_database, restore_database
 from app.infrastructure.sqlite_migrations import StoreMigrationError
 from app.infrastructure.sqlite_store import SqliteStore
-from tests.support import LEASE, MUTEX_DOCUMENT, make_request
+from tests.support import LEASE, MUTEX_DOCUMENT, make_request, query
 
 
 def make_job(*, net_id, job_id="j1", **overrides):
@@ -80,8 +80,7 @@ def test_purging_a_job_removes_its_traces(store, net_id):
     conn.commit()
     conn.close()
     store.purge_finished_jobs(older_than_s=1)
-    conn = sqlite3.connect(store._path)
-    assert conn.execute("SELECT count(*) FROM traces").fetchone()[0] == 0
+    assert query(path=store._path, sql="SELECT count(*) FROM traces")[0][0] == 0
 
 
 # ---- backup and restore ---------------------------------------------------------------------
