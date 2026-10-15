@@ -9,9 +9,17 @@ updates:
   - package-ecosystem: npm
     directory: /ui
     schedule: {interval: weekly}
+    ignore:
+      # TypeScript 7 breaks the UI type check; wait for Biome, Vitest and the generated types.
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: docker
     directory: /api
     schedule: {interval: weekly}
+    ignore:
+      # Node follows its LTS line, moved by hand: odd majors are short-lived releases.
+      - dependency-name: node
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: docker
     directory: /engines/dummy
     schedule: {interval: weekly}
