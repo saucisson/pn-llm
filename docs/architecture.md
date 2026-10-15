@@ -70,6 +70,7 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/infrastructure/sqlite_migrations.py` | infrastructure | Numbered schema migrations (`PRAGMA user_version`), including the conversion of first-schema databases |
 | `app/infrastructure/sqlite_backup.py` | infrastructure | Online backup and offline restore of the database |
 | `app/infrastructure/scripted_llm.py` | infrastructure | `ScriptedLlm`, the double of the LLM port, and `DemoLlm`, an offline demonstration |
+| `app/infrastructure/anthropic_llm.py` | infrastructure | The Anthropic Messages API behind the LLM port; the only module that imports the provider SDK |
 | `app/infrastructure/unavailable_llm.py` | infrastructure | The LLM gateway when none is configured: refuses with the setting to change |
 | `app/infrastructure/docker_runner.py` | infrastructure | The only module that talks to Docker (SDK): isolated, labelled, always-removed engine containers (ADR 0016) |
 | `app/infrastructure/engine_registry.py` | infrastructure | Engine specs and `EngineGateway` implementation |
@@ -101,7 +102,7 @@ Clients read `GET /v1/sessions/{id}/events` as JSON or as server-sent events (re
 `Last-Event-ID`), from the database, so any process can serve any session.
 
 The language model is `PNVERIF_LLM_PROVIDER`: `none` (sessions end with an explanatory error),
-`scripted` (an offline demonstration with no key) or, later, `anthropic`.
+`scripted` (an offline demonstration with no key) or `anthropic` (key in `PNVERIF_ANTHROPIC_API_KEY` or `ANTHROPIC_API_KEY`, model in `PNVERIF_ANTHROPIC_MODEL`, default `claude-opus-4-8`). The adapter switches thinking off so the history rebuilt from the events stays valid; a model that binds its thinking blocks to the conversation needs the provider's reasoning state kept with the events (backlog).
 
 ## The UI
 `ui/` is a TypeScript (strict), React and Vite project (ADR 0010), a thin client of the REST API:
