@@ -8,11 +8,14 @@ from app.domain.net_document import (
     PTNET_TYPE_URI,
     Annotation,
     Arc,
+    Coordinates,
     NetDocument,
+    NodeGraphics,
     Page,
     Place,
     RefPlace,
     RefTransition,
+    ToolSpecific,
     Transition,
     XmlAttribute,
     XmlNode,
@@ -302,3 +305,43 @@ def test_parse_document_reports_a_json_pointer():
 def test_parse_document_refuses_garbage():
     with pytest.raises(InvalidNetError):
         parse_document(payload=b"not json", limits=LIMITS)
+
+
+# ---- behaviour identity ---------------------------------------------------------------------
+
+from app.domain.canonical import behaviour_id_of  # noqa: E402 - grouped with its tests
+
+
+def test_the_layout_changes_the_net_id_but_not_the_behaviour_id():
+    plain = mutex()
+    moved = plain.model_copy(
+        update={
+            "places": tuple(
+                place.model_copy(update={"graphics": NodeGraphics(position=Coordinates(x=1, y=2))})
+                for place in plain.places
+            ),
+            "tool_specific": (ToolSpecific(tool="editor", version="1"),),
+        }
+    )
+    assert net_id_of(document=moved) != net_id_of(document=plain)
+    assert behaviour_id_of(document=moved) == behaviour_id_of(document=plain)
+
+
+def test_marking_names_and_arcs_change_the_behaviour_id_but_element_order_does_not():
+    base = behaviour_id_of(document=mutex())
+    assert behaviour_id_of(document=mutex(shuffled=True)) == base  # order does not matter
+    assert behaviour_id_of(document=mutex(version_marking="2")) != base
+    renamed = mutex().model_copy(update={"places": (Place(id="idle1", name=text(value="Idle1")),)})
+    assert behaviour_id_of(document=renamed) != base
+    extra_arc = mutex().model_copy(
+        update={"arcs": (*mutex().arcs, Arc(id="a9", source="crit1", target="enter1"))}
+    )
+    assert behaviour_id_of(document=extra_arc) != base
+
+
+def test_the_behaviour_id_is_part_of_the_summary_and_is_32_hex_characters():
+    from app.domain.nets import summarize_document
+
+    summary = summarize_document(document=mutex(), net_id="x")
+    assert summary.behaviour_id == behaviour_id_of(document=mutex())
+    assert len(summary.behaviour_id) == 32

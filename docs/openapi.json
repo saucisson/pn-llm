@@ -4274,6 +4274,17 @@
             "title": "Arcs",
             "type": "integer"
           },
+          "behaviour_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Behaviour Id"
+          },
           "initial_tokens": {
             "anyOf": [
               {

@@ -63,3 +63,36 @@ def canonical_bytes(*, document: NetDocument) -> bytes:
 def net_id_of(*, document: NetDocument) -> str:
     """Return the identity of a net: a truncated SHA-256 of its canonical form."""
     return hashlib.sha256(canonical_bytes(document=document)).hexdigest()[:NET_ID_LENGTH]
+
+
+# What describes the look or the tooling of a net, not its behaviour.
+NON_BEHAVIOUR_KEYS = frozenset({"graphics", "tool_specific", "extensions", "extra_attributes"})
+
+
+def without_look_and_tooling(*, value: JsonValue) -> JsonValue:
+    """Drop, at every depth, the keys that carry layout, tool-specific data and unknown extras."""
+    if isinstance(value, dict):
+        return {
+            key: without_look_and_tooling(value=item)
+            for key, item in value.items()
+            if key not in NON_BEHAVIOUR_KEYS
+        }
+    if isinstance(value, list):
+        return [without_look_and_tooling(value=item) for item in value]
+    return value
+
+
+def behaviour_id_of(*, document: NetDocument) -> str:
+    """Return a secondary identity that ignores layout and tool-specific data (ADR 0015).
+
+    Two files of the same model drawn differently have different net ids but the same behaviour
+    id, so evaluation and datasets do not count the model twice. Names, ids, structure, markings,
+    inscriptions and declarations all take part.
+    """
+    plain = document.sorted_by_id().model_dump(
+        mode="json", exclude_none=True, exclude_defaults=True
+    )
+    del plain["schema_version"]
+    trimmed = without_look_and_tooling(value=plain)
+    digest = hashlib.sha256(canonical_json(value=trimmed).encode("utf-8")).hexdigest()
+    return digest[:NET_ID_LENGTH]

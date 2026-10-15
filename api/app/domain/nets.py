@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from enum import StrEnum
 
+from .canonical import behaviour_id_of
 from .errors import InvalidNetError
 from .models import DomainModel
 from .net_document import NetDocument, NetKind
@@ -20,6 +21,8 @@ class NetSummary(DomainModel):
     """What the API says about a stored net. Names are reached through inspection, not here."""
 
     net_id: str
+    # Identity that ignores layout and tool-specific data; absent on nets stored before it existed.
+    behaviour_id: str | None = None
     source_id: str
     kind: NetKind
     parent_id: str | None = None
@@ -76,6 +79,7 @@ def summarize_document(*, document: NetDocument, net_id: str) -> NetSummary:
         )
     return NetSummary(
         net_id=net_id,
+        behaviour_id=behaviour_id_of(document=document),
         source_id=document.source_id,
         kind=document.kind,
         pages=len(containers) - 1,
