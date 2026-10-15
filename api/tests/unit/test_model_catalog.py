@@ -3,7 +3,15 @@ import pytest
 from app.application.models import ModelCatalogService
 from app.application.nets import NetService
 from app.domain.contract import PageRequest
-from app.domain.mcc import MccNetFile, MccNetType, instance_of, parse_catalog
+from app.domain.errors import NotFoundError
+from app.domain.mcc import (
+    MccInputNet,
+    MccNetFile,
+    MccNetType,
+    PropertyFile,
+    instance_of,
+    parse_catalog,
+)
 from app.domain.net_validation import DocumentLimits
 from app.infrastructure.sqlite_catalog import SqliteCatalog
 from tests.support import MUTEX_PNML
@@ -27,6 +35,37 @@ class FakeContest:
             yield MccNetFile(instance=instance_of(family=family, member=member), payload=payload)
 
 
+CTL_XML = (
+    b'<property-set xmlns="http://mcc.lip6.fr/"><property><id>p-00</id><description>d</description>'
+    b"<formula><all-paths><globally><is-fireable><transition>t</transition></is-fireable>"
+    b"</globally></all-paths></formula></property></property-set>"
+)
+
+
+class FakeContestWithInputs(FakeContest):
+    def inputs(self, *, only_families):
+        for instance in ("1", "2"):
+            yield MccInputNet(
+                family="Big",
+                instance=instance,
+                net_type=MccNetType.PT,
+                name=f"Big-PT-{instance}",
+                model=MUTEX_PNML,
+                properties=(
+                    PropertyFile(examination="CTLCardinality", xml=CTL_XML),
+                    PropertyFile(examination="LTLCardinality", xml=b"<broken"),
+                ),
+            )
+        yield MccInputNet(
+            family="Col",
+            instance="1",
+            net_type=MccNetType.PT,
+            name="Col-PT-1",
+            model=MUTEX_PNML,
+            properties=(),
+        )
+
+
 @pytest.fixture
 def service(store, settings):
     return ModelCatalogService(
@@ -37,7 +76,9 @@ def service(store, settings):
 
 
 def seed(*, service, only=("Big",), cap=None):
-    return service.seed(source=FakeContest(), only_families=only, max_nets_per_family=cap)
+    return service.seed(
+        source=FakeContest(), only_families=only, max_nets_per_family=cap, with_properties=False
+    )
 
 
 def test_seeding_stores_nets_with_family_and_description_and_reports_failures(service, store):
@@ -76,3 +117,34 @@ def test_entries_can_be_filtered_by_type(service):
         service.entries(family=None, net_type=MccNetType.COLORED, page=PageRequest(limit=5)).items
         == ()
     )
+
+
+def test_seeding_with_properties_stores_the_formulas_and_reports_the_broken_file(service):
+    report = service.seed(
+        source=FakeContestWithInputs(),
+        only_families=("Big",),
+        max_nets_per_family=None,
+        with_properties=True,
+    )
+    assert (report.nets_stored, report.nets_already_known) == (1, 1)
+    assert report.property_sets_stored == 2
+    assert [f.member for f in report.failures] == [
+        "Big-PT-1/LTLCardinality.xml",
+        "Big-PT-2/LTLCardinality.xml",
+    ]
+    net_id = service.entries(family="Big", net_type=None, page=PageRequest(limit=5)).items[0].net_id
+    stored = service.properties(net_id=net_id, examination="CTLCardinality")
+    assert stored.formulas[0].id == "p-00"
+    assert stored.formulas[0].origin == "mcc"
+    with pytest.raises(NotFoundError):
+        service.properties(net_id=net_id, examination="LTLCardinality")
+
+
+def test_the_cap_applies_to_inputs_too(service):
+    report = service.seed(
+        source=FakeContestWithInputs(),
+        only_families=("Big",),
+        max_nets_per_family=1,
+        with_properties=True,
+    )
+    assert report.property_sets_stored == 1

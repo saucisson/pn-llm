@@ -7,6 +7,7 @@ import re
 from enum import StrEnum
 
 from .errors import InvalidRequestError
+from .mcc_properties import Examination
 from .models import DomainModel
 
 ROW = re.compile(r"<tr>(.*?)</tr>", re.DOTALL)
@@ -157,4 +158,46 @@ class SeedReport(DomainModel):
     families: int
     nets_stored: int
     nets_already_known: int
+    property_sets_stored: int = 0
     failures: tuple[SeedFailure, ...]
+
+
+class PropertyFile(DomainModel):
+    """The raw XML of one examination for an instance."""
+
+    examination: Examination
+    xml: bytes
+
+
+class MccInputNet(DomainModel):
+    """An instance as distributed in the contest inputs: its model and its property files."""
+
+    family: str
+    instance: str
+    net_type: MccNetType
+    name: str
+    model: bytes
+    properties: tuple[PropertyFile, ...]
+
+
+INPUT_NAME = re.compile(r"^(?P<family>.+?)-(?P<kind>PT|COL)-(?P<instance>.+)$")
+
+
+def split_input_name(*, name: str) -> tuple[str, MccNetType, str] | None:
+    """Split ``Dekker-PT-100`` into family, type and instance; ``None`` if it has no such form."""
+    found = INPUT_NAME.match(name)
+    if found is None:
+        return None
+    kind = MccNetType.PT if found["kind"] == "PT" else MccNetType.COLORED
+    return found["family"], kind, found["instance"]
+
+
+class SeedCandidate(DomainModel):
+    """A contest net about to be stored, with the property files that come with it, if any."""
+
+    family: str
+    instance: str
+    net_type: MccNetType
+    member: str
+    payload: bytes
+    properties: tuple[PropertyFile, ...] = ()

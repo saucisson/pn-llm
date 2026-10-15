@@ -357,6 +357,39 @@
         "title": "Body_start_session_with_files_v1_sessions_upload_post",
         "type": "object"
       },
+      "BoundQuery": {
+        "description": "An upper-bound question: the greatest total of tokens the places can hold together.",
+        "properties": {
+          "gloss": {
+            "default": "",
+            "title": "Gloss",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "origin": {
+            "const": "mcc",
+            "default": "mcc",
+            "title": "Origin",
+            "type": "string"
+          },
+          "places": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Places",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "places"
+        ],
+        "title": "BoundQuery",
+        "type": "object"
+      },
       "BudgetExhausted": {
         "description": "The run stopped because it reached a budget.",
         "properties": {
@@ -1708,6 +1741,89 @@
           "elapsed_s"
         ],
         "title": "Envelope[Marking]",
+        "type": "object"
+      },
+      "Envelope_MccProperties_": {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MccProperties"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "elapsed_s": {
+            "minimum": 0.0,
+            "title": "Elapsed S",
+            "type": "number"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorInfo"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "net_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Net Id"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "default": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "partial",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "tool": {
+            "$ref": "#/components/schemas/ToolInfo"
+          },
+          "truncated": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Page"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "warnings": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "tool",
+          "status",
+          "elapsed_s"
+        ],
+        "title": "Envelope[MccProperties]",
         "type": "object"
       },
       "Envelope_Neighbourhood_": {
@@ -4289,6 +4405,45 @@
         "title": "MccNetType",
         "type": "string"
       },
+      "MccProperties": {
+        "description": "The properties the contest asks about one instance, for one examination.",
+        "properties": {
+          "bounds": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/BoundQuery"
+            },
+            "title": "Bounds",
+            "type": "array"
+          },
+          "examination": {
+            "enum": [
+              "ReachabilityCardinality",
+              "ReachabilityFireability",
+              "CTLCardinality",
+              "CTLFireability",
+              "LTLCardinality",
+              "LTLFireability",
+              "UpperBounds"
+            ],
+            "title": "Examination",
+            "type": "string"
+          },
+          "formulas": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/Formula-Output"
+            },
+            "title": "Formulas",
+            "type": "array"
+          }
+        },
+        "required": [
+          "examination"
+        ],
+        "title": "MccProperties",
+        "type": "object"
+      },
       "MccSize": {
         "description": "Largest size announced for a family: ``None`` when the page does not give it.",
         "properties": {
@@ -6466,6 +6621,67 @@
           }
         },
         "summary": "Get Model Families",
+        "tags": [
+          "models"
+        ]
+      }
+    },
+    "/v1/models/{net_id}/properties/{examination}": {
+      "get": {
+        "description": "Return the properties the contest asks about a net for one examination (origin mcc).",
+        "operationId": "get_model_properties_v1_models__net_id__properties__examination__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "net_id",
+            "required": true,
+            "schema": {
+              "title": "Net Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "examination",
+            "required": true,
+            "schema": {
+              "enum": [
+                "ReachabilityCardinality",
+                "ReachabilityFireability",
+                "CTLCardinality",
+                "CTLFireability",
+                "LTLCardinality",
+                "LTLFireability",
+                "UpperBounds"
+              ],
+              "title": "Examination",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_MccProperties_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Model Properties",
         "tags": [
           "models"
         ]

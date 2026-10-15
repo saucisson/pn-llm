@@ -23,6 +23,11 @@ def seed_main() -> None:
     parser = argparse.ArgumentParser(description="Seed the platform with contest models.")
     parser.add_argument("families", nargs="*", help="family names (default: all of them)")
     parser.add_argument("--max-nets-per-family", type=int, default=None)
+    parser.add_argument(
+        "--properties",
+        action="store_true",
+        help="read the contest inputs (about 1 GB) to store the formulas of each examination too",
+    )
     arguments = parser.parse_args()
 
     config = Settings()
@@ -41,6 +46,7 @@ def seed_main() -> None:
         source=MccDirectory(directory=config.mcc_directory, base_url=config.mcc_base_url),
         only_families=tuple(arguments.families),
         max_nets_per_family=arguments.max_nets_per_family,
+        with_properties=arguments.properties,
     )
     sys.stdout.write(report.model_dump_json(indent=2) + "\n")
 

@@ -172,6 +172,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/models/{net_id}/properties/{examination}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Model Properties
+         * @description Return the properties the contest asks about a net for one examination (origin mcc).
+         */
+        get: operations["get_model_properties_v1_models__net_id__properties__examination__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/nets": {
         parameters: {
             query?: never;
@@ -786,6 +806,27 @@ export interface components {
             net: string;
         };
         /**
+         * BoundQuery
+         * @description An upper-bound question: the greatest total of tokens the places can hold together.
+         */
+        BoundQuery: {
+            /**
+             * Gloss
+             * @default
+             */
+            gloss: string;
+            /** Id */
+            id: string;
+            /**
+             * Origin
+             * @default mcc
+             * @constant
+             */
+            origin: "mcc";
+            /** Places */
+            places: string[];
+        };
+        /**
          * BudgetExhausted
          * @description The run stopped because it reached a budget.
          */
@@ -1173,6 +1214,33 @@ export interface components {
         /** Envelope[Marking] */
         Envelope_Marking_: {
             data?: components["schemas"]["Marking"] | null;
+            /** Elapsed S */
+            elapsed_s: number;
+            error?: components["schemas"]["ErrorInfo"] | null;
+            /** Net Id */
+            net_id?: string | null;
+            /**
+             * Schema Version
+             * @default 1.0
+             * @constant
+             */
+            schema_version: "1.0";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ok" | "partial" | "failed";
+            tool: components["schemas"]["ToolInfo"];
+            truncated?: components["schemas"]["Page"] | null;
+            /**
+             * Warnings
+             * @default []
+             */
+            warnings: string[];
+        };
+        /** Envelope[MccProperties] */
+        Envelope_MccProperties_: {
+            data?: components["schemas"]["MccProperties"] | null;
             /** Elapsed S */
             elapsed_s: number;
             error?: components["schemas"]["ErrorInfo"] | null;
@@ -1902,6 +1970,27 @@ export interface components {
          * @enum {string}
          */
         MccNetType: "pt" | "colored_with_pt" | "colored";
+        /**
+         * MccProperties
+         * @description The properties the contest asks about one instance, for one examination.
+         */
+        MccProperties: {
+            /**
+             * Bounds
+             * @default []
+             */
+            bounds: components["schemas"]["BoundQuery"][];
+            /**
+             * Examination
+             * @enum {string}
+             */
+            examination: "ReachabilityCardinality" | "ReachabilityFireability" | "CTLCardinality" | "CTLFireability" | "LTLCardinality" | "LTLFireability" | "UpperBounds";
+            /**
+             * Formulas
+             * @default []
+             */
+            formulas: components["schemas"]["Formula-Output"][];
+        };
         /**
          * MccSize
          * @description Largest size announced for a family: ``None`` when the page does not give it.
@@ -2830,6 +2919,38 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Envelope_tuple_MccFamily__________"];
+                };
+            };
+        };
+    };
+    get_model_properties_v1_models__net_id__properties__examination__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                net_id: string;
+                examination: "ReachabilityCardinality" | "ReachabilityFireability" | "CTLCardinality" | "CTLFireability" | "LTLCardinality" | "LTLFireability" | "UpperBounds";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_MccProperties_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

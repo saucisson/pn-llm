@@ -135,6 +135,18 @@ MIGRATIONS = (
             "CREATE INDEX mcc_nets_net ON mcc_nets(net_id)",
         ),
     ),
+    Migration(
+        version=6,
+        description="the contest's properties of each net, per examination",
+        statements=(
+            """CREATE TABLE mcc_properties (
+    net_id      TEXT NOT NULL REFERENCES nets(net_id),
+    examination TEXT NOT NULL,
+    body        BLOB NOT NULL,         -- MccProperties as JSON, zlib-compressed
+    PRIMARY KEY (net_id, examination)
+)""",
+        ),
+    ),
 )
 LATEST_VERSION = MIGRATIONS[-1].version
 WAL_ATTEMPTS = 50

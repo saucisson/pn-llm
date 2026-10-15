@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
+import zlib
+
+from app.domain.errors import NotFoundError
 from app.domain.mcc import MccFamily, MccNetType, ModelEntry
+from app.domain.mcc_properties import Examination, MccProperties
 
 from .sqlite_database import SqliteDatabase
 
@@ -43,3 +47,23 @@ class SqliteCatalog(SqliteDatabase):
                 (family, family, net_type, net_type),
             ).fetchall()
         return tuple(ModelEntry.model_validate(dict(row)) for row in rows)
+
+    def save_properties(self, *, net_id: str, properties: MccProperties) -> None:
+        """Store the properties of an examination for a net, replacing the previous ones."""
+        body = zlib.compress(properties.model_dump_json().encode())
+        with self._connection() as conn:
+            conn.execute(
+                "INSERT OR REPLACE INTO mcc_properties(net_id, examination, body) VALUES (?, ?, ?)",
+                (net_id, properties.examination, body),
+            )
+
+    def properties_of(self, *, net_id: str, examination: Examination) -> MccProperties:
+        """Return the properties of an examination for a net, or raise NotFoundError."""
+        with self._connection() as conn:
+            row = conn.execute(
+                "SELECT body FROM mcc_properties WHERE net_id=? AND examination=?",
+                (net_id, examination),
+            ).fetchone()
+        if row is None:
+            raise NotFoundError(f"No {examination} properties for net {net_id}")
+        return MccProperties.model_validate_json(zlib.decompress(row["body"]))

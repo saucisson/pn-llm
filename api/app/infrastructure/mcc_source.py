@@ -11,10 +11,14 @@ from pathlib import Path
 from app.domain.errors import ConflictError, InvalidRequestError
 from app.domain.mcc import (
     MccFamily,
+    MccInputNet,
     MccNetFile,
+    PropertyFile,
     instance_of,
     parse_catalog,
+    split_input_name,
 )
+from app.domain.mcc_properties import EXAMINATIONS
 
 CHUNK = 1 << 20
 TIMEOUT_S = 60
@@ -41,6 +45,44 @@ class MccDirectory:
                 content = tar.extractfile(member) if member.isfile() else None
                 if instance is not None and content is not None:
                     yield MccNetFile(instance=instance, payload=content.read())
+
+    def inputs(self, *, only_families: tuple[str, ...]) -> Iterator[MccInputNet]:
+        """Yield the instances of the contest inputs, each with its model and property files.
+
+        The inputs are one archive holding one archive per instance (``Dekker-PT-100.tgz``);
+        instances of other families are skipped without being read.
+        """
+        outer = self._fetch(path="archives/INPUTS-2026.tar.gz")
+        with tarfile.open(outer, mode="r:gz") as tar:
+            for member in tar:
+                name = Path(member.name).name.removesuffix(".tgz")
+                parts = split_input_name(name=name)
+                content = tar.extractfile(member) if member.isfile() else None
+                if parts is None or content is None:
+                    continue
+                family, net_type, instance = parts
+                if only_families and family not in only_families:
+                    continue
+                with tarfile.open(fileobj=content, mode="r:gz") as inner:
+                    files = {
+                        Path(entry.name).name: data.read()
+                        for entry in inner
+                        if entry.isfile() and (data := inner.extractfile(entry)) is not None
+                    }
+                if "model.pnml" not in files:
+                    continue
+                yield MccInputNet(
+                    family=family,
+                    instance=instance,
+                    net_type=net_type,
+                    name=name,
+                    model=files["model.pnml"],
+                    properties=tuple(
+                        PropertyFile(examination=examination, xml=files[f"{examination}.xml"])
+                        for examination in EXAMINATIONS
+                        if f"{examination}.xml" in files
+                    ),
+                )
 
     def _fetch(self, *, path: str) -> Path:
         """Return the local copy of ``path``, resuming a partial download and checking the hash.
