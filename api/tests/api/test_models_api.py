@@ -13,7 +13,9 @@ class OneNet:
 
 
 def test_seeded_models_are_listed_by_family_and_instance(client):
-    client.app.state.models.seed(source=OneNet(), only_families=(), max_nets_per_family=None)
+    client.app.state.models.seed(
+        source=OneNet(), only_families=(), max_nets_per_family=None, with_properties=False
+    )
 
     families = client.get("/v1/models/families").json()["data"]
     assert [(f["name"], f["net_type"]) for f in families] == [("Big", "pt")]
@@ -23,3 +25,23 @@ def test_seeded_models_are_listed_by_family_and_instance(client):
     net_id = listed["data"][0]["net_id"]
     assert client.get(f"/v1/nets/{net_id}").status_code == 200
     assert client.get("/v1/models", params={"family": "Other"}).json()["data"] == []
+
+
+def test_properties_of_a_net_are_served_per_examination(client):
+    from tests.unit.test_model_catalog import FakeContestWithInputs
+
+    client.app.state.models.seed(
+        source=FakeContestWithInputs(),
+        only_families=("Big",),
+        max_nets_per_family=None,
+        with_properties=True,
+    )
+    net_id = client.get("/v1/models", params={"family": "Big"}).json()["data"][0]["net_id"]
+    served = client.get(f"/v1/models/{net_id}/properties/CTLCardinality").json()["data"]
+    assert served["examination"] == "CTLCardinality"
+    assert served["formulas"][0]["ast"] == {
+        "op": "AG",
+        "arg": {"op": "enabled", "transition": "t"},
+    }
+    assert client.get(f"/v1/models/{net_id}/properties/LTLCardinality").status_code == 404
+    assert client.get(f"/v1/models/{net_id}/properties/Nope").status_code == 422

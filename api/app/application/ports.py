@@ -11,7 +11,8 @@ from typing import Protocol
 from app.domain.descriptions import Description, DescriptionOrigin, SavedDescription
 from app.domain.engine_contract import EngineReport, EngineRequest, Trace
 from app.domain.llm import LlmMessage, LlmStep, ToolSpec
-from app.domain.mcc import MccFamily, MccNetFile, MccNetType, ModelEntry
+from app.domain.mcc import MccFamily, MccInputNet, MccNetFile, MccNetType, ModelEntry
+from app.domain.mcc_properties import Examination, MccProperties
 from app.domain.models import (
     EngineInfo,
     FormulaResult,
@@ -235,6 +236,10 @@ class MccSource(Protocol):
         """Yield the nets of a family, one at a time."""
         ...
 
+    def inputs(self, *, only_families: tuple[str, ...]) -> Iterator[MccInputNet]:
+        """Yield the instances of the contest inputs with their property files, one at a time."""
+        ...
+
 
 class ModelCatalogRepository(Protocol):
     """Persistent storage of the contest families and of which stored net is which instance."""
@@ -253,4 +258,16 @@ class ModelCatalogRepository(Protocol):
 
     def entries(self, *, family: str | None, net_type: MccNetType | None) -> tuple[ModelEntry, ...]:
         """Return the entries matching the filters, by family then instance."""
+        ...
+
+    def save_properties(self, *, net_id: str, properties: MccProperties) -> None:
+        """Store the properties of an examination for a net, replacing the previous ones."""
+        ...
+
+    def properties_of(self, *, net_id: str, examination: Examination) -> MccProperties:
+        """Return the properties of an examination for a net.
+
+        Raises:
+            NotFoundError: if there are none.
+        """
         ...

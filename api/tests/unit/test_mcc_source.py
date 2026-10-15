@@ -8,6 +8,7 @@ import pytest
 
 from app.domain.errors import ConflictError
 from app.infrastructure.mcc_source import MccDirectory
+from tests.support import MUTEX_PNML
 from tests.unit.test_mcc import PAGE
 
 
@@ -23,6 +24,27 @@ def site(tmp_path):
             info.size = len(data)
             tar.addfile(info, io.BytesIO(data))
     (root / "archives" / "Big-pnml.tar.gz").write_bytes(buffer.getvalue())
+    inner = io.BytesIO()
+    with tarfile.open(fileobj=inner, mode="w:gz") as tar:
+        for name, data in (
+            ("Big-PT-7/model.pnml", MUTEX_PNML),
+            ("Big-PT-7/CTLCardinality.xml", b"<property-set/>"),
+            ("Big-PT-7/instance", b"x"),
+        ):
+            info = tarfile.TarInfo(name)
+            info.size = len(data)
+            tar.addfile(info, io.BytesIO(data))
+    outer = io.BytesIO()
+    with tarfile.open(fileobj=outer, mode="w:gz") as tar:
+        for name, data in (
+            ("INPUTS-2026/Big-PT-7.tgz", inner.getvalue()),
+            ("INPUTS-2026/Other-PT-1.tgz", inner.getvalue()),
+            ("INPUTS-2026/notaninstance.tgz", b"x"),
+        ):
+            info = tarfile.TarInfo(name)
+            info.size = len(data)
+            tar.addfile(info, io.BytesIO(data))
+    (root / "archives" / "INPUTS-2026.tar.gz").write_bytes(outer.getvalue())
     server = ThreadingHTTPServer(
         ("127.0.0.1", 0), partial(SimpleHTTPRequestHandler, directory=str(root))
     )
@@ -62,3 +84,17 @@ def test_a_file_that_changed_since_the_first_download_is_refused(site, tmp_path)
     (cache / "archives" / "Big-pnml.tar.gz").write_bytes(b"tampered")
     with pytest.raises(ConflictError):
         list(source.nets(family=big))
+
+
+def test_inputs_give_each_instance_its_model_and_property_files(site, tmp_path):
+    url, _ = site
+    source = MccDirectory(directory=tmp_path / "cache", base_url=url)
+    found = list(source.inputs(only_families=("Big",)))
+    assert [(n.family, n.instance, n.net_type.value, n.name) for n in found] == [
+        ("Big", "7", "pt", "Big-PT-7")
+    ]
+    assert found[0].model == MUTEX_PNML
+    assert [(f.examination, f.xml) for f in found[0].properties] == [
+        ("CTLCardinality", b"<property-set/>")
+    ]
+    assert len(list(source.inputs(only_families=()))) == 2

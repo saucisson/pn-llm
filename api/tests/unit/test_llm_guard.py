@@ -7,14 +7,16 @@ import pytest
 from jsonschema import validate
 
 from app.api.llm_tools import Operation, offered_to_llm
+from app.domain.mcc_properties import MccProperties
 from app.domain.net_leak import contains_net
+from app.infrastructure.sqlite_catalog import SqliteCatalog
 from tests.support import CHECK_BODY, MUTEX_DOCUMENT, MUTEX_PNML
 
 SCHEMAS = Path(__file__).resolve().parents[3] / "docs" / "schemas"
 XML = {"Content-Type": "application/pnml+xml"}
 
 # Values for the parameters of the routes, to call every tool once.
-PATH_VALUES = {"element_id": "enter1", "result_index": "0"}
+PATH_VALUES = {"element_id": "enter1", "result_index": "0", "examination": "CTLCardinality"}
 QUERY_VALUES = {"ids": "enter1", "q": "e"}
 
 
@@ -65,9 +67,12 @@ def test_no_tool_declares_a_net_in_its_responses(client):
             assert "NetDocument" not in reachable, (method, path)
 
 
-def test_no_tool_returns_a_net_when_called(scripted_client):
+def test_no_tool_returns_a_net_when_called(scripted_client, settings):
     client = scripted_client
     net_id = client.post("/v1/nets", content=MUTEX_PNML, headers=XML).json()["net_id"]
+    SqliteCatalog(path=settings.database_path).save_properties(
+        net_id=net_id, properties=MccProperties(examination="CTLCardinality")
+    )
     job_id = client.post(f"/v1/nets/{net_id}/checks", json=CHECK_BODY).json()["data"]["job_id"]
     client.app.state.checks.drain()
     envelope = json.loads((SCHEMAS / "Envelope.schema.json").read_text())
