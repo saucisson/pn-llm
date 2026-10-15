@@ -13,7 +13,7 @@ from fastapi.staticfiles import StaticFiles
 from starlette.concurrency import run_in_threadpool
 
 from app import __version__
-from app.api import descriptions, engines, formulas, inspection, jobs, nets, sessions
+from app.api import descriptions, engines, formulas, inspection, jobs, models, nets, sessions
 from app.api.errors import register_error_handlers
 from app.api.middleware import log_requests
 from app.application.agent import AgentConfig, AgentService
@@ -22,17 +22,18 @@ from app.application.descriptions import DescriptionService
 from app.application.engines import EngineService
 from app.application.formulas import FormulaService
 from app.application.inspection import InspectionService
+from app.application.models import ModelCatalogService
 from app.application.nets import NetService
 from app.application.ports import EngineGateway, LlmGateway
 from app.application.retention import RetentionService
 from app.application.tools import ToolFacade
 from app.application.workers import WorkerPool
-from app.domain.net_validation import DocumentLimits
 from app.infrastructure.anthropic_llm import AnthropicLlm
 from app.infrastructure.docker_runner import DockerRunner
 from app.infrastructure.engine_registry import DEFAULT_ENGINES, EngineRegistry
 from app.infrastructure.json_logging import configure_logging
 from app.infrastructure.scripted_llm import DemoLlm
+from app.infrastructure.sqlite_catalog import SqliteCatalog
 from app.infrastructure.sqlite_retention import SqliteRetention
 from app.infrastructure.sqlite_store import SqliteStore
 from app.infrastructure.unavailable_llm import UnavailableLlm
@@ -172,14 +173,12 @@ def create_app(
 
     app = FastAPI(title="pn-llm-verif", version=__version__, lifespan=lifespan)
     app.state.nets = NetService(
-        nets=store,
-        max_upload_bytes=config.max_upload_bytes,
-        limits=DocumentLimits(
-            max_elements=config.max_net_elements,
-            max_page_depth=config.max_page_depth,
-            max_xml_depth=config.max_xml_depth,
-            max_string_length=config.max_string_length,
-        ),
+        nets=store, max_upload_bytes=config.max_upload_bytes, limits=config.document_limits()
+    )
+    app.state.models = ModelCatalogService(
+        catalog=SqliteCatalog(path=config.database_path),
+        nets=app.state.nets,
+        descriptions=store,
     )
     app.state.checks = checks
     app.state.inspection = InspectionService(nets=store)
@@ -194,7 +193,7 @@ def create_app(
     app.middleware("http")(log_requests)
     if config.ui_dir is not None and config.ui_dir.is_dir():
         app.mount("/ui", StaticFiles(directory=config.ui_dir, html=True), name="ui")
-    for module in (nets, descriptions, inspection, formulas, jobs, sessions, engines):
+    for module in (nets, descriptions, inspection, formulas, jobs, sessions, engines, models):
         app.include_router(module.router)
     return app
 

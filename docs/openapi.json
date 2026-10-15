@@ -2556,6 +2556,180 @@
         "title": "Envelope[tuple[EngineInfo, ...]]",
         "type": "object"
       },
+      "Envelope_tuple_MccFamily__________": {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/MccFamily"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data"
+          },
+          "elapsed_s": {
+            "minimum": 0.0,
+            "title": "Elapsed S",
+            "type": "number"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorInfo"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "net_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Net Id"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "default": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "partial",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "tool": {
+            "$ref": "#/components/schemas/ToolInfo"
+          },
+          "truncated": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Page"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "warnings": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "tool",
+          "status",
+          "elapsed_s"
+        ],
+        "title": "Envelope[tuple[MccFamily, ...]]",
+        "type": "object"
+      },
+      "Envelope_tuple_ModelEntry__________": {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ModelEntry"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data"
+          },
+          "elapsed_s": {
+            "minimum": 0.0,
+            "title": "Elapsed S",
+            "type": "number"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorInfo"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "net_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Net Id"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "default": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "partial",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "tool": {
+            "$ref": "#/components/schemas/ToolInfo"
+          },
+          "truncated": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Page"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "warnings": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "tool",
+          "status",
+          "elapsed_s"
+        ],
+        "title": "Envelope[tuple[ModelEntry, ...]]",
+        "type": "object"
+      },
       "Envelope_tuple_NameGroup__________": {
         "properties": {
           "data": {
@@ -4058,6 +4232,108 @@
         "title": "MarkingEntry",
         "type": "object"
       },
+      "MccFamily": {
+        "description": "One model family: instances of the same model at different scales.",
+        "properties": {
+          "archive_path": {
+            "title": "Archive Path",
+            "type": "string"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "form_path": {
+            "title": "Form Path",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "net_type": {
+            "$ref": "#/components/schemas/MccNetType"
+          },
+          "scalable": {
+            "title": "Scalable",
+            "type": "boolean"
+          },
+          "size": {
+            "$ref": "#/components/schemas/MccSize"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "title",
+          "description",
+          "net_type",
+          "scalable",
+          "size",
+          "form_path",
+          "archive_path"
+        ],
+        "title": "MccFamily",
+        "type": "object"
+      },
+      "MccNetType": {
+        "description": "How the contest classifies a family.",
+        "enum": [
+          "pt",
+          "colored_with_pt",
+          "colored"
+        ],
+        "title": "MccNetType",
+        "type": "string"
+      },
+      "MccSize": {
+        "description": "Largest size announced for a family: ``None`` when the page does not give it.",
+        "properties": {
+          "arcs": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Arcs"
+          },
+          "is_upper_bound": {
+            "default": false,
+            "title": "Is Upper Bound",
+            "type": "boolean"
+          },
+          "places": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Places"
+          },
+          "transitions": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Transitions"
+          }
+        },
+        "title": "MccSize",
+        "type": "object"
+      },
       "MessageRequest": {
         "description": "Body of ``POST /v1/sessions/{id}/messages``.",
         "properties": {
@@ -4095,6 +4371,39 @@
           "available"
         ],
         "title": "MissingTokens",
+        "type": "object"
+      },
+      "ModelEntry": {
+        "description": "A stored net that comes from the contest, with where it comes from.",
+        "properties": {
+          "family": {
+            "title": "Family",
+            "type": "string"
+          },
+          "instance": {
+            "title": "Instance",
+            "type": "string"
+          },
+          "member": {
+            "title": "Member",
+            "type": "string"
+          },
+          "net_id": {
+            "title": "Net Id",
+            "type": "string"
+          },
+          "net_type": {
+            "$ref": "#/components/schemas/MccNetType"
+          }
+        },
+        "required": [
+          "net_id",
+          "family",
+          "instance",
+          "net_type",
+          "member"
+        ],
+        "title": "ModelEntry",
         "type": "object"
       },
       "NameGroup": {
@@ -6043,6 +6352,122 @@
         "summary": "Retry Job",
         "tags": [
           "checks"
+        ]
+      }
+    },
+    "/v1/models": {
+      "get": {
+        "description": "List the stored contest nets (net id, family, instance), filtered by family and type.",
+        "operationId": "get_models_v1_models_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "family",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Family"
+            }
+          },
+          {
+            "in": "query",
+            "name": "net_type",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/MccNetType"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Net Type"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 500,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_tuple_ModelEntry__________"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Models",
+        "tags": [
+          "models"
+        ]
+      }
+    },
+    "/v1/models/families": {
+      "get": {
+        "description": "List the contest families stored here, with their description, type and size.",
+        "operationId": "get_model_families_v1_models_families_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_tuple_MccFamily__________"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Model Families",
+        "tags": [
+          "models"
         ]
       }
     },

@@ -116,6 +116,25 @@ MIGRATIONS = (
 )""",
         ),
     ),
+    Migration(
+        version=5,
+        description="contest families and the stored nets that are their instances",
+        statements=(
+            """CREATE TABLE mcc_families (
+    name         TEXT PRIMARY KEY,
+    family       TEXT NOT NULL          -- the MccFamily as JSON
+)""",
+            """CREATE TABLE mcc_nets (
+    family   TEXT NOT NULL REFERENCES mcc_families(name),
+    instance TEXT NOT NULL,
+    net_type TEXT NOT NULL,
+    net_id   TEXT NOT NULL REFERENCES nets(net_id),
+    member   TEXT NOT NULL,            -- path inside the family archive
+    PRIMARY KEY (family, instance, net_type)
+)""",
+            "CREATE INDEX mcc_nets_net ON mcc_nets(net_id)",
+        ),
+    ),
 )
 LATEST_VERSION = MIGRATIONS[-1].version
 WAL_ATTEMPTS = 50

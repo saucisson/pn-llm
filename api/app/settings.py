@@ -8,6 +8,8 @@ from typing import Literal
 from pydantic import AliasChoices, Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from app.domain.net_validation import DocumentLimits
+
 DEFAULT_MAX_UPLOAD_BYTES = 20 * 1024 * 1024
 DEFAULT_JOB_LEASE_SECONDS = 60.0
 
@@ -42,6 +44,12 @@ class Settings(BaseSettings):
     # Largest accepted description of a net (UTF-8 bytes).
     max_description_bytes: int = 65_536
 
+    # Model Checking Contest data (``python -m app.seed``): where downloads are kept, where they
+    # come from, and the largest net accepted when seeding (contest nets can be huge).
+    mcc_directory: Path = Path("data/mcc")
+    mcc_base_url: str = "https://mcc.lip6.fr/2026"
+    mcc_max_net_bytes: int = 512 * 1024 * 1024
+
     # The language model behind the chat: "none" (sessions end with an explanatory error),
     # "scripted" (an offline demonstration, no key) or "anthropic".
     llm_provider: Literal["none", "scripted", "anthropic"] = "none"
@@ -75,3 +83,12 @@ class Settings(BaseSettings):
     # links to, are deleted after the second delay.
     session_retention_days: float | None = None
     unreferenced_net_retention_days: float | None = None
+
+    def document_limits(self) -> DocumentLimits:
+        """Return the bounds applied to every net entering the platform."""
+        return DocumentLimits(
+            max_elements=self.max_net_elements,
+            max_page_depth=self.max_page_depth,
+            max_xml_depth=self.max_xml_depth,
+            max_string_length=self.max_string_length,
+        )

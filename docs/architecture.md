@@ -49,6 +49,7 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/domain/engine_check.py` | domain | Check an engine report against the request and the net; ERROR for everything unusable |
 | `app/domain/replay.py` | domain | Replay firings on a P/T net; evaluate a state condition on a marking |
 | `app/domain/descriptions.py` | domain | `Description`: immutable text identified by its hash, linked to a net with an origin |
+| `app/domain/mcc.py` | domain | Model Checking Contest catalog: `MccFamily` parsed from the models page, `MccInstance` from archive members, `ModelEntry`, `SeedReport` |
 | `app/domain/sessions.py` | domain | `Session`, the frozen event vocabulary (`SessionEvent`) and `StoredEvent`; a verdict cannot be built without an engine result |
 | `app/domain/llm.py` | domain | What the LLM port exchanges: `LlmMessage`, `LlmToolCall`, `ToolSpec`, `LlmStep` |
 | `app/domain/tool_inputs.py` | domain | The arguments of each tool offered to the LLM (their JSON Schemas are what the model sees) |
@@ -66,12 +67,15 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/application/agent.py` | application | `AgentService`: sessions, user messages and answers, and the agent run (budgets, resumable, cancellable) |
 | `app/application/log_context.py` | application | The request id of the request being served, read by the log formatter |
 | `app/application/retention.py` | application | `RetentionService`: delete sessions, nets and descriptions, and apply the retention policy |
+| `app/application/models.py` | application | `ModelCatalogService`: seed the platform with contest nets (family, instance, `mcc` description) and list them |
 | `app/application/leases.py` | application | `LeaseKeeper`: renews a running job's lease so other processes know its owner is alive |
 | `app/application/checks.py` | application | `CheckService`: submit, execute, read and cancel checks |
 | `app/application/engines.py` | application | `EngineService`: list engines |
 | `app/infrastructure/sqlite_store.py` | infrastructure | SQLite implementation of `NetRepository` and `JobRepository` |
 | `app/infrastructure/sqlite_database.py` | infrastructure | The shared base of the SQLite adapters: the file, its migration, short-lived connections |
 | `app/infrastructure/sqlite_retention.py` | infrastructure | Deletion of user data along its references |
+| `app/infrastructure/sqlite_catalog.py` | infrastructure | Contest families and the nets that are their instances |
+| `app/infrastructure/mcc_source.py` | infrastructure | Contest files on disk: resumable download, SHA-256 recorded on first download and checked afterwards, reading of family archives |
 | `app/infrastructure/sqlite_migrations.py` | infrastructure | Numbered schema migrations (`PRAGMA user_version`), including the conversion of first-schema databases |
 | `app/infrastructure/sqlite_backup.py` | infrastructure | Online backup and offline restore of the database |
 | `app/infrastructure/scripted_llm.py` | infrastructure | `ScriptedLlm`, the double of the LLM port, and `DemoLlm`, an offline demonstration |
@@ -86,6 +90,7 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/api/negotiation.py` | api | `Content-Type` and `Accept` negotiation |
 | `app/api/jobs.py` | api | Routes for checks and jobs |
 | `app/api/engines.py` | api | Route `/v1/engines` |
+| `app/api/models.py` | api | Routes `/v1/models` and `/v1/models/families` |
 | `app/api/inspection.py` | api | Read-only inspection routes under `/v1/nets/{id}` |
 | `app/api/formulas.py` | api | Route `POST /v1/formulas/validate` |
 | `app/api/descriptions.py` | api | Routes for net descriptions |
@@ -95,6 +100,7 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/api/llm_tools.py` | api | Which routes may be offered to the LLM (all but the net itself) |
 | `app/settings.py` | (config) | Pydantic settings from `PNVERIF_*` environment variables |
 | `app/main.py` | main | Composition root: `create_app(settings=...)` |
+| `app/seed.py` | main | `python -m app.seed [family...]`: download and store contest models; nothing downloaded is versioned |
 
 ## The chat workflow
 A session is a conversation about one net (ADR 0008). Its log is the `events` table; the state is
