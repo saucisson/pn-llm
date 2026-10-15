@@ -101,7 +101,7 @@ def test_different_limits_make_a_different_job(client):
 
 def test_unknown_engine_is_a_422(client):
     net_id = upload(client)["net_id"]
-    body = {"formulas": [{"id": "f", "text": "x"}], "engine": "nope"}
+    body = {**CHECK_BODY, "engine": "nope"}
     assert start(client, net_id, body).status_code == 422
 
 

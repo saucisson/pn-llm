@@ -78,14 +78,25 @@ A formula is a syntax tree. Atoms cite ids; the platform validates them against 
 }
 ```
 - `logic`: `ltl`, `ctl` or `state` (a condition on one marking, checked for reachability).
-- Operators: `not`, `and`, `or`, `implies`; LTL `G`, `F`, `X`, `U`; CTL `AG`, `AF`, `AX`, `AU`,
-  `EG`, `EF`, `EX`, `EU`. Atoms: `tokens` (place, comparison, value), `enabled` (transition),
-  `deadlock`.
+- Operators: `not`, `and` and `or` (`args`, at least two), `implies` (`left`, `right`); LTL `G`,
+  `F`, `X` (`arg`) and `U` (`left`, `right`); CTL `AG`, `AF`, `AX`, `EG`, `EF`, `EX` (`arg`) and
+  `AU`, `EU` (`left`, `right`). Atoms: `tokens` (cardinality of one place: `place`, `cmp`,
+  `value`), `compare` (cardinality of sums of places, `left` and `right` terms of kind `tokens`
+  with `places`, or `const` with `value`), `enabled` (fireability: `transition`), `deadlock` and
+  `const` (`value` true or false). `cmp` is one of `<`, `<=`, `==`, `!=`, `>=`, `>`.
+- `origin` is `user`, `llm`, `template` or `mcc`.
+- Text form for users and imports: `docs/formula-syntax.md`. `POST /v1/formulas/validate` takes
+  `{"net_id", "formula"}` or `{"net_id", "text", "logic"?, "id"?, "gloss"?, "origin"?}` and
+  answers with `valid`, the parsed `formula`, `errors` and `warnings` (each with `code`,
+  `message` and a JSON `path`), the classes of atoms used (`atoms`), `uses_next` and the
+  canonical `text`. The neXt operator is always reported as a warning: it limits the reductions
+  that may be applied (`CLAUDE.md`, domain rule 3).
 - `gloss` is the plain-language statement made by the proposer. It is shown to the user and
   audited against the tree for fidelity (`docs/evaluation.md`, M2).
 - A check result records, for audit, the rendering sent to each engine (`rendered`: engine syntax
   as text). The rendering is produced by the adapter, never by the LLM.
-- A formula cannot reference an unknown id: the request is rejected with the closest matches.
+- A formula cannot reference an unknown id: a check is rejected with 422, the `location` of the
+  fault and the closest matches in `detail`; `validate` reports it as an error instead.
 
 ## Counterexamples
 ```json

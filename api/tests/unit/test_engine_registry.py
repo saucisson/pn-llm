@@ -6,10 +6,10 @@ from app.domain.errors import InvalidRequestError
 from app.domain.models import Verdict
 from app.infrastructure.docker_runner import DockerRunner, DockerTimeoutError
 from app.infrastructure.engine_registry import DEFAULT_ENGINES, EngineRegistry
-from tests.support import make_request
+from tests.support import make_formula, make_request
 
 REQUEST = make_request(
-    formulas=[{"id": "f1", "text": "x"}, {"id": "f2", "text": "y"}], engine="itstools"
+    formulas=[make_formula(formula_id="f1"), make_formula(formula_id="f2")], engine="itstools"
 )
 
 

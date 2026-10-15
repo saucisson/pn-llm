@@ -8,6 +8,7 @@ from fastapi import Depends, Request
 
 from app.application.checks import CheckService
 from app.application.engines import EngineService
+from app.application.formulas import FormulaService
 from app.application.inspection import InspectionService
 from app.application.nets import NetService
 
@@ -32,7 +33,13 @@ def get_inspection(*, request: Request) -> InspectionService:
     return cast("InspectionService", request.app.state.inspection)
 
 
+def get_formulas(*, request: Request) -> FormulaService:
+    """Return the formula service of the running application."""
+    return cast("FormulaService", request.app.state.formulas)
+
+
 NetsDep = Annotated[NetService, Depends(get_nets)]
 ChecksDep = Annotated[CheckService, Depends(get_checks)]
 EnginesDep = Annotated[EngineService, Depends(get_engines)]
 InspectionDep = Annotated[InspectionService, Depends(get_inspection)]
+FormulasDep = Annotated[FormulaService, Depends(get_formulas)]

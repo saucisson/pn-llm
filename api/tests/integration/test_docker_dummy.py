@@ -9,6 +9,7 @@ import pytest
 
 from app.domain.models import Limits
 from app.infrastructure.docker_runner import DockerRunner
+from tests.support import make_request
 
 IMAGE = "pn-llm-verif/dummy:latest"
 OUTPUT_DIR_MODE = 0o777
@@ -29,9 +30,7 @@ def test_dummy_container_honours_the_engine_contract(tmp_path, mutex_pnml):
     (tmp_path / "output").mkdir()
     (tmp_path / "output").chmod(OUTPUT_DIR_MODE)
     (tmp_path / "input" / "net.pnml").write_bytes(mutex_pnml)
-    (tmp_path / "input" / "request.json").write_text(
-        json.dumps({"formulas": [{"id": "f1", "text": "x"}], "engine": "dummy"})
-    )
+    (tmp_path / "input" / "request.json").write_text(make_request().model_dump_json())
 
     runner.run(image=IMAGE, work_dir=tmp_path, limits=Limits(memory_mb=256, timeout_s=60))
 

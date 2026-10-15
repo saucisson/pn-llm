@@ -1,0 +1,1343 @@
+{
+  "$defs": {
+    "And": {
+      "description": "Conjunction of at least two operands.",
+      "properties": {
+        "args": {
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "AF": "#/$defs/CtlUnary",
+                "AG": "#/$defs/CtlUnary",
+                "AU": "#/$defs/CtlUntil",
+                "AX": "#/$defs/CtlUnary",
+                "EF": "#/$defs/CtlUnary",
+                "EG": "#/$defs/CtlUnary",
+                "EU": "#/$defs/CtlUntil",
+                "EX": "#/$defs/CtlUnary",
+                "F": "#/$defs/LtlUnary",
+                "G": "#/$defs/LtlUnary",
+                "U": "#/$defs/LtlUntil",
+                "X": "#/$defs/LtlUnary",
+                "and": "#/$defs/And",
+                "compare": "#/$defs/Compare",
+                "const": "#/$defs/Truth",
+                "deadlock": "#/$defs/Deadlock",
+                "enabled": "#/$defs/Enabled",
+                "implies": "#/$defs/Implies",
+                "not": "#/$defs/Not",
+                "or": "#/$defs/Or",
+                "tokens": "#/$defs/Tokens"
+              },
+              "propertyName": "op"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/Tokens"
+              },
+              {
+                "$ref": "#/$defs/Compare"
+              },
+              {
+                "$ref": "#/$defs/Enabled"
+              },
+              {
+                "$ref": "#/$defs/Deadlock"
+              },
+              {
+                "$ref": "#/$defs/Truth"
+              },
+              {
+                "$ref": "#/$defs/Not"
+              },
+              {
+                "$ref": "#/$defs/And"
+              },
+              {
+                "$ref": "#/$defs/Or"
+              },
+              {
+                "$ref": "#/$defs/Implies"
+              },
+              {
+                "$ref": "#/$defs/LtlUnary"
+              },
+              {
+                "$ref": "#/$defs/LtlUntil"
+              },
+              {
+                "$ref": "#/$defs/CtlUnary"
+              },
+              {
+                "$ref": "#/$defs/CtlUntil"
+              }
+            ]
+          },
+          "minItems": 2,
+          "title": "Args",
+          "type": "array"
+        },
+        "op": {
+          "const": "and",
+          "default": "and",
+          "title": "Op",
+          "type": "string"
+        }
+      },
+      "required": [
+        "args"
+      ],
+      "title": "And",
+      "type": "object"
+    },
+    "AtomKinds": {
+      "description": "Which classes of atom a formula uses; the MCC keeps two classes apart.",
+      "properties": {
+        "cardinality": {
+          "title": "Cardinality",
+          "type": "boolean"
+        },
+        "deadlock": {
+          "title": "Deadlock",
+          "type": "boolean"
+        },
+        "fireability": {
+          "title": "Fireability",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "cardinality",
+        "fireability",
+        "deadlock"
+      ],
+      "title": "AtomKinds",
+      "type": "object"
+    },
+    "Compare": {
+      "description": "Cardinality atom on general terms, such as ``p1 + p2 <= p3``.",
+      "properties": {
+        "cmp": {
+          "enum": [
+            "<",
+            "<=",
+            "==",
+            "!=",
+            ">=",
+            ">"
+          ],
+          "title": "Cmp",
+          "type": "string"
+        },
+        "left": {
+          "discriminator": {
+            "mapping": {
+              "const": "#/$defs/Constant",
+              "tokens": "#/$defs/TokenCount"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/TokenCount"
+            },
+            {
+              "$ref": "#/$defs/Constant"
+            }
+          ],
+          "title": "Left"
+        },
+        "op": {
+          "const": "compare",
+          "default": "compare",
+          "title": "Op",
+          "type": "string"
+        },
+        "right": {
+          "discriminator": {
+            "mapping": {
+              "const": "#/$defs/Constant",
+              "tokens": "#/$defs/TokenCount"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/TokenCount"
+            },
+            {
+              "$ref": "#/$defs/Constant"
+            }
+          ],
+          "title": "Right"
+        }
+      },
+      "required": [
+        "left",
+        "cmp",
+        "right"
+      ],
+      "title": "Compare",
+      "type": "object"
+    },
+    "Constant": {
+      "description": "A term: a non-negative integer.",
+      "properties": {
+        "kind": {
+          "const": "const",
+          "default": "const",
+          "title": "Kind",
+          "type": "string"
+        },
+        "value": {
+          "minimum": 0,
+          "title": "Value",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "value"
+      ],
+      "title": "Constant",
+      "type": "object"
+    },
+    "CtlUnary": {
+      "description": "CTL operators with one operand: a path quantifier and a temporal operator.",
+      "properties": {
+        "arg": {
+          "discriminator": {
+            "mapping": {
+              "AF": "#/$defs/CtlUnary",
+              "AG": "#/$defs/CtlUnary",
+              "AU": "#/$defs/CtlUntil",
+              "AX": "#/$defs/CtlUnary",
+              "EF": "#/$defs/CtlUnary",
+              "EG": "#/$defs/CtlUnary",
+              "EU": "#/$defs/CtlUntil",
+              "EX": "#/$defs/CtlUnary",
+              "F": "#/$defs/LtlUnary",
+              "G": "#/$defs/LtlUnary",
+              "U": "#/$defs/LtlUntil",
+              "X": "#/$defs/LtlUnary",
+              "and": "#/$defs/And",
+              "compare": "#/$defs/Compare",
+              "const": "#/$defs/Truth",
+              "deadlock": "#/$defs/Deadlock",
+              "enabled": "#/$defs/Enabled",
+              "implies": "#/$defs/Implies",
+              "not": "#/$defs/Not",
+              "or": "#/$defs/Or",
+              "tokens": "#/$defs/Tokens"
+            },
+            "propertyName": "op"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Tokens"
+            },
+            {
+              "$ref": "#/$defs/Compare"
+            },
+            {
+              "$ref": "#/$defs/Enabled"
+            },
+            {
+              "$ref": "#/$defs/Deadlock"
+            },
+            {
+              "$ref": "#/$defs/Truth"
+            },
+            {
+              "$ref": "#/$defs/Not"
+            },
+            {
+              "$ref": "#/$defs/And"
+            },
+            {
+              "$ref": "#/$defs/Or"
+            },
+            {
+              "$ref": "#/$defs/Implies"
+            },
+            {
+              "$ref": "#/$defs/LtlUnary"
+            },
+            {
+              "$ref": "#/$defs/LtlUntil"
+            },
+            {
+              "$ref": "#/$defs/CtlUnary"
+            },
+            {
+              "$ref": "#/$defs/CtlUntil"
+            }
+          ],
+          "title": "Arg"
+        },
+        "op": {
+          "enum": [
+            "AG",
+            "AF",
+            "AX",
+            "EG",
+            "EF",
+            "EX"
+          ],
+          "title": "Op",
+          "type": "string"
+        }
+      },
+      "required": [
+        "op",
+        "arg"
+      ],
+      "title": "CtlUnary",
+      "type": "object"
+    },
+    "CtlUntil": {
+      "description": "CTL until under a path quantifier.",
+      "properties": {
+        "left": {
+          "discriminator": {
+            "mapping": {
+              "AF": "#/$defs/CtlUnary",
+              "AG": "#/$defs/CtlUnary",
+              "AU": "#/$defs/CtlUntil",
+              "AX": "#/$defs/CtlUnary",
+              "EF": "#/$defs/CtlUnary",
+              "EG": "#/$defs/CtlUnary",
+              "EU": "#/$defs/CtlUntil",
+              "EX": "#/$defs/CtlUnary",
+              "F": "#/$defs/LtlUnary",
+              "G": "#/$defs/LtlUnary",
+              "U": "#/$defs/LtlUntil",
+              "X": "#/$defs/LtlUnary",
+              "and": "#/$defs/And",
+              "compare": "#/$defs/Compare",
+              "const": "#/$defs/Truth",
+              "deadlock": "#/$defs/Deadlock",
+              "enabled": "#/$defs/Enabled",
+              "implies": "#/$defs/Implies",
+              "not": "#/$defs/Not",
+              "or": "#/$defs/Or",
+              "tokens": "#/$defs/Tokens"
+            },
+            "propertyName": "op"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Tokens"
+            },
+            {
+              "$ref": "#/$defs/Compare"
+            },
+            {
+              "$ref": "#/$defs/Enabled"
+            },
+            {
+              "$ref": "#/$defs/Deadlock"
+            },
+            {
+              "$ref": "#/$defs/Truth"
+            },
+            {
+              "$ref": "#/$defs/Not"
+            },
+            {
+              "$ref": "#/$defs/And"
+            },
+            {
+              "$ref": "#/$defs/Or"
+            },
+            {
+              "$ref": "#/$defs/Implies"
+            },
+            {
+              "$ref": "#/$defs/LtlUnary"
+            },
+            {
+              "$ref": "#/$defs/LtlUntil"
+            },
+            {
+              "$ref": "#/$defs/CtlUnary"
+            },
+            {
+              "$ref": "#/$defs/CtlUntil"
+            }
+          ],
+          "title": "Left"
+        },
+        "op": {
+          "enum": [
+            "AU",
+            "EU"
+          ],
+          "title": "Op",
+          "type": "string"
+        },
+        "right": {
+          "discriminator": {
+            "mapping": {
+              "AF": "#/$defs/CtlUnary",
+              "AG": "#/$defs/CtlUnary",
+              "AU": "#/$defs/CtlUntil",
+              "AX": "#/$defs/CtlUnary",
+              "EF": "#/$defs/CtlUnary",
+              "EG": "#/$defs/CtlUnary",
+              "EU": "#/$defs/CtlUntil",
+              "EX": "#/$defs/CtlUnary",
+              "F": "#/$defs/LtlUnary",
+              "G": "#/$defs/LtlUnary",
+              "U": "#/$defs/LtlUntil",
+              "X": "#/$defs/LtlUnary",
+              "and": "#/$defs/And",
+              "compare": "#/$defs/Compare",
+              "const": "#/$defs/Truth",
+              "deadlock": "#/$defs/Deadlock",
+              "enabled": "#/$defs/Enabled",
+              "implies": "#/$defs/Implies",
+              "not": "#/$defs/Not",
+              "or": "#/$defs/Or",
+              "tokens": "#/$defs/Tokens"
+            },
+            "propertyName": "op"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Tokens"
+            },
+            {
+              "$ref": "#/$defs/Compare"
+            },
+            {
+              "$ref": "#/$defs/Enabled"
+            },
+            {
+              "$ref": "#/$defs/Deadlock"
+            },
+            {
+              "$ref": "#/$defs/Truth"
+            },
+            {
+              "$ref": "#/$defs/Not"
+            },
+            {
+              "$ref": "#/$defs/And"
+            },
+            {
+              "$ref": "#/$defs/Or"
+            },
+            {
+              "$ref": "#/$defs/Implies"
+            },
+            {
+              "$ref": "#/$defs/LtlUnary"
+            },
+            {
+              "$ref": "#/$defs/LtlUntil"
+            },
+            {
+              "$ref": "#/$defs/CtlUnary"
+            },
+            {
+              "$ref": "#/$defs/CtlUntil"
+            }
+          ],
+          "title": "Right"
+        }
+      },
+      "required": [
+        "op",
+        "left",
+        "right"
+      ],
+      "title": "CtlUntil",
+      "type": "object"
+    },
+    "Deadlock": {
+      "description": "Atom: no transition can fire.",
+      "properties": {
+        "op": {
+          "const": "deadlock",
+          "default": "deadlock",
+          "title": "Op",
+          "type": "string"
+        }
+      },
+      "title": "Deadlock",
+      "type": "object"
+    },
+    "Enabled": {
+      "description": "Fireability atom: the transition can fire.",
+      "properties": {
+        "op": {
+          "const": "enabled",
+          "default": "enabled",
+          "title": "Op",
+          "type": "string"
+        },
+        "transition": {
+          "title": "Transition",
+          "type": "string"
+        }
+      },
+      "required": [
+        "transition"
+      ],
+      "title": "Enabled",
+      "type": "object"
+    },
+    "Formula": {
+      "description": "A property to check, with the plain-language gloss its proposer gave and its origin.\n\n``logic`` is ``ltl`` (checked on every run), ``ctl`` (branching time) or ``state`` (a\ncondition on one marking, checked for reachability: some reachable marking satisfies it).",
+      "properties": {
+        "ast": {
+          "discriminator": {
+            "mapping": {
+              "AF": "#/$defs/CtlUnary",
+              "AG": "#/$defs/CtlUnary",
+              "AU": "#/$defs/CtlUntil",
+              "AX": "#/$defs/CtlUnary",
+              "EF": "#/$defs/CtlUnary",
+              "EG": "#/$defs/CtlUnary",
+              "EU": "#/$defs/CtlUntil",
+              "EX": "#/$defs/CtlUnary",
+              "F": "#/$defs/LtlUnary",
+              "G": "#/$defs/LtlUnary",
+              "U": "#/$defs/LtlUntil",
+              "X": "#/$defs/LtlUnary",
+              "and": "#/$defs/And",
+              "compare": "#/$defs/Compare",
+              "const": "#/$defs/Truth",
+              "deadlock": "#/$defs/Deadlock",
+              "enabled": "#/$defs/Enabled",
+              "implies": "#/$defs/Implies",
+              "not": "#/$defs/Not",
+              "or": "#/$defs/Or",
+              "tokens": "#/$defs/Tokens"
+            },
+            "propertyName": "op"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Tokens"
+            },
+            {
+              "$ref": "#/$defs/Compare"
+            },
+            {
+              "$ref": "#/$defs/Enabled"
+            },
+            {
+              "$ref": "#/$defs/Deadlock"
+            },
+            {
+              "$ref": "#/$defs/Truth"
+            },
+            {
+              "$ref": "#/$defs/Not"
+            },
+            {
+              "$ref": "#/$defs/And"
+            },
+            {
+              "$ref": "#/$defs/Or"
+            },
+            {
+              "$ref": "#/$defs/Implies"
+            },
+            {
+              "$ref": "#/$defs/LtlUnary"
+            },
+            {
+              "$ref": "#/$defs/LtlUntil"
+            },
+            {
+              "$ref": "#/$defs/CtlUnary"
+            },
+            {
+              "$ref": "#/$defs/CtlUntil"
+            }
+          ],
+          "title": "Ast"
+        },
+        "gloss": {
+          "default": "",
+          "title": "Gloss",
+          "type": "string"
+        },
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "logic": {
+          "enum": [
+            "ltl",
+            "ctl",
+            "state"
+          ],
+          "title": "Logic",
+          "type": "string"
+        },
+        "origin": {
+          "default": "user",
+          "enum": [
+            "user",
+            "llm",
+            "template",
+            "mcc"
+          ],
+          "title": "Origin",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "logic",
+        "ast"
+      ],
+      "title": "Formula",
+      "type": "object"
+    },
+    "Implies": {
+      "description": "Implication.",
+      "properties": {
+        "left": {
+          "discriminator": {
+            "mapping": {
+              "AF": "#/$defs/CtlUnary",
+              "AG": "#/$defs/CtlUnary",
+              "AU": "#/$defs/CtlUntil",
+              "AX": "#/$defs/CtlUnary",
+              "EF": "#/$defs/CtlUnary",
+              "EG": "#/$defs/CtlUnary",
+              "EU": "#/$defs/CtlUntil",
+              "EX": "#/$defs/CtlUnary",
+              "F": "#/$defs/LtlUnary",
+              "G": "#/$defs/LtlUnary",
+              "U": "#/$defs/LtlUntil",
+              "X": "#/$defs/LtlUnary",
+              "and": "#/$defs/And",
+              "compare": "#/$defs/Compare",
+              "const": "#/$defs/Truth",
+              "deadlock": "#/$defs/Deadlock",
+              "enabled": "#/$defs/Enabled",
+              "implies": "#/$defs/Implies",
+              "not": "#/$defs/Not",
+              "or": "#/$defs/Or",
+              "tokens": "#/$defs/Tokens"
+            },
+            "propertyName": "op"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Tokens"
+            },
+            {
+              "$ref": "#/$defs/Compare"
+            },
+            {
+              "$ref": "#/$defs/Enabled"
+            },
+            {
+              "$ref": "#/$defs/Deadlock"
+            },
+            {
+              "$ref": "#/$defs/Truth"
+            },
+            {
+              "$ref": "#/$defs/Not"
+            },
+            {
+              "$ref": "#/$defs/And"
+            },
+            {
+              "$ref": "#/$defs/Or"
+            },
+            {
+              "$ref": "#/$defs/Implies"
+            },
+            {
+              "$ref": "#/$defs/LtlUnary"
+            },
+            {
+              "$ref": "#/$defs/LtlUntil"
+            },
+            {
+              "$ref": "#/$defs/CtlUnary"
+            },
+            {
+              "$ref": "#/$defs/CtlUntil"
+            }
+          ],
+          "title": "Left"
+        },
+        "op": {
+          "const": "implies",
+          "default": "implies",
+          "title": "Op",
+          "type": "string"
+        },
+        "right": {
+          "discriminator": {
+            "mapping": {
+              "AF": "#/$defs/CtlUnary",
+              "AG": "#/$defs/CtlUnary",
+              "AU": "#/$defs/CtlUntil",
+              "AX": "#/$defs/CtlUnary",
+              "EF": "#/$defs/CtlUnary",
+              "EG": "#/$defs/CtlUnary",
+              "EU": "#/$defs/CtlUntil",
+              "EX": "#/$defs/CtlUnary",
+              "F": "#/$defs/LtlUnary",
+              "G": "#/$defs/LtlUnary",
+              "U": "#/$defs/LtlUntil",
+              "X": "#/$defs/LtlUnary",
+              "and": "#/$defs/And",
+              "compare": "#/$defs/Compare",
+              "const": "#/$defs/Truth",
+              "deadlock": "#/$defs/Deadlock",
+              "enabled": "#/$defs/Enabled",
+              "implies": "#/$defs/Implies",
+              "not": "#/$defs/Not",
+              "or": "#/$defs/Or",
+              "tokens": "#/$defs/Tokens"
+            },
+            "propertyName": "op"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Tokens"
+            },
+            {
+              "$ref": "#/$defs/Compare"
+            },
+            {
+              "$ref": "#/$defs/Enabled"
+            },
+            {
+              "$ref": "#/$defs/Deadlock"
+            },
+            {
+              "$ref": "#/$defs/Truth"
+            },
+            {
+              "$ref": "#/$defs/Not"
+            },
+            {
+              "$ref": "#/$defs/And"
+            },
+            {
+              "$ref": "#/$defs/Or"
+            },
+            {
+              "$ref": "#/$defs/Implies"
+            },
+            {
+              "$ref": "#/$defs/LtlUnary"
+            },
+            {
+              "$ref": "#/$defs/LtlUntil"
+            },
+            {
+              "$ref": "#/$defs/CtlUnary"
+            },
+            {
+              "$ref": "#/$defs/CtlUntil"
+            }
+          ],
+          "title": "Right"
+        }
+      },
+      "required": [
+        "left",
+        "right"
+      ],
+      "title": "Implies",
+      "type": "object"
+    },
+    "Issue": {
+      "description": "An error or a warning, with a JSON pointer to the part of the formula it is about.",
+      "properties": {
+        "code": {
+          "title": "Code",
+          "type": "string"
+        },
+        "message": {
+          "title": "Message",
+          "type": "string"
+        },
+        "path": {
+          "title": "Path",
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "path"
+      ],
+      "title": "Issue",
+      "type": "object"
+    },
+    "LtlUnary": {
+      "description": "LTL operators with one operand: always, eventually, next.",
+      "properties": {
+        "arg": {
+          "discriminator": {
+            "mapping": {
+              "AF": "#/$defs/CtlUnary",
+              "AG": "#/$defs/CtlUnary",
+              "AU": "#/$defs/CtlUntil",
+              "AX": "#/$defs/CtlUnary",
+              "EF": "#/$defs/CtlUnary",
+              "EG": "#/$defs/CtlUnary",
+              "EU": "#/$defs/CtlUntil",
+              "EX": "#/$defs/CtlUnary",
+              "F": "#/$defs/LtlUnary",
+              "G": "#/$defs/LtlUnary",
+              "U": "#/$defs/LtlUntil",
+              "X": "#/$defs/LtlUnary",
+              "and": "#/$defs/And",
+              "compare": "#/$defs/Compare",
+              "const": "#/$defs/Truth",
+              "deadlock": "#/$defs/Deadlock",
+              "enabled": "#/$defs/Enabled",
+              "implies": "#/$defs/Implies",
+              "not": "#/$defs/Not",
+              "or": "#/$defs/Or",
+              "tokens": "#/$defs/Tokens"
+            },
+            "propertyName": "op"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Tokens"
+            },
+            {
+              "$ref": "#/$defs/Compare"
+            },
+            {
+              "$ref": "#/$defs/Enabled"
+            },
+            {
+              "$ref": "#/$defs/Deadlock"
+            },
+            {
+              "$ref": "#/$defs/Truth"
+            },
+            {
+              "$ref": "#/$defs/Not"
+            },
+            {
+              "$ref": "#/$defs/And"
+            },
+            {
+              "$ref": "#/$defs/Or"
+            },
+            {
+              "$ref": "#/$defs/Implies"
+            },
+            {
+              "$ref": "#/$defs/LtlUnary"
+            },
+            {
+              "$ref": "#/$defs/LtlUntil"
+            },
+            {
+              "$ref": "#/$defs/CtlUnary"
+            },
+            {
+              "$ref": "#/$defs/CtlUntil"
+            }
+          ],
+          "title": "Arg"
+        },
+        "op": {
+          "enum": [
+            "G",
+            "F",
+            "X"
+          ],
+          "title": "Op",
+          "type": "string"
+        }
+      },
+      "required": [
+        "op",
+        "arg"
+      ],
+      "title": "LtlUnary",
+      "type": "object"
+    },
+    "LtlUntil": {
+      "description": "LTL strong until.",
+      "properties": {
+        "left": {
+          "discriminator": {
+            "mapping": {
+              "AF": "#/$defs/CtlUnary",
+              "AG": "#/$defs/CtlUnary",
+              "AU": "#/$defs/CtlUntil",
+              "AX": "#/$defs/CtlUnary",
+              "EF": "#/$defs/CtlUnary",
+              "EG": "#/$defs/CtlUnary",
+              "EU": "#/$defs/CtlUntil",
+              "EX": "#/$defs/CtlUnary",
+              "F": "#/$defs/LtlUnary",
+              "G": "#/$defs/LtlUnary",
+              "U": "#/$defs/LtlUntil",
+              "X": "#/$defs/LtlUnary",
+              "and": "#/$defs/And",
+              "compare": "#/$defs/Compare",
+              "const": "#/$defs/Truth",
+              "deadlock": "#/$defs/Deadlock",
+              "enabled": "#/$defs/Enabled",
+              "implies": "#/$defs/Implies",
+              "not": "#/$defs/Not",
+              "or": "#/$defs/Or",
+              "tokens": "#/$defs/Tokens"
+            },
+            "propertyName": "op"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Tokens"
+            },
+            {
+              "$ref": "#/$defs/Compare"
+            },
+            {
+              "$ref": "#/$defs/Enabled"
+            },
+            {
+              "$ref": "#/$defs/Deadlock"
+            },
+            {
+              "$ref": "#/$defs/Truth"
+            },
+            {
+              "$ref": "#/$defs/Not"
+            },
+            {
+              "$ref": "#/$defs/And"
+            },
+            {
+              "$ref": "#/$defs/Or"
+            },
+            {
+              "$ref": "#/$defs/Implies"
+            },
+            {
+              "$ref": "#/$defs/LtlUnary"
+            },
+            {
+              "$ref": "#/$defs/LtlUntil"
+            },
+            {
+              "$ref": "#/$defs/CtlUnary"
+            },
+            {
+              "$ref": "#/$defs/CtlUntil"
+            }
+          ],
+          "title": "Left"
+        },
+        "op": {
+          "const": "U",
+          "default": "U",
+          "title": "Op",
+          "type": "string"
+        },
+        "right": {
+          "discriminator": {
+            "mapping": {
+              "AF": "#/$defs/CtlUnary",
+              "AG": "#/$defs/CtlUnary",
+              "AU": "#/$defs/CtlUntil",
+              "AX": "#/$defs/CtlUnary",
+              "EF": "#/$defs/CtlUnary",
+              "EG": "#/$defs/CtlUnary",
+              "EU": "#/$defs/CtlUntil",
+              "EX": "#/$defs/CtlUnary",
+              "F": "#/$defs/LtlUnary",
+              "G": "#/$defs/LtlUnary",
+              "U": "#/$defs/LtlUntil",
+              "X": "#/$defs/LtlUnary",
+              "and": "#/$defs/And",
+              "compare": "#/$defs/Compare",
+              "const": "#/$defs/Truth",
+              "deadlock": "#/$defs/Deadlock",
+              "enabled": "#/$defs/Enabled",
+              "implies": "#/$defs/Implies",
+              "not": "#/$defs/Not",
+              "or": "#/$defs/Or",
+              "tokens": "#/$defs/Tokens"
+            },
+            "propertyName": "op"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Tokens"
+            },
+            {
+              "$ref": "#/$defs/Compare"
+            },
+            {
+              "$ref": "#/$defs/Enabled"
+            },
+            {
+              "$ref": "#/$defs/Deadlock"
+            },
+            {
+              "$ref": "#/$defs/Truth"
+            },
+            {
+              "$ref": "#/$defs/Not"
+            },
+            {
+              "$ref": "#/$defs/And"
+            },
+            {
+              "$ref": "#/$defs/Or"
+            },
+            {
+              "$ref": "#/$defs/Implies"
+            },
+            {
+              "$ref": "#/$defs/LtlUnary"
+            },
+            {
+              "$ref": "#/$defs/LtlUntil"
+            },
+            {
+              "$ref": "#/$defs/CtlUnary"
+            },
+            {
+              "$ref": "#/$defs/CtlUntil"
+            }
+          ],
+          "title": "Right"
+        }
+      },
+      "required": [
+        "left",
+        "right"
+      ],
+      "title": "LtlUntil",
+      "type": "object"
+    },
+    "Not": {
+      "description": "Negation.",
+      "properties": {
+        "arg": {
+          "discriminator": {
+            "mapping": {
+              "AF": "#/$defs/CtlUnary",
+              "AG": "#/$defs/CtlUnary",
+              "AU": "#/$defs/CtlUntil",
+              "AX": "#/$defs/CtlUnary",
+              "EF": "#/$defs/CtlUnary",
+              "EG": "#/$defs/CtlUnary",
+              "EU": "#/$defs/CtlUntil",
+              "EX": "#/$defs/CtlUnary",
+              "F": "#/$defs/LtlUnary",
+              "G": "#/$defs/LtlUnary",
+              "U": "#/$defs/LtlUntil",
+              "X": "#/$defs/LtlUnary",
+              "and": "#/$defs/And",
+              "compare": "#/$defs/Compare",
+              "const": "#/$defs/Truth",
+              "deadlock": "#/$defs/Deadlock",
+              "enabled": "#/$defs/Enabled",
+              "implies": "#/$defs/Implies",
+              "not": "#/$defs/Not",
+              "or": "#/$defs/Or",
+              "tokens": "#/$defs/Tokens"
+            },
+            "propertyName": "op"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Tokens"
+            },
+            {
+              "$ref": "#/$defs/Compare"
+            },
+            {
+              "$ref": "#/$defs/Enabled"
+            },
+            {
+              "$ref": "#/$defs/Deadlock"
+            },
+            {
+              "$ref": "#/$defs/Truth"
+            },
+            {
+              "$ref": "#/$defs/Not"
+            },
+            {
+              "$ref": "#/$defs/And"
+            },
+            {
+              "$ref": "#/$defs/Or"
+            },
+            {
+              "$ref": "#/$defs/Implies"
+            },
+            {
+              "$ref": "#/$defs/LtlUnary"
+            },
+            {
+              "$ref": "#/$defs/LtlUntil"
+            },
+            {
+              "$ref": "#/$defs/CtlUnary"
+            },
+            {
+              "$ref": "#/$defs/CtlUntil"
+            }
+          ],
+          "title": "Arg"
+        },
+        "op": {
+          "const": "not",
+          "default": "not",
+          "title": "Op",
+          "type": "string"
+        }
+      },
+      "required": [
+        "arg"
+      ],
+      "title": "Not",
+      "type": "object"
+    },
+    "Or": {
+      "description": "Disjunction of at least two operands.",
+      "properties": {
+        "args": {
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "AF": "#/$defs/CtlUnary",
+                "AG": "#/$defs/CtlUnary",
+                "AU": "#/$defs/CtlUntil",
+                "AX": "#/$defs/CtlUnary",
+                "EF": "#/$defs/CtlUnary",
+                "EG": "#/$defs/CtlUnary",
+                "EU": "#/$defs/CtlUntil",
+                "EX": "#/$defs/CtlUnary",
+                "F": "#/$defs/LtlUnary",
+                "G": "#/$defs/LtlUnary",
+                "U": "#/$defs/LtlUntil",
+                "X": "#/$defs/LtlUnary",
+                "and": "#/$defs/And",
+                "compare": "#/$defs/Compare",
+                "const": "#/$defs/Truth",
+                "deadlock": "#/$defs/Deadlock",
+                "enabled": "#/$defs/Enabled",
+                "implies": "#/$defs/Implies",
+                "not": "#/$defs/Not",
+                "or": "#/$defs/Or",
+                "tokens": "#/$defs/Tokens"
+              },
+              "propertyName": "op"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/Tokens"
+              },
+              {
+                "$ref": "#/$defs/Compare"
+              },
+              {
+                "$ref": "#/$defs/Enabled"
+              },
+              {
+                "$ref": "#/$defs/Deadlock"
+              },
+              {
+                "$ref": "#/$defs/Truth"
+              },
+              {
+                "$ref": "#/$defs/Not"
+              },
+              {
+                "$ref": "#/$defs/And"
+              },
+              {
+                "$ref": "#/$defs/Or"
+              },
+              {
+                "$ref": "#/$defs/Implies"
+              },
+              {
+                "$ref": "#/$defs/LtlUnary"
+              },
+              {
+                "$ref": "#/$defs/LtlUntil"
+              },
+              {
+                "$ref": "#/$defs/CtlUnary"
+              },
+              {
+                "$ref": "#/$defs/CtlUntil"
+              }
+            ]
+          },
+          "minItems": 2,
+          "title": "Args",
+          "type": "array"
+        },
+        "op": {
+          "const": "or",
+          "default": "or",
+          "title": "Op",
+          "type": "string"
+        }
+      },
+      "required": [
+        "args"
+      ],
+      "title": "Or",
+      "type": "object"
+    },
+    "TokenCount": {
+      "description": "A term: the sum of the tokens held by some places.",
+      "properties": {
+        "kind": {
+          "const": "tokens",
+          "default": "tokens",
+          "title": "Kind",
+          "type": "string"
+        },
+        "places": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Places",
+          "type": "array"
+        }
+      },
+      "required": [
+        "places"
+      ],
+      "title": "TokenCount",
+      "type": "object"
+    },
+    "Tokens": {
+      "description": "Cardinality atom on one place: its tokens compared with a constant.",
+      "properties": {
+        "cmp": {
+          "enum": [
+            "<",
+            "<=",
+            "==",
+            "!=",
+            ">=",
+            ">"
+          ],
+          "title": "Cmp",
+          "type": "string"
+        },
+        "op": {
+          "const": "tokens",
+          "default": "tokens",
+          "title": "Op",
+          "type": "string"
+        },
+        "place": {
+          "title": "Place",
+          "type": "string"
+        },
+        "value": {
+          "minimum": 0,
+          "title": "Value",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "place",
+        "cmp",
+        "value"
+      ],
+      "title": "Tokens",
+      "type": "object"
+    },
+    "Truth": {
+      "description": "The constants true and false.",
+      "properties": {
+        "op": {
+          "const": "const",
+          "default": "const",
+          "title": "Op",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "value"
+      ],
+      "title": "Truth",
+      "type": "object"
+    }
+  },
+  "description": "Outcome of checking a formula against a net.",
+  "properties": {
+    "atoms": {
+      "$ref": "#/$defs/AtomKinds"
+    },
+    "errors": {
+      "items": {
+        "$ref": "#/$defs/Issue"
+      },
+      "title": "Errors",
+      "type": "array"
+    },
+    "formula": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Formula"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "text": {
+      "title": "Text",
+      "type": "string"
+    },
+    "uses_next": {
+      "title": "Uses Next",
+      "type": "boolean"
+    },
+    "valid": {
+      "title": "Valid",
+      "type": "boolean"
+    },
+    "warnings": {
+      "items": {
+        "$ref": "#/$defs/Issue"
+      },
+      "title": "Warnings",
+      "type": "array"
+    }
+  },
+  "required": [
+    "valid",
+    "formula",
+    "errors",
+    "warnings",
+    "atoms",
+    "uses_next",
+    "text"
+  ],
+  "title": "FormulaReport",
+  "type": "object"
+}

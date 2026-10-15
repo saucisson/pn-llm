@@ -9,6 +9,7 @@ from fastapi.responses import JSONResponse
 
 from app.domain.errors import (
     DomainError,
+    InvalidFormulaError,
     InvalidNetError,
     InvalidRequestError,
     NotAcceptableError,
@@ -49,8 +50,8 @@ async def handle_domain_error(_: Request, exc: Exception) -> JSONResponse:  # no
     problem = ProblemDetails(
         title=status.phrase,
         status=status.value,
-        detail=exc.reason if isinstance(exc, InvalidNetError) else str(exc),
-        location=exc.location if isinstance(exc, InvalidNetError) else None,
+        detail=exc.reason if isinstance(exc, InvalidNetError | InvalidFormulaError) else str(exc),
+        location=exc.location if isinstance(exc, InvalidNetError | InvalidFormulaError) else None,
     )
     return JSONResponse(
         status_code=status.value,
