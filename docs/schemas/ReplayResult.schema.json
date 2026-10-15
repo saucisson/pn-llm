@@ -1,0 +1,184 @@
+{
+  "$defs": {
+    "ElementRef": {
+      "description": "Cite a place or a transition by id; the name is kept exactly as in the net.",
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "place",
+            "transition"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Name"
+        }
+      },
+      "required": [
+        "id",
+        "kind"
+      ],
+      "title": "ElementRef",
+      "type": "object"
+    },
+    "Marking": {
+      "description": "A sparse marking: places holding no token are omitted; entries are sorted by place id.",
+      "properties": {
+        "entries": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/MarkingEntry"
+          },
+          "title": "Entries",
+          "type": "array"
+        }
+      },
+      "title": "Marking",
+      "type": "object"
+    },
+    "MarkingEntry": {
+      "description": "A place holding at least one token.",
+      "properties": {
+        "place": {
+          "$ref": "#/$defs/ElementRef"
+        },
+        "tokens": {
+          "minimum": 1,
+          "title": "Tokens",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "place",
+        "tokens"
+      ],
+      "title": "MarkingEntry",
+      "type": "object"
+    },
+    "MissingTokens": {
+      "description": "A place that holds fewer tokens than a firing needs.",
+      "properties": {
+        "available": {
+          "title": "Available",
+          "type": "integer"
+        },
+        "needed": {
+          "title": "Needed",
+          "type": "integer"
+        },
+        "place": {
+          "$ref": "#/$defs/ElementRef"
+        }
+      },
+      "required": [
+        "place",
+        "needed",
+        "available"
+      ],
+      "title": "MissingTokens",
+      "type": "object"
+    },
+    "ReplayFailure": {
+      "description": "Where a replay stopped: the firing that was not enabled and what was missing.",
+      "properties": {
+        "missing": {
+          "items": {
+            "$ref": "#/$defs/MissingTokens"
+          },
+          "title": "Missing",
+          "type": "array"
+        },
+        "step": {
+          "title": "Step",
+          "type": "integer"
+        },
+        "transition": {
+          "$ref": "#/$defs/ElementRef"
+        }
+      },
+      "required": [
+        "step",
+        "transition",
+        "missing"
+      ],
+      "title": "ReplayFailure",
+      "type": "object"
+    }
+  },
+  "description": "Outcome of a replay.",
+  "properties": {
+    "failure": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ReplayFailure"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "final_marking": {
+      "$ref": "#/$defs/Marking"
+    },
+    "markings": {
+      "items": {
+        "$ref": "#/$defs/Marking"
+      },
+      "title": "Markings",
+      "type": "array"
+    },
+    "markings_from": {
+      "title": "Markings From",
+      "type": "integer"
+    },
+    "markings_total": {
+      "title": "Markings Total",
+      "type": "integer"
+    },
+    "replayed": {
+      "title": "Replayed",
+      "type": "integer"
+    },
+    "state_formula_holds": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "State Formula Holds"
+    },
+    "valid": {
+      "title": "Valid",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "valid",
+    "replayed",
+    "failure",
+    "final_marking",
+    "markings_from",
+    "markings_total",
+    "markings"
+  ],
+  "title": "ReplayResult",
+  "type": "object"
+}

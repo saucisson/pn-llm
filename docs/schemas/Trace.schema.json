@@ -1,0 +1,127 @@
+{
+  "$defs": {
+    "ElementRef": {
+      "description": "Cite a place or a transition by id; the name is kept exactly as in the net.",
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "place",
+            "transition"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Name"
+        }
+      },
+      "required": [
+        "id",
+        "kind"
+      ],
+      "title": "ElementRef",
+      "type": "object"
+    },
+    "Marking": {
+      "description": "A sparse marking: places holding no token are omitted; entries are sorted by place id.",
+      "properties": {
+        "entries": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/MarkingEntry"
+          },
+          "title": "Entries",
+          "type": "array"
+        }
+      },
+      "title": "Marking",
+      "type": "object"
+    },
+    "MarkingEntry": {
+      "description": "A place holding at least one token.",
+      "properties": {
+        "place": {
+          "$ref": "#/$defs/ElementRef"
+        },
+        "tokens": {
+          "minimum": 1,
+          "title": "Tokens",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "place",
+        "tokens"
+      ],
+      "title": "MarkingEntry",
+      "type": "object"
+    },
+    "TraceStep": {
+      "description": "One firing, as the platform reports it: the transition cited by reference.",
+      "properties": {
+        "transition": {
+          "$ref": "#/$defs/ElementRef"
+        }
+      },
+      "required": [
+        "transition"
+      ],
+      "title": "TraceStep",
+      "type": "object"
+    }
+  },
+  "description": "A counterexample on the original net, validated against it (docs/json-contract.md).",
+  "properties": {
+    "formula_id": {
+      "title": "Formula Id",
+      "type": "string"
+    },
+    "initial_marking": {
+      "$ref": "#/$defs/Marking"
+    },
+    "loop_start": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Loop Start"
+    },
+    "net_id": {
+      "title": "Net Id",
+      "type": "string"
+    },
+    "steps": {
+      "items": {
+        "$ref": "#/$defs/TraceStep"
+      },
+      "title": "Steps",
+      "type": "array"
+    }
+  },
+  "required": [
+    "formula_id",
+    "net_id",
+    "initial_marking",
+    "steps"
+  ],
+  "title": "Trace",
+  "type": "object"
+}

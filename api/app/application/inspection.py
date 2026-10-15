@@ -25,6 +25,7 @@ from app.domain.inspection import (
 )
 from app.domain.net_structure import NetStructure, StructureNode, build_structure
 from app.domain.pagination import Paged, paginate
+from app.domain.replay import ReplayRequest, ReplayResult, replay
 
 from .ports import NetRepository
 
@@ -187,6 +188,14 @@ class InspectionService:
         return neighbourhood(
             structure=structure, centers=ids, depth=depth, max_elements=max_elements
         )
+
+    def replay(self, *, net_id: str, request: ReplayRequest) -> ReplayResult:
+        """Replay firings on a P/T net: where they stop being possible, and the markings met.
+
+        Raises:
+            InvalidRequestError: if the net is not P/T or the request cites bad ids.
+        """
+        return replay(structure=self.structure(net_id=net_id), request=request)
 
     def name_groups(self, *, net_id: str, min_count: int, page: PageRequest) -> Paged[NameGroup]:
         """List families of indexed names, compressed to pattern, ranges and count."""

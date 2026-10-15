@@ -1,0 +1,89 @@
+{
+  "$defs": {
+    "EngineFormulaResult": {
+      "description": "One entry of ``result.json``: the verdict of one formula.",
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "rendered": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Rendered"
+        },
+        "time_s": {
+          "default": 0.0,
+          "minimum": 0,
+          "title": "Time S",
+          "type": "number"
+        },
+        "trace": {
+          "anyOf": [
+            {
+              "pattern": "^trace_[A-Za-z0-9_.\\-]+\\.json$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Trace"
+        },
+        "verdict": {
+          "$ref": "#/$defs/Verdict"
+        },
+        "warnings": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Warnings",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "verdict"
+      ],
+      "title": "EngineFormulaResult",
+      "type": "object"
+    },
+    "Verdict": {
+      "description": "Outcome of one verification. UNKNOWN must never be confused with FALSE.",
+      "enum": [
+        "TRUE",
+        "FALSE",
+        "UNKNOWN",
+        "TIMEOUT",
+        "OOM",
+        "ERROR"
+      ],
+      "title": "Verdict",
+      "type": "string"
+    }
+  },
+  "description": "The ``data`` of the envelope of a check.",
+  "properties": {
+    "results": {
+      "items": {
+        "$ref": "#/$defs/EngineFormulaResult"
+      },
+      "title": "Results",
+      "type": "array"
+    }
+  },
+  "required": [
+    "results"
+  ],
+  "title": "EngineCheckData",
+  "type": "object"
+}

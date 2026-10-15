@@ -196,9 +196,17 @@ created. The reduced net is stored by the platform; the LLM never receives it (A
 Lists every analysis and transformation with its route, parameters, result type and, for a
 reduction, the properties it preserves, plus which engines are available for it.
 
+`POST /v1/nets/{id}/replay` takes `{"steps": ["t1", ...], "initial_marking"?, "state_formula"?,
+"page"?}`: it fires the transitions in order on a P/T net and returns `valid`, the number of firings
+that succeeded (`replayed`), `failure` (the step, the transition and the places that lacked tokens),
+the `final_marking`, a window of successive `markings` (`markings_from`, `markings_total`, the
+envelope `truncated` carries the cursor) and, if a state condition was given, whether it holds on
+the final marking (`state_formula_holds`).
+
 ### Verification (`POST /checks`, `GET /v1/jobs/{id}`)
 Asynchronous verification of structured formulas (batch semantics, ADR 0014 point 7):
-`check.submit`, `check.get`, `check.cancel`, `check.trace`.
-
-The current implementation (v0) exposes a subset with plain-text formulas and full name lists in
-`NetSummary`; the backlog migrates it to this contract (milestone M1).
+`check.submit` (`POST /v1/nets/{id}/checks`, 202), `check.get` (`GET /v1/jobs/{id}`), `check.cancel`
+(`DELETE /v1/jobs/{id}`) and `check.trace` (`GET /v1/jobs/{id}/results/{k}/trace`: the counterexample
+of the `k`-th result, steps citing transitions, on the original net). A result carries the engine,
+its pinned version, the formula in the engine's syntax (`rendered`) and `trace_url` when there is a
+counterexample.

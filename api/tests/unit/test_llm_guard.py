@@ -14,7 +14,7 @@ SCHEMAS = Path(__file__).resolve().parents[3] / "docs" / "schemas"
 XML = {"Content-Type": "application/pnml+xml"}
 
 # Values for the parameters of the routes, to call every tool once.
-PATH_VALUES = {"element_id": "enter1"}
+PATH_VALUES = {"element_id": "enter1", "result_index": "0"}
 QUERY_VALUES = {"ids": "enter1", "q": "e"}
 
 
@@ -65,9 +65,10 @@ def test_no_tool_declares_a_net_in_its_responses(client):
             assert "NetDocument" not in reachable, (method, path)
 
 
-def test_no_tool_returns_a_net_when_called(client):
+def test_no_tool_returns_a_net_when_called(scripted_client):
+    client = scripted_client
     net_id = client.post("/v1/nets", content=MUTEX_PNML, headers=XML).json()["net_id"]
-    job_id = client.post(f"/v1/nets/{net_id}/checks", json=CHECK_BODY).json()["job_id"]
+    job_id = client.post(f"/v1/nets/{net_id}/checks", json=CHECK_BODY).json()["data"]["job_id"]
     envelope = json.loads((SCHEMAS / "Envelope.schema.json").read_text())
     values = {**PATH_VALUES, "job_id": job_id}
     called = 0
@@ -85,10 +86,7 @@ def test_no_tool_returns_a_net_when_called(client):
         response = client.get(url, params=params)
         assert response.status_code == 200, (url, response.text)
         assert not contains_net(text=response.text), url
-        if not path.startswith(
-            "/v1/jobs"
-        ):  # jobs adopt the envelope with the engine contract (#21)
-            validate(instance=response.json(), schema=envelope)
+        validate(instance=response.json(), schema=envelope)
         called += 1
     assert called >= 8
 

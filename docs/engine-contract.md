@@ -5,9 +5,10 @@ about tool-specific details: adapters live inside the image. The contract follow
 `docs/json-contract.md` (ADR 0013): the net is given as PNML, rendered by the platform from the
 canonical net document (ADR 0015); everything else is structured JSON.
 
-**Status**: this is the target contract (version 1). The implemented version 0 reads `net.pnml`
-and a `request.json` with plain-text formulas and writes a `result.json` without envelope; it is
-migrated by the backlog (milestone M1).
+**Status**: version 1, implemented for checks (`kind: check`). Analyses and reductions share the
+request and the envelope; their operations arrive with milestone M4. The models are in
+`app/domain/engine_contract.py` (schemas in `docs/schemas/`: `EngineRequest`, `EngineCheckData`,
+`EngineTrace`).
 
 ## Inputs (mounted read-only in `/work/input/`)
 
@@ -56,7 +57,9 @@ another one.
 }
 ```
 
-- `trace_<id>.json`: a counterexample in the structured trace format (steps cite transition ids).
+- `trace_<id>.json`: a counterexample, named in the `trace` field of its result (the name must
+  match `trace_[A-Za-z0-9_.-]+.json`): `{"steps": [{"transition": "t3"}], "loop_start": null}`.
+  `loop_start` is the index of the step where the cycle begins for an infinite run.
 
 ## Rules
 
@@ -64,7 +67,13 @@ another one.
   **never** FALSE.
 - One entry per received formula, even when the whole run fails.
 - `tool.version` is mandatory (the pinned version of the tool).
-- Every id in the output exists in the input net; the platform rejects outputs that cite others.
+- Every id in the output exists in the input net, and every result answers a formula of the
+  request: the platform rejects an output that cites others or answers twice, and reports ERROR
+  for every formula instead (`app/domain/engine_check.py`). A formula without result gets ERROR.
+- A `result.json` or trace larger than 64 MB is ignored. A trace that cannot be read leaves the
+  verdict and adds the warning `unreadable_trace`.
+- The platform replays traces itself (`POST /v1/nets/{id}/replay`); it never takes an engine's word
+  for a counterexample.
 - Output is deterministic JSON; no PNML or other XML in `result.json` or traces. The only other
   file an engine may write is `reduced.pnml` for a reduction that applied, with the element mapping
   in `result.json`; the platform imports it through its hardened PNML importer, hashes the result

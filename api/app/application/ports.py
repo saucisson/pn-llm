@@ -7,8 +7,8 @@ from __future__ import annotations
 
 from typing import Protocol
 
+from app.domain.engine_contract import EngineReport, EngineRequest, Trace
 from app.domain.models import (
-    CheckRequest,
     EngineInfo,
     FormulaResult,
     Job,
@@ -56,8 +56,14 @@ class JobRepository(Protocol):
         """Cancel a queued or running job; finished jobs are left untouched."""
         ...
 
-    def finish(self, *, job_id: str, results: tuple[FormulaResult, ...]) -> None:
-        """Store results and mark the job done, only if it is still running."""
+    def finish(
+        self, *, job_id: str, results: tuple[FormulaResult, ...], traces: tuple[Trace, ...]
+    ) -> None:
+        """Store results and counterexamples and mark the job done, only if it is still running."""
+        ...
+
+    def load_trace(self, *, job_id: str, formula_id: str) -> Trace:
+        """Return the counterexample stored for a formula of a job, or raise NotFoundError."""
         ...
 
     def recover_interrupted(self) -> int:
@@ -80,10 +86,8 @@ class EngineGateway(Protocol):
         """Return the engine to use for a request ("auto" lets the gateway decide)."""
         ...
 
-    def run(
-        self, *, engine: str, pnml: bytes, request: CheckRequest, job_id: str
-    ) -> tuple[FormulaResult, ...]:
-        """Run an engine on a net for a job; return one result per formula."""
+    def run(self, *, engine: str, pnml: bytes, request: EngineRequest, job_id: str) -> EngineReport:
+        """Run an engine on a net for a job; report what it produced (to be checked)."""
         ...
 
     def stop(self, *, job_id: str) -> None:

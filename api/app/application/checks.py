@@ -4,15 +4,15 @@ from __future__ import annotations
 
 import uuid
 
-from app.domain.errors import InvalidFormulaError, InvalidRequestError
+from app.domain.engine_check import all_error, interpret_report
+from app.domain.engine_contract import EngineRequest, Trace
+from app.domain.errors import InvalidFormulaError, InvalidRequestError, NotFoundError
 from app.domain.formula_check import check_formula
 from app.domain.models import (
     CheckRequest,
-    FormulaResult,
     Job,
     JobState,
     JobSubmission,
-    Verdict,
 )
 from app.domain.net_structure import build_structure
 from app.domain.pnml_export import render_pnml
@@ -81,6 +81,7 @@ class CheckService:
             return  # cancelled before it started, or claimed by another process
         job = self._jobs.load_job(job_id=job_id)
         net = self._nets.load_net(net_id=job.net_id)
+        structure = build_structure(document=net.document, net_id=job.net_id)
         engine = self._engines.choose(requested=job.request.engine)
         try:
             with LeaseKeeper(
@@ -89,23 +90,43 @@ class CheckService:
                 lease_seconds=self._lease_seconds,
                 on_lost=lambda: self._engines.stop(job_id=job_id),
             ):
-                results = self._engines.run(
+                report = self._engines.run(
                     engine=engine,
                     pnml=render_pnml(document=net.document),
-                    request=job.request,
+                    request=EngineRequest(
+                        net_id=job.net_id,
+                        formulas=job.request.formulas,
+                        limits=job.request.limits,
+                    ),
                     job_id=job_id,
                 )
-        except Exception as exc:  # noqa: BLE001  (adapter bugs are reported, not propagated)
-            results = tuple(
-                FormulaResult(
-                    id=formula.id,
-                    verdict=Verdict.ERROR,
-                    engine=engine,
-                    warnings=(f"runner_exception: {type(exc).__name__}",),
-                )
-                for formula in job.request.formulas
+            outcome = interpret_report(
+                report=report,
+                request=job.request,
+                engine=engine,
+                net_id=job.net_id,
+                structure=structure,
             )
-        self._jobs.finish(job_id=job_id, results=results)
+        except Exception as exc:  # noqa: BLE001  (adapter bugs are reported, not propagated)
+            outcome = all_error(
+                request=job.request,
+                engine=engine,
+                warning=f"runner_exception: {type(exc).__name__}",
+            )
+        # A counterexample is served at a stable address, built from the position of its result.
+        results = tuple(
+            result.model_copy(
+                update={
+                    "trace_url": (
+                        f"/v1/jobs/{job_id}/results/{index}/trace"
+                        if any(trace.formula_id == result.id for trace in outcome.traces)
+                        else None
+                    )
+                }
+            )
+            for index, result in enumerate(outcome.results)
+        )
+        self._jobs.finish(job_id=job_id, results=results, traces=outcome.traces)
 
     def recover_interrupted(self) -> int:
         """Mark jobs whose owner stopped renewing their lease as interrupted; return the count.
@@ -121,6 +142,17 @@ class CheckService:
             NotFoundError: if the job is unknown.
         """
         return self._jobs.load_job(job_id=job_id)
+
+    def trace(self, *, job_id: str, result_index: int) -> Trace:
+        """Return the counterexample of the ``result_index``-th result of a job.
+
+        Raises:
+            NotFoundError: if the job, the result or its trace does not exist.
+        """
+        job = self._jobs.load_job(job_id=job_id)
+        if not 0 <= result_index < len(job.results):
+            raise NotFoundError(f"Job {job_id} has no result {result_index}")
+        return self._jobs.load_trace(job_id=job_id, formula_id=job.results[result_index].id)
 
     def cancel(self, *, job_id: str) -> None:
         """Cancel a job that has not finished; finished jobs are left untouched.

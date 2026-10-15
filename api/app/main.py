@@ -22,6 +22,7 @@ from app.application.engines import EngineService
 from app.application.formulas import FormulaService
 from app.application.inspection import InspectionService
 from app.application.nets import NetService
+from app.application.ports import EngineGateway
 from app.domain.net_validation import DocumentLimits
 from app.infrastructure.docker_runner import DockerRunner
 from app.infrastructure.engine_registry import DEFAULT_ENGINES, EngineRegistry
@@ -29,12 +30,18 @@ from app.infrastructure.sqlite_store import SqliteStore
 from app.settings import Settings
 
 
-def create_app(*, settings: Settings | None = None) -> FastAPI:
-    """Build the application from its settings (read from the environment when omitted)."""
+def create_app(
+    *, settings: Settings | None = None, engine_gateway: EngineGateway | None = None
+) -> FastAPI:
+    """Build the application from its settings (read from the environment when omitted).
+
+    ``engine_gateway`` replaces the Docker-backed engine registry: the seam for tests that need
+    an engine with a scripted answer.
+    """
     config = settings or Settings()
 
     store = SqliteStore(path=config.database_path)
-    registry = EngineRegistry(specs=DEFAULT_ENGINES, docker=DockerRunner())
+    registry = engine_gateway or EngineRegistry(specs=DEFAULT_ENGINES, docker=DockerRunner())
     checks = CheckService(
         nets=store, jobs=store, engines=registry, lease_seconds=config.job_lease_seconds
     )

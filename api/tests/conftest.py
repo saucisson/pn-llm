@@ -9,7 +9,7 @@ from app.infrastructure.sqlite_store import SqliteStore
 from app.main import create_app
 from app.settings import Settings
 
-from .support import MUTEX_PNML
+from .support import MUTEX_PNML, ScriptedEngines
 
 
 @pytest.fixture
@@ -30,3 +30,9 @@ def store(settings: Settings) -> SqliteStore:
 @pytest.fixture
 def client(settings: Settings) -> TestClient:
     return TestClient(create_app(settings=settings))
+
+
+@pytest.fixture
+def scripted_client(settings: Settings) -> TestClient:
+    """A client whose engine answers FALSE with the counterexample enter1 (see ScriptedEngines)."""
+    return TestClient(create_app(settings=settings, engine_gateway=ScriptedEngines()))

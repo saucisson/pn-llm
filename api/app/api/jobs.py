@@ -2,38 +2,54 @@
 
 from __future__ import annotations
 
+import time
 from http import HTTPStatus
 
 from fastapi import APIRouter, Response
 from fastapi.responses import JSONResponse
 from starlette.background import BackgroundTask
 
+from app.domain.contract import Envelope
+from app.domain.engine_contract import Trace
 from app.domain.models import CheckRequest, Job
 
 from .deps import ChecksDep
+from .envelopes import wrap
 
 router = APIRouter(prefix="/v1", tags=["checks"])
 
 
-@router.post("/nets/{net_id}/checks", response_model=Job, status_code=HTTPStatus.ACCEPTED)
+@router.post("/nets/{net_id}/checks", response_model=Envelope[Job], status_code=HTTPStatus.ACCEPTED)
 def start_check(*, net_id: str, body: CheckRequest, checks: ChecksDep) -> JSONResponse:
     """Start (or reuse) an asynchronous check of formulas on a net."""
+    started = time.perf_counter()
     submission = checks.submit(net_id=net_id, request=body)
     # Only a new job is executed; an equivalent live job is already on its way.
     background = (
         BackgroundTask(checks.execute, job_id=submission.job.job_id) if submission.created else None
     )
+    envelope = wrap(tool="check.submit", net_id=net_id, started=started, data=submission.job)
     return JSONResponse(
         status_code=HTTPStatus.ACCEPTED,
-        content=submission.job.model_dump(mode="json"),
+        content=envelope.model_dump(mode="json"),
         background=background,
     )
 
 
-@router.get("/jobs/{job_id}", response_model=Job)
-def get_job(*, job_id: str, checks: ChecksDep) -> Job:
+@router.get("/jobs/{job_id}")
+def get_job(*, job_id: str, checks: ChecksDep) -> Envelope[Job]:
     """Return a job with its state and results."""
-    return checks.get(job_id=job_id)
+    started = time.perf_counter()
+    job = checks.get(job_id=job_id)
+    return wrap(tool="check.get", net_id=job.net_id, started=started, data=job)
+
+
+@router.get("/jobs/{job_id}/results/{result_index}/trace")
+def get_trace(*, job_id: str, result_index: int, checks: ChecksDep) -> Envelope[Trace]:
+    """Return the counterexample of one result: the transitions fired, on the original net."""
+    started = time.perf_counter()
+    trace = checks.trace(job_id=job_id, result_index=result_index)
+    return wrap(tool="check.trace", net_id=trace.net_id, started=started, data=trace)
 
 
 @router.delete("/jobs/{job_id}", status_code=HTTPStatus.NO_CONTENT)

@@ -82,7 +82,7 @@ def test_check_lifecycle_with_the_dummy_engine(client):
     net_id = upload(client)["net_id"]
     response = start(client, net_id)
     assert response.status_code == 202
-    job = client.get(f"/v1/jobs/{response.json()['job_id']}").json()
+    job = client.get(f"/v1/jobs/{response.json()['data']['job_id']}").json()["data"]
     assert job["state"] == "done"  # TestClient runs background tasks before returning
     # The dummy engine verifies nothing: it must NEVER answer TRUE or FALSE
     assert job["results"][0]["verdict"] == "UNKNOWN"
@@ -90,13 +90,19 @@ def test_check_lifecycle_with_the_dummy_engine(client):
 
 def test_same_request_returns_the_same_job(client):
     net_id = upload(client)["net_id"]
-    assert start(client, net_id).json()["job_id"] == start(client, net_id).json()["job_id"]
+    assert (
+        start(client, net_id).json()["data"]["job_id"]
+        == start(client, net_id).json()["data"]["job_id"]
+    )
 
 
 def test_different_limits_make_a_different_job(client):
     net_id = upload(client)["net_id"]
     other = {**CHECK_BODY, "limits": {"timeout_s": 10, "memory_mb": 512}}
-    assert start(client, net_id).json()["job_id"] != start(client, net_id, other).json()["job_id"]
+    assert (
+        start(client, net_id).json()["data"]["job_id"]
+        != start(client, net_id, other).json()["data"]["job_id"]
+    )
 
 
 def test_unknown_engine_is_a_422(client):
@@ -121,9 +127,9 @@ def test_unknown_job_is_a_404(client):
 
 def test_cancelling_a_finished_job_keeps_its_results(client):
     net_id = upload(client)["net_id"]
-    job_id = start(client, net_id).json()["job_id"]
+    job_id = start(client, net_id).json()["data"]["job_id"]
     assert client.delete(f"/v1/jobs/{job_id}").status_code == 204
-    job = client.get(f"/v1/jobs/{job_id}").json()
+    job = client.get(f"/v1/jobs/{job_id}").json()["data"]
     assert job["state"] == "done"
     assert job["results"]
 
@@ -144,14 +150,14 @@ def test_engines_are_listed_with_capabilities(client):
 def test_nets_and_jobs_survive_a_restart(settings):
     first = TestClient(create_app(settings=settings))
     net_id = upload(first)["net_id"]
-    job_id = start(first, net_id).json()["job_id"]
+    job_id = start(first, net_id).json()["data"]["job_id"]
 
     second = TestClient(create_app(settings=settings))  # new process, same database file
     assert len(second.get(f"/v1/nets/{net_id}").json()["pages"][0]["places"]) == 3
-    job = second.get(f"/v1/jobs/{job_id}").json()
+    job = second.get(f"/v1/jobs/{job_id}").json()["data"]
     assert job["state"] == "done"
     assert job["results"][0]["engine"] == "dummy"
-    assert start(second, net_id).json()["job_id"] == job_id  # idempotent across restarts
+    assert start(second, net_id).json()["data"]["job_id"] == job_id  # idempotent across restarts
 
 
 def test_the_sweeper_interrupts_orphans_but_not_live_jobs(settings):
@@ -175,11 +181,11 @@ def test_the_sweeper_interrupts_orphans_but_not_live_jobs(settings):
     with TestClient(create_app(settings=settings)) as other_process:  # runs the lifespan sweeper
         deadline = time.monotonic() + 5
         while time.monotonic() < deadline:
-            if other_process.get("/v1/jobs/orphan").json()["state"] == "interrupted":
+            if other_process.get("/v1/jobs/orphan").json()["data"]["state"] == "interrupted":
                 break
             time.sleep(0.05)
-        assert other_process.get("/v1/jobs/orphan").json()["state"] == "interrupted"
-        assert other_process.get("/v1/jobs/alive").json()["state"] == "queued"
+        assert other_process.get("/v1/jobs/orphan").json()["data"]["state"] == "interrupted"
+        assert other_process.get("/v1/jobs/alive").json()["data"]["state"] == "queued"
 
 
 def test_settings_come_from_the_environment(tmp_path, monkeypatch):

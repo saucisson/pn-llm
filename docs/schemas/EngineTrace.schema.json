@@ -1,0 +1,46 @@
+{
+  "$defs": {
+    "EngineTraceStep": {
+      "description": "One firing, as an engine writes it: the id of the transition.",
+      "properties": {
+        "transition": {
+          "title": "Transition",
+          "type": "string"
+        }
+      },
+      "required": [
+        "transition"
+      ],
+      "title": "EngineTraceStep",
+      "type": "object"
+    }
+  },
+  "description": "A counterexample (or witness) in a ``trace_<id>.json`` file.\n\n``loop_start`` is the index of the step where the cycle begins in an infinite run.",
+  "properties": {
+    "loop_start": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Loop Start"
+    },
+    "steps": {
+      "items": {
+        "$ref": "#/$defs/EngineTraceStep"
+      },
+      "title": "Steps",
+      "type": "array"
+    }
+  },
+  "required": [
+    "steps"
+  ],
+  "title": "EngineTrace",
+  "type": "object"
+}

@@ -68,14 +68,10 @@ class FormulaResult(DomainModel):
     engine: str
     engine_version: str = "unknown"
     time_s: float = 0.0
+    # The formula in the engine's own syntax, recorded by the adapter for audit.
+    rendered: str | None = None
     trace_url: str | None = None
     warnings: tuple[str, ...] = ()
-
-
-class EngineOutput(DomainModel):
-    """Content of ``result.json`` written by an engine container (see docs/engine-contract.md)."""
-
-    results: tuple[FormulaResult, ...]
 
 
 class Job(DomainModel):
