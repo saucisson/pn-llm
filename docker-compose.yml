@@ -13,7 +13,9 @@ services:
 
   # Profile "engines": docker compose --profile engines build
   engine-dummy:
-    build: ./engines/dummy
+    build:
+      context: .
+      dockerfile: engines/dummy/Dockerfile
     image: pn-llm-verif/dummy:latest
     profiles: ["engines"]
 

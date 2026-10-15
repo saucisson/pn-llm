@@ -47,13 +47,13 @@ repos:
         entry: bash -c 'cd api && mypy'
         language: system
         pass_filenames: false
-        files: ^api/.*\.(py|toml)$
+        files: ^(api|engines/common)/.*\.(py|toml)$
       - id: import-linter
         name: architecture rules (import-linter)
         entry: bash -c 'cd api && lint-imports'
         language: system
         pass_filenames: false
-        files: ^api/.*\.(py|toml)$
+        files: ^(api|engines/common)/.*\.(py|toml)$
       - id: architecture-doc
         name: architecture document in sync with modules
         entry: python3 scripts/check_architecture_doc.py

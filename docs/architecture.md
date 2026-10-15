@@ -111,8 +111,9 @@ fix or delete those rows, then restart. General schema migrations are tracked in
 
 ## How to extend
 
-- **Add an engine**: add an image under `engines/<name>/` that follows `docs/engine-contract.md`,
-  then one `EngineSpec` entry in `engine_registry.py`. No other code changes.
+- **Add an engine**: copy `engines/template/` to `engines/<name>/` (the adapter kit
+  `engines/common/pnverif_engine` does the plumbing), then add one `EngineSpec` entry in
+  `engine_registry.py`. No other code changes. Checklist: `docs/engine-integration-checklist.md`.
 - **Add an endpoint**: a route in `app/api/`, a method in the matching service, a port method if the
   use case needs new storage or engine capabilities, then its adapter in `infrastructure/`.
 - **Add a storage backend**: a new class implementing `NetRepository` and `JobRepository`, wired

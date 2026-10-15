@@ -92,6 +92,8 @@ known-first-party = ["app", "tests"]
 convention = "google"
 
 [tool.ruff.lint.per-file-ignores]
+"../engines/**/entrypoint.py" = ["INP001"]  # image entry points are scripts, not packages
+"../engines/**/adapter.py" = ["INP001"]
 "**/tests/**" = [
     "D",        # test names are the documentation
     "S101",     # assert is how pytest works
@@ -109,7 +111,7 @@ quote-style = "double"
 [tool.mypy]
 strict = true
 plugins = ["pydantic.mypy"]
-files = ["app"]  # production code is fully typed; tests are linted but not type-checked
+files = ["app", "../engines/common"]  # production code is fully typed; tests are linted only
 warn_unreachable = true
 
 [[tool.mypy.overrides]]
@@ -194,6 +196,7 @@ forbidden_modules = ["app.infrastructure.engine_registry"]
 # ---------------------------------------------------------------------------------------------
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["../engines/common"]  # the adapter kit shared by the engine images
 addopts = "--strict-markers --strict-config"
 markers = [
     "docker: needs a working Docker daemon (skipped when Docker is unavailable)",
