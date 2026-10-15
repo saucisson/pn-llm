@@ -78,6 +78,9 @@ jobs:
             name="$(basename "$(dirname "$dockerfile")")"
             case "$name" in dummy|template|common) continue ;; esac
             docker build -f "$dockerfile" -t "pn-llm-verif/$name:ci" .
+            # The registry names the image by the version the Dockerfile records in its label.
+            version="$(docker inspect --format '{{ index .Config.Labels "org.opencontainers.image.version" }}' "pn-llm-verif/$name:ci")"
+            docker tag "pn-llm-verif/$name:ci" "pn-llm-verif/$name:$version"
           done
       - name: Integration tests against the real dummy engine image
         run: cd api && pytest -q -m docker

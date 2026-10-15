@@ -52,7 +52,7 @@ DEFAULT_ENGINES: Mapping[str, EngineSpec] = {
         image="pn-llm-verif/itstools:latest", version="tbd", logics=ALL_LOGICS, colored=True
     ),
     "tapaal": EngineSpec(
-        image="pn-llm-verif/tapaal:latest", version="tbd", logics=ALL_LOGICS, colored=True
+        image="pn-llm-verif/tapaal:4.4.2", version="4.4.2", logics=ALL_LOGICS, colored=True
     ),
     "smpt": EngineSpec(
         image="pn-llm-verif/smpt:latest", version="tbd", logics=("state",), colored=True

@@ -35,5 +35,12 @@ services:
     image: pn-llm-verif/dummy:latest
     profiles: ["engines"]
 
+  engine-tapaal:
+    build:
+      context: .
+      dockerfile: engines/tapaal/Dockerfile
+    image: pn-llm-verif/tapaal:4.4.2
+    profiles: ["engines"]
+
 volumes:
   pnverif-data:

@@ -75,7 +75,7 @@ def test_petrivet_is_the_only_p_t_only_real_engine():
 
 
 def test_listing_reports_availability():
-    docker = FakeDocker(images={"pn-llm-verif/tapaal:latest"})
+    docker = FakeDocker(images={"pn-llm-verif/tapaal:4.4.2"})
     available = {e.name for e in registry(docker=docker).list_engines() if e.available}
     assert available == {"dummy", "tapaal"}
 
