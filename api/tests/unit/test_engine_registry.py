@@ -138,7 +138,7 @@ def test_the_engine_receives_the_net_the_request_and_the_limits():
     docker = FakeDocker(output=engine_envelope(results=[]))
     registry(docker=docker).run(engine="itstools", pnml=b"<pnml/>", request=REQUEST, job_id="j1")
     (run,) = docker.runs
-    assert run["image"] == "pn-llm-verif/itstools:latest"
+    assert run["image"] == DEFAULT_ENGINES["itstools"].image
     assert run["net"] == b"<pnml/>"
     assert run["request"]["schema_version"] == "1.0"
     assert run["request"]["kind"] == "check"

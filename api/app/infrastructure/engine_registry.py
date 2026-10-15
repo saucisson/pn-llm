@@ -49,7 +49,10 @@ class EngineSpec(DomainModel):
 DEFAULT_ENGINES: Mapping[str, EngineSpec] = {
     "dummy": EngineSpec(image=None, version="0.1", logics=ALL_LOGICS),
     "itstools": EngineSpec(
-        image="pn-llm-verif/itstools:latest", version="tbd", logics=ALL_LOGICS, colored=True
+        image="pn-llm-verif/itstools:1.0.0.202609112134",
+        version="1.0.0.202609112134",
+        logics=ALL_LOGICS,
+        colored=True,
     ),
     "tapaal": EngineSpec(
         image="pn-llm-verif/tapaal:4.4.2", version="4.4.2", logics=ALL_LOGICS, colored=True

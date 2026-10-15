@@ -6,6 +6,7 @@ How to add one: `docs/engine-integration-checklist.md`; contract: `docs/engine-c
 | Engine | Tool and version | Licence | Logics | Colored | Image |
 |---|---|---|---|---|---|
 | `dummy` | none (answers UNKNOWN) | — | all | no | `pn-llm-verif/dummy` |
+| `itstools` | ITS-Tools 1.0.0.202609112134 (product built 2026-09-11), archive SHA-256 `faef344a…bae5f` | GPL-3.0 | state, CTL, LTL | yes | `pn-llm-verif/itstools:1.0.0.202609112134` |
 | `tapaal` | verifypn 4.4.2, commit `0f4862d296918434c7cd75adf424d27fecd0bba6` | GPL-3.0-or-later | state, CTL, LTL | yes | `pn-llm-verif/tapaal:4.4.2` |
 
 ## tapaal (verifypn)
@@ -31,3 +32,34 @@ How to add one: `docs/engine-integration-checklist.md`; contract: `docs/engine-c
   OOM and 2 TIMEOUT on the colored instance (CTL cardinality, LTL fireability), where the contest
   itself had no answer for two of them. No TRUE where the reference says FALSE, or the reverse.
   The systematic matrix across engines is the conformance suite (#38).
+
+## itstools
+
+- **Pinning.** The authors publish the product only as "the latest build" at a fixed URL
+  (`lip6.github.io/ITSTools`), with no versioned download. The image fetches it and fails unless
+  its SHA-256 is the one recorded in the Dockerfile; when upstream publishes a new build, the
+  build breaks on purpose and a maintainer updates the checksum and the version (read from the
+  name of the tool's plugins) together. Licence GPL-3.0: built locally, not redistributed.
+- **Run.** The contest wrapper's way: a folder with `model.pnml` and `<Examination>.xml`, the
+  contest options (`-its -order META -manyOrder -smt`; without them most CTL and LTL formulas stay
+  unsolved) and the JVM options of the product's own `.ini` (given again, because any `-vmargs`
+  replaces them). The formulas of a request are grouped by examination (state, CTL or LTL; cardinality
+  or fireability by their atoms) and each group is one run, so the tool shares its reductions
+  inside a group. Ids written for the tool are `q0, q1, ...`, mapped back, so no id of ours can
+  confuse its output.
+- **Deadlock.** The tool crashes on the `deadlock` atom and a crash loses the whole group, so the
+  adapter writes it as "no transition is fireable" (all the net's transitions in one `is-fireable`
+  atom, the contest's own way to say any of them): the same meaning in atoms the tool reads. This
+  is the only rewriting of a formula, and the rewritten XML is the one kept in `rendered`.
+- **Sandbox.** The product tries to `chmod +x` its bundled binaries each time it runs, which a
+  read-only root refuses. They are executable from the build, and a ten-line `LD_PRELOAD` shim
+  (`engines/itstools/keepmode.c`, used for the tool's process only) answers success to a chmod of
+  a file under `/opt/tool` that is already executable, and passes every other call on.
+- **Answers.** `FORMULA <id> TRUE|FALSE` lines. A formula the tool left unsolved is UNKNOWN. When
+  the time is over the process is killed, TIMEOUT is given to the formulas without a line, and what
+  was solved before the kill is kept. SIGKILL is OOM.
+- **Traces.** None: in this mode the tool gives no counterexample, and each answer says so
+  (`no_counterexample_from_its_tools`).
+- **Conformance** (same protocol as Tapaal, 120 s per examination, 2 GB): 44 of 48 answers equal
+  the contest's reference answers, none differs. The 4 others are timeouts on the colored
+  instance, on formulas the reference has no answer for either.

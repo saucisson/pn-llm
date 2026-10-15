@@ -1,1 +1,2 @@
 pydantic>=2.6
+defusedxml>=0.7
