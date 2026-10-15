@@ -240,7 +240,7 @@ issue "PNML exporter: deterministic canonical PNML from NetDocument" "api,engine
   and for the \`net.pnml\` engine input.
 - Round-trip fixed point: PNML to document to PNML to document is identical."
 
-issue "Round-trip and equivalence tests on the MCC corpus" "api,mcc-data,quality" "$M1" \
+issue "Round-trip and equivalence tests on the MCC corpus" "api,mcc-data,quality" "$M2" \
 "$NET_NOTE
 
 **Acceptance criteria**
@@ -366,17 +366,17 @@ issue "Add a test for the retry path of job creation" "storage,quality" "$M1" \
 - Deterministic test of the concurrent-insert race (two threads, same live key).
 - Branch coverage of \`sqlite_store.py\` reaches 100 %."
 
-issue "Raise the coverage floor and add mutation testing" "quality" "$M3" \
+issue "Raise the coverage floor and add mutation testing" "quality" "$M1" \
 "**Acceptance criteria**
 - Floor raised from 90 % when stable; mutation testing (mutmut or cosmic-ray) on \`domain/\` and
   \`application/\`, results tracked over time."
 
-issue "Architecture fitness: size and complexity budgets" "quality" "$M3" \
+issue "Architecture fitness: size and complexity budgets" "quality" "$M1" \
 "**Acceptance criteria**
 - Budget on module size and function complexity beyond what ruff checks, enforced by a script
   hook; budgets documented in \`docs/architecture.md\`."
 
-issue "Devcontainer for WSL2 / VS Code and API versioning policy" "infra,docs" "$M3" \
+issue "Devcontainer for WSL2 / VS Code and API versioning policy" "infra,docs" "$M1" \
 "**Acceptance criteria**
 - \`.devcontainer/\` reproducing \`make setup\`; documented Docker socket access.
 - Changelog and release process (conventional commits to release notes); \`/v1\` compatibility
@@ -1026,12 +1026,12 @@ issue "Report template with deviations and negative results" "bench,docs" "$M6" 
 - Template listing each claim, its measure, threshold, outcome, deviations from the frozen
   protocol, and \`bench/results/NEGATIVE.md\` entries."
 
-issue "Documentation: add-an-engine guide" "docs" "$M6" \
+issue "Documentation: add-an-engine guide" "docs" "$M2" \
 "**Acceptance criteria**
 - Step-by-step guide: Dockerfile, adapter, known-verdict tests, registry entry.
 - Review of \`docs/engine-contract.md\` based on the experience of the first integrations."
 
-issue "Security review of container launching" "security,infra" "$M6" \
+issue "Security review of container launching" "security,infra" "$M1" \
 "Mounting the Docker socket gives near-root access to the host.
 
 **Acceptance criteria**

@@ -164,5 +164,5 @@ api/            the application (app/) and its tests (tests/); pyproject.toml ho
 engines/<name>/ one Docker image per engine, common contract (docs/engine-contract.md)
 bench/          evaluation scripts and MCC import (models themselves are not versioned)
 scripts/        create_issues.sh (backlog), check_architecture_doc.py (docs sync hook)
-docs/           objective, evaluation protocol, publication targets, JSON contract, net document, architecture, conventions, testing, ADRs, engine contract, MCC tools, exploration
+docs/           objective, roadmap (order of the backlog), evaluation protocol, publication targets, JSON contract, net document, architecture, conventions, testing, ADRs, engine contract, MCC tools, exploration
 ```
