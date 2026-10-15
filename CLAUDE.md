@@ -76,7 +76,12 @@ change always comes with a test; no mocks of our own code; coverage floor 90 %).
    capability, and its adapter.
 4. Run `make check`. Update docs (and an ADR if it is a decision) in the same commit.
 5. Conventional commit message (`feat:`, `fix:`, `refactor:`, `docs:`, `test:`, `chore:`), one
-   concern per commit. Reference the GitHub issue.
+   concern per commit.
+6. Pull request: put `Closes #N` (one per line, one keyword per issue) in the **description** of
+   the PR for every issue it fully resolves, so that GitHub closes them at merge. "Implements #N"
+   or "(#N)" in a title closes nothing. If an acceptance criterion is not met, write `Refs #N`
+   instead and say what remains in a comment on the issue. After the merge, check that the issues
+   are closed. Merge with a rebase (the only method the repository allows) only when CI is green.
 
 ## Domain rules that must never be broken
 

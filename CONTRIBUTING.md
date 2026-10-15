@@ -29,7 +29,8 @@ Hooks use the tools of the active virtualenv, so activate it first. Never use `-
 5. Update the docs in the same commit; add an ADR (`docs/adr/`) for a significant decision.
 6. Commit with a conventional message in English, one concern per commit:
    `feat: ...`, `fix: ...`, `refactor: ...`, `docs: ...`, `test: ...`, `chore: ...`.
-7. Open a pull request that references the issue.
+7. Open a pull request. Write `Closes #N` in its description for each issue it fully resolves
+   (GitHub closes them at merge; "Implements #N" does not) and `Refs #N` for a partial one.
 
 ## Comment policy (checked at each commit)
 
