@@ -33,6 +33,12 @@ repos:
     hooks:
       - id: shellcheck
 
+  - repo: https://github.com/hadolint/hadolint
+    rev: v2.12.0
+    hooks:
+      - id: hadolint-docker
+        args: [--failure-threshold, warning]
+
   - repo: https://github.com/compilerla/conventional-pre-commit
     rev: v4.4.0
     hooks:
@@ -66,6 +72,12 @@ repos:
         language: system
         pass_filenames: false
         files: ^(api/app/domain/.*\.py|docs/schemas/.*|scripts/export_schemas\.py)$
+      - id: budgets
+        name: size budgets of modules, functions and classes
+        entry: python3 scripts/check_budgets.py
+        language: system
+        pass_filenames: false
+        files: ^(api/app/.*\.py|engines/common/.*\.py|scripts/check_budgets\.py)$
       - id: openapi
         name: committed OpenAPI document in sync with the API
         entry: python3 scripts/export_openapi.py --check

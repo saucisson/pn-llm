@@ -1,5 +1,7 @@
 # pn-llm-verif
 
+[![CI](https://github.com/saucisson/pn-llm/actions/workflows/ci.yml/badge.svg)](https://github.com/saucisson/pn-llm/actions/workflows/ci.yml)
+
 REST API that lets an LLM propose, then have verified, properties of Petri nets, using static
 analysis and model-checking tools run in containers. Nets come from the Model Checking Contest
 (MCC) or from the user; P/T nets first, colored nets later.

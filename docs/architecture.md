@@ -63,6 +63,7 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/application/descriptions.py` | application | `DescriptionService`: add and read net descriptions |
 | `app/application/tools.py` | application | `ToolFacade`: the tools of the agent over the use cases; trimmed JSON answers (ADR 0017), events for checks and questions |
 | `app/application/agent.py` | application | `AgentService`: sessions, user messages and answers, and the agent run (budgets, resumable, cancellable) |
+| `app/application/log_context.py` | application | The request id of the request being served, read by the log formatter |
 | `app/application/leases.py` | application | `LeaseKeeper`: renews a running job's lease so other processes know its owner is alive |
 | `app/application/checks.py` | application | `CheckService`: submit, execute, read and cancel checks |
 | `app/application/engines.py` | application | `EngineService`: list engines |
@@ -72,6 +73,7 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/infrastructure/scripted_llm.py` | infrastructure | `ScriptedLlm`, the double of the LLM port, and `DemoLlm`, an offline demonstration |
 | `app/infrastructure/anthropic_llm.py` | infrastructure | The Anthropic Messages API behind the LLM port; the only module that imports the provider SDK |
 | `app/infrastructure/unavailable_llm.py` | infrastructure | The LLM gateway when none is configured: refuses with the setting to change |
+| `app/infrastructure/json_logging.py` | infrastructure | Structured logs: one JSON object per line |
 | `app/infrastructure/docker_runner.py` | infrastructure | The only module that talks to Docker (SDK): isolated, labelled, always-removed engine containers (ADR 0016) |
 | `app/infrastructure/engine_registry.py` | infrastructure | Engine specs and `EngineGateway` implementation |
 | `app/api/deps.py` | api | FastAPI dependencies giving routes their services |
@@ -84,6 +86,7 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/api/formulas.py` | api | Route `POST /v1/formulas/validate` |
 | `app/api/descriptions.py` | api | Routes for net descriptions |
 | `app/api/sessions.py` | api | Sessions: start, messages, answers, cancel, events (JSON or server-sent events) |
+| `app/api/middleware.py` | api | Request id and access log |
 | `app/api/envelopes.py` | api | Build the shared result envelope |
 | `app/api/llm_tools.py` | api | Which routes may be offered to the LLM (all but the net itself) |
 | `app/settings.py` | (config) | Pydantic settings from `PNVERIF_*` environment variables |
@@ -218,6 +221,19 @@ names the operation, not the tool (ADR 0014). To add one: a route, a request mod
 model, a use case run by the generic job runner, an entry in the operations catalog, and an engine
 declaring it. The nets, inspection, formula, check, job, trace and replay routes follow that contract; analyses
 and reductions (milestone M4) are not implemented yet.
+
+## Logs
+Logs go to standard error as one JSON object per line (`PNVERIF_LOG_LEVEL`, `PNVERIF_LOG_JSON`).
+Every request gets an id (the client's `X-Request-ID` if it looks like one, else a new one),
+returned in the response and present in every line logged while serving it. Jobs log `job_started`
+and `job_finished` with the job id, net id, engine, duration and verdicts; agent runs log
+`run_started` and `run_finished` with the session id. Logs carry identifiers and measures, never
+PNML, net documents, descriptions or messages.
+
+## Budgets
+Beyond ruff's complexity limits, `scripts/check_budgets.py` (a hook and a CI step) keeps code
+readable: at most 700 lines per module, 130 lines per function and 40 methods per class. A module
+that outgrows its budget is split along a real concept, not along line numbers.
 
 ## Known limitations
 

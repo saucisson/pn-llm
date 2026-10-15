@@ -26,9 +26,14 @@ jobs:
           SKIP: ui
         run: pre-commit run --all-files --show-diff-on-failure
       - name: Tests with branch coverage (threshold in api/pyproject.toml)
-        env:
-          SKIP: ui
-        run: pre-commit run --all-files --hook-stage pre-push --show-diff-on-failure
+        run: cd api && pytest -q --cov=app --cov-branch --cov-report=term-missing --cov-report=xml --cov-report=html
+      - name: Coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: |
+            api/coverage.xml
+            api/htmlcov
       - name: Known vulnerabilities in dependencies
         run: cd api && pip-audit --skip-editable
 
@@ -64,5 +69,11 @@ jobs:
         run: |
           docker build -f api/Dockerfile -t pn-llm-verif/api:ci .
           docker build -f engines/dummy/Dockerfile -t pn-llm-verif/dummy:latest .
+          # Every engine image: the template and the shared kit are not engines.
+          for dockerfile in engines/*/Dockerfile; do
+            name="$(basename "$(dirname "$dockerfile")")"
+            case "$name" in dummy|template|common) continue ;; esac
+            docker build -f "$dockerfile" -t "pn-llm-verif/$name:ci" .
+          done
       - name: Integration tests against the real dummy engine image
         run: cd api && pytest -q -m docker

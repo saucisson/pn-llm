@@ -8,6 +8,7 @@ verdicts in the log are those that tools took from engine results (ADR 0006).
 
 from __future__ import annotations
 
+import logging
 import threading
 import time
 import uuid
@@ -47,6 +48,8 @@ from .ports import DescriptionRepository, LlmGateway, NetRepository, SessionRepo
 from .tools import ToolContext, ToolFacade
 
 SESSION_ID_LENGTH = 12
+
+logger = logging.getLogger("pnverif.agent")
 EVENT_PAGE = 500
 # Events a tool may add to the conversation. A verdict is among them, built by the tool from an
 # engine result: the model has no way to write one.
@@ -262,7 +265,13 @@ class AgentService:
         session = self._sessions.claim_next_run(lease_seconds=self._config.lease_seconds)
         if session is None:
             return False
+        began = time.monotonic()
+        extra = {"session_id": session.session_id, "net_id": session.net_id}
+        logger.info("run_started", extra=extra)
         self.run(session=session)
+        logger.info(
+            "run_finished", extra={**extra, "duration_s": round(time.monotonic() - began, 3)}
+        )
         return True
 
     def record(self, *, session_id: str, event: SessionEvent) -> None:
