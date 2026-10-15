@@ -57,7 +57,8 @@ another one.
 }
 ```
 
-- `trace_<id>.json`: a counterexample, named in the `trace` field of its result (the name must
+- `trace_<id>.json`: a counterexample, or for a TRUE answer a witness (the adapter then adds a
+  warning that says so), named in the `trace` field of its result (the name must
   match `trace_[A-Za-z0-9_.-]+.json`): `{"steps": [{"transition": "t3"}], "loop_start": null}`.
   `loop_start` is the index of the step where the cycle begins for an infinite run.
 
@@ -83,3 +84,8 @@ another one.
   processes. Running out of memory (kill by SIGKILL, exit 137) gives the verdict OOM whatever the
   engine wrote; an engine that is still running at the timeout is killed (TIMEOUT).
 - Traces refer to the net **as provided**; mapping back to the original net is done by the API.
+  An engine that unfolds a colored net, or renames elements, gives no trace rather than names
+  that are not in the net (the platform would reject the whole output); it says so in a warning.
+- At the timeout the container is killed and nothing is written afterwards: an adapter keeps its
+  own deadline a few seconds before the container's, reports TIMEOUT itself for the formulas left
+  and keeps the answers it already has (`docs/adding-an-engine.md`).
