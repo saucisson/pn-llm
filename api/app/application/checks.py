@@ -83,9 +83,17 @@ class CheckService:
         net = self._nets.load_net(net_id=job.net_id)
         engine = self._engines.choose(requested=job.request.engine)
         try:
-            with LeaseKeeper(jobs=self._jobs, job_id=job_id, lease_seconds=self._lease_seconds):
+            with LeaseKeeper(
+                jobs=self._jobs,
+                job_id=job_id,
+                lease_seconds=self._lease_seconds,
+                on_lost=lambda: self._engines.stop(job_id=job_id),
+            ):
                 results = self._engines.run(
-                    engine=engine, pnml=render_pnml(document=net.document), request=job.request
+                    engine=engine,
+                    pnml=render_pnml(document=net.document),
+                    request=job.request,
+                    job_id=job_id,
                 )
         except Exception as exc:  # noqa: BLE001  (adapter bugs are reported, not propagated)
             results = tuple(
@@ -122,3 +130,4 @@ class CheckService:
         """
         self._jobs.load_job(job_id=job_id)  # raises NotFoundError
         self._jobs.cancel(job_id=job_id)
+        self._engines.stop(job_id=job_id)  # free the CPU now, not at the next lease renewal

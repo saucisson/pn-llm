@@ -32,7 +32,13 @@ def test_dummy_container_honours_the_engine_contract(tmp_path, mutex_pnml):
     (tmp_path / "input" / "net.pnml").write_bytes(mutex_pnml)
     (tmp_path / "input" / "request.json").write_text(make_request().model_dump_json())
 
-    runner.run(image=IMAGE, work_dir=tmp_path, limits=Limits(memory_mb=256, timeout_s=60))
+    outcome = runner.run(
+        image=IMAGE,
+        job_id="it-dummy",
+        work_dir=tmp_path,
+        limits=Limits(memory_mb=256, timeout_s=60),
+    )
+    assert outcome.exit_code == 0
 
     results = json.loads((tmp_path / "output" / "result.json").read_text())["results"]
     assert [r["id"] for r in results] == ["f1"]

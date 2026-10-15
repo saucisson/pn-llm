@@ -4,7 +4,12 @@ import pytest
 
 from app.domain.errors import InvalidRequestError
 from app.domain.models import Verdict
-from app.infrastructure.docker_runner import DockerRunner, DockerTimeoutError
+from app.infrastructure.docker_runner import (
+    DockerRunner,
+    DockerTimeoutError,
+    DockerUnavailableError,
+    RunOutcome,
+)
 from app.infrastructure.engine_registry import DEFAULT_ENGINES, EngineRegistry
 from tests.support import make_formula, make_request
 
@@ -16,19 +21,22 @@ REQUEST = make_request(
 class FakeDocker(DockerRunner):
     """Stands in for the Docker process boundary: records runs and writes a canned output."""
 
-    def __init__(self, *, images=(), output=None, error=None):
+    def __init__(self, *, images=(), output=None, error=None, outcome=None):
         self.images = set(images)
         self.output = output
         self.error = error
         self.runs = []
+        self.stopped = []
+        self.outcome = outcome or RunOutcome(exit_code=0, oom_killed=False, log_tail="")
 
     def image_present(self, *, image):
         return image in self.images
 
-    def run(self, *, image, work_dir, limits):
+    def run(self, *, image, job_id, work_dir, limits):
         self.runs.append(
             {
                 "image": image,
+                "job_id": job_id,
                 "limits": limits,
                 "net": (work_dir / "input" / "net.pnml").read_bytes(),
                 "request": json.loads((work_dir / "input" / "request.json").read_text()),
@@ -38,6 +46,10 @@ class FakeDocker(DockerRunner):
             raise self.error
         if self.output is not None:
             (work_dir / "output" / "result.json").write_text(json.dumps(self.output))
+        return self.outcome
+
+    def stop(self, *, job_id):
+        self.stopped.append(job_id)
 
 
 def registry(*, docker=None):
@@ -87,11 +99,11 @@ def test_an_explicit_engine_is_returned_as_is():
 
 def test_unknown_engine_cannot_run():
     with pytest.raises(InvalidRequestError):
-        registry().run(engine="nope", pnml=b"", request=REQUEST)
+        registry().run(engine="nope", pnml=b"", request=REQUEST, job_id="j1")
 
 
 def test_dummy_engine_never_claims_a_verdict():
-    results = registry().run(engine="dummy", pnml=b"", request=REQUEST)
+    results = registry().run(engine="dummy", pnml=b"", request=REQUEST, job_id="j1")
     assert [r.verdict for r in results] == [Verdict.UNKNOWN, Verdict.UNKNOWN]
     assert all("dummy_engine_no_verification" in r.warnings for r in results)
 
@@ -104,7 +116,7 @@ def test_container_results_are_parsed():
         ]
     }
     results = registry(docker=FakeDocker(output=output)).run(
-        engine="itstools", pnml=b"<pnml/>", request=REQUEST
+        engine="itstools", pnml=b"<pnml/>", request=REQUEST, job_id="j1"
     )
     assert [(r.id, r.verdict) for r in results] == [("f1", Verdict.TRUE), ("f2", Verdict.FALSE)]
     assert results[0].engine_version == "9"
@@ -112,7 +124,7 @@ def test_container_results_are_parsed():
 
 def test_the_engine_receives_the_net_the_request_and_the_limits():
     docker = FakeDocker(output={"results": []})
-    registry(docker=docker).run(engine="itstools", pnml=b"<pnml/>", request=REQUEST)
+    registry(docker=docker).run(engine="itstools", pnml=b"<pnml/>", request=REQUEST, job_id="j1")
     (run,) = docker.runs
     assert run["image"] == "pn-llm-verif/itstools:latest"
     assert run["net"] == b"<pnml/>"
@@ -121,19 +133,45 @@ def test_the_engine_receives_the_net_the_request_and_the_limits():
 
 
 def test_a_missing_result_file_is_an_error_never_a_verdict():
-    results = registry(docker=FakeDocker()).run(engine="itstools", pnml=b"", request=REQUEST)
+    results = registry(docker=FakeDocker()).run(
+        engine="itstools", pnml=b"", request=REQUEST, job_id="j1"
+    )
     assert {r.verdict for r in results} == {Verdict.ERROR}
-    assert "no_result_file" in results[0].warnings
+    assert results[0].warnings == ("no_result_file_exit_0",)
 
 
 def test_a_timeout_is_reported_for_every_formula():
     docker = FakeDocker(error=DockerTimeoutError("itstools"))
-    results = registry(docker=docker).run(engine="itstools", pnml=b"", request=REQUEST)
+    results = registry(docker=docker).run(engine="itstools", pnml=b"", request=REQUEST, job_id="j1")
     assert [r.verdict for r in results] == [Verdict.TIMEOUT, Verdict.TIMEOUT]
 
 
-def test_missing_docker_is_an_error():
-    docker = FakeDocker(error=FileNotFoundError())
-    results = registry(docker=docker).run(engine="itstools", pnml=b"", request=REQUEST)
+def test_an_unreachable_docker_daemon_is_an_error():
+    docker = FakeDocker(error=DockerUnavailableError("no daemon"))
+    results = registry(docker=docker).run(engine="itstools", pnml=b"", request=REQUEST, job_id="j1")
     assert {r.verdict for r in results} == {Verdict.ERROR}
-    assert "docker_not_installed" in results[0].warnings
+    assert results[0].warnings == ("docker_unavailable",)
+
+
+def test_an_out_of_memory_kill_is_reported_as_oom_even_if_a_result_was_written():
+    outcome = RunOutcome(exit_code=137, oom_killed=True, log_tail="")
+    docker = FakeDocker(
+        output={"results": [{"id": "f1", "verdict": "TRUE", "engine": "x"}]}, outcome=outcome
+    )
+    results = registry(docker=docker).run(engine="itstools", pnml=b"", request=REQUEST, job_id="j1")
+    assert [r.verdict for r in results] == [Verdict.OOM, Verdict.OOM]
+    assert results[0].warnings == ("engine_out_of_memory",)
+
+
+def test_a_failed_exit_without_result_is_an_error_naming_the_exit_code():
+    outcome = RunOutcome(exit_code=2, oom_killed=False, log_tail="boom")
+    results = registry(docker=FakeDocker(outcome=outcome)).run(
+        engine="itstools", pnml=b"", request=REQUEST, job_id="j1"
+    )
+    assert results[0].warnings == ("no_result_file_exit_2",)
+
+
+def test_stopping_a_job_reaches_the_runner():
+    docker = FakeDocker()
+    registry(docker=docker).stop(job_id="j7")
+    assert docker.stopped == ["j7"]

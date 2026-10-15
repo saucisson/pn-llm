@@ -25,7 +25,7 @@ from app.domain.models import (
     Verdict,
 )
 
-from .docker_runner import DockerRunner, DockerTimeoutError
+from .docker_runner import DockerRunner, DockerTimeoutError, DockerUnavailableError
 
 ALL_LOGICS = ("ltl", "ctl", "state")
 # Mode of the output directory: the container user is not the API user.
@@ -62,6 +62,18 @@ DEFAULT_ENGINES: Mapping[str, EngineSpec] = {
         image="pn-llm-verif/ty:latest", version="tbd", logics=ALL_LOGICS, colored=True
     ),
 }
+
+
+def non_answers(
+    *, engine: str, request: CheckRequest, verdict: Verdict, warning: str, elapsed: float = 0.0
+) -> tuple[FormulaResult, ...]:
+    """Return one non-answer per formula: a failure is never reported as TRUE or FALSE."""
+    return tuple(
+        FormulaResult(
+            id=formula.id, verdict=verdict, engine=engine, time_s=elapsed, warnings=(warning,)
+        )
+        for formula in request.formulas
+    )
 
 
 class EngineRegistry:
@@ -102,11 +114,17 @@ class EngineRegistry:
                 return info.name
         return "dummy"
 
-    def run(self, *, engine: str, pnml: bytes, request: CheckRequest) -> tuple[FormulaResult, ...]:
+    def stop(self, *, job_id: str) -> None:
+        """Kill and remove the engine container of a job, if one is running."""
+        self._docker.stop(job_id=job_id)
+
+    def run(
+        self, *, engine: str, pnml: bytes, request: CheckRequest, job_id: str
+    ) -> tuple[FormulaResult, ...]:
         """Run an engine on a net and return one result per formula.
 
-        Failures never become verdicts: a timeout, a missing Docker or a missing result file give
-        TIMEOUT or ERROR for every formula, never TRUE or FALSE.
+        Failures never become verdicts: a timeout, an out-of-memory kill, a missing Docker or a
+        missing result file give TIMEOUT, OOM or ERROR for every formula, never TRUE or FALSE.
 
         Raises:
             InvalidRequestError: if ``engine`` is not registered.
@@ -137,35 +155,41 @@ class EngineRegistry:
             (work_dir / "input" / "request.json").write_text(request.model_dump_json())
 
             try:
-                self._docker.run(image=spec.image, work_dir=work_dir, limits=request.limits)
-            except DockerTimeoutError:
-                elapsed = time.monotonic() - started
-                return tuple(
-                    FormulaResult(
-                        id=formula.id, verdict=Verdict.TIMEOUT, engine=engine, time_s=elapsed
-                    )
-                    for formula in request.formulas
+                outcome = self._docker.run(
+                    image=spec.image, job_id=job_id, work_dir=work_dir, limits=request.limits
                 )
-            except FileNotFoundError:
-                return tuple(
-                    FormulaResult(
-                        id=formula.id,
-                        verdict=Verdict.ERROR,
-                        engine=engine,
-                        warnings=("docker_not_installed",),
-                    )
-                    for formula in request.formulas
+            except DockerTimeoutError:
+                return non_answers(
+                    engine=engine,
+                    request=request,
+                    verdict=Verdict.TIMEOUT,
+                    warning="engine_timeout",
+                    elapsed=time.monotonic() - started,
+                )
+            except DockerUnavailableError:
+                return non_answers(
+                    engine=engine,
+                    request=request,
+                    verdict=Verdict.ERROR,
+                    warning="docker_unavailable",
                 )
 
+            elapsed = time.monotonic() - started
+            if outcome.oom_killed:  # whatever the engine managed to write is not trusted
+                return non_answers(
+                    engine=engine,
+                    request=request,
+                    verdict=Verdict.OOM,
+                    warning="engine_out_of_memory",
+                    elapsed=elapsed,
+                )
             result_file = work_dir / "output" / "result.json"
             if not result_file.exists():
-                return tuple(
-                    FormulaResult(
-                        id=formula.id,
-                        verdict=Verdict.ERROR,
-                        engine=engine,
-                        warnings=("no_result_file",),
-                    )
-                    for formula in request.formulas
+                return non_answers(
+                    engine=engine,
+                    request=request,
+                    verdict=Verdict.ERROR,
+                    warning=f"no_result_file_exit_{outcome.exit_code}",
+                    elapsed=elapsed,
                 )
             return EngineOutput.model_validate_json(result_file.read_text()).results

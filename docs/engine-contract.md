@@ -69,5 +69,8 @@ another one.
   file an engine may write is `reduced.pnml` for a reduction that applied, with the element mapping
   in `result.json`; the platform imports it through its hardened PNML importer, hashes the result
   and stores it as a new net (ADR 0005, ADR 0015), and never shows it to the LLM.
-- The container runs without network, with a read-only filesystem except `/work/output`.
+- The container runs without network, with a read-only root filesystem except `/work/output` and
+  a private `/tmp` (256 MB, not executable), all capabilities dropped, no swap, one CPU and 256
+  processes. Running out of memory (kill by SIGKILL, exit 137) gives the verdict OOM whatever the
+  engine wrote; an engine that is still running at the timeout is killed (TIMEOUT).
 - Traces refer to the net **as provided**; mapping back to the original net is done by the API.

@@ -80,6 +80,12 @@ class EngineGateway(Protocol):
         """Return the engine to use for a request ("auto" lets the gateway decide)."""
         ...
 
-    def run(self, *, engine: str, pnml: bytes, request: CheckRequest) -> tuple[FormulaResult, ...]:
-        """Run an engine on a net; return one result per formula."""
+    def run(
+        self, *, engine: str, pnml: bytes, request: CheckRequest, job_id: str
+    ) -> tuple[FormulaResult, ...]:
+        """Run an engine on a net for a job; return one result per formula."""
+        ...
+
+    def stop(self, *, job_id: str) -> None:
+        """Kill the engine run of a job, if one is in progress (cancellation)."""
         ...

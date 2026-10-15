@@ -107,7 +107,7 @@ def test_execute_does_not_run_a_job_twice(checks, net_id):
 
 def test_an_engine_crash_becomes_an_error_verdict_not_a_stuck_job(store, net_id):
     class Crashing(EngineRegistry):
-        def run(self, *, engine, pnml, request):
+        def run(self, *, engine, pnml, request, job_id):
             raise RuntimeError("adapter bug")
 
     crashing = CheckService(
