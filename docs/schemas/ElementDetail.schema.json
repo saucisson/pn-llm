@@ -1,0 +1,122 @@
+{
+  "$defs": {
+    "ElementRef": {
+      "description": "Cite a place or a transition by id; the name is kept exactly as in the net.",
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "place",
+            "transition"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Name"
+        }
+      },
+      "required": [
+        "id",
+        "kind"
+      ],
+      "title": "ElementRef",
+      "type": "object"
+    },
+    "Neighbours": {
+      "description": "Some neighbours of an element: at most ``DETAIL_LINK_LIMIT``, with the real total.",
+      "properties": {
+        "items": {
+          "items": {
+            "$ref": "#/$defs/WeightedRef"
+          },
+          "title": "Items",
+          "type": "array"
+        },
+        "total": {
+          "title": "Total",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "items",
+        "total"
+      ],
+      "title": "Neighbours",
+      "type": "object"
+    },
+    "WeightedRef": {
+      "description": "A neighbour of an element, and the arc that links them.",
+      "properties": {
+        "arc_id": {
+          "title": "Arc Id",
+          "type": "string"
+        },
+        "element": {
+          "$ref": "#/$defs/ElementRef"
+        },
+        "weight": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Weight"
+        }
+      },
+      "required": [
+        "arc_id",
+        "element"
+      ],
+      "title": "WeightedRef",
+      "type": "object"
+    }
+  },
+  "description": "One place or transition with the elements around it.\n\nFor a place, ``inputs`` are the transitions that put tokens in it and ``outputs`` those that\ntake tokens out; for a transition, ``inputs`` are its source places and ``outputs`` its target\nplaces.",
+  "properties": {
+    "element": {
+      "$ref": "#/$defs/ElementRef"
+    },
+    "inputs": {
+      "$ref": "#/$defs/Neighbours"
+    },
+    "outputs": {
+      "$ref": "#/$defs/Neighbours"
+    },
+    "tokens": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Tokens"
+    }
+  },
+  "required": [
+    "element",
+    "inputs",
+    "outputs"
+  ],
+  "title": "ElementDetail",
+  "type": "object"
+}

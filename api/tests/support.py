@@ -38,3 +38,26 @@ def make_request(**overrides) -> CheckRequest:
 
 # The same net as a document (children in file order, as imported).
 MUTEX_DOCUMENT = import_pnml(payload=MUTEX_PNML, limits=DocumentLimits())
+
+
+def make_ring(*, size: int) -> bytes:
+    """Return a ring of ``size`` philosophers-like cells as PNML: fork_i, think_i, eat_i, take_i."""
+    parts = [
+        '<pnml><net id="ring" type="http://www.pnml.org/version-2009/grammar/ptnet"><page id="p">'
+    ]
+    for i in range(1, size + 1):
+        marking = "<initialMarking><text>1</text></initialMarking>"
+        parts.append(f'<place id="fork{i}"><name><text>fork_{i}</text></name>{marking}</place>')
+        parts.append(f'<place id="think{i}"><name><text>think_{i}</text></name>{marking}</place>')
+        parts.append(f'<place id="eat{i}"><name><text>eat_{i}</text></name></place>')
+        parts.append(f'<transition id="take{i}"><name><text>take_{i}</text></name></transition>')
+        nxt = i % size + 1
+        parts.append(f'<arc id="af{i}" source="fork{i}" target="take{i}"/>')
+        parts.append(f'<arc id="ag{i}" source="fork{nxt}" target="take{i}"/>')
+        parts.append(f'<arc id="at{i}" source="think{i}" target="take{i}"/>')
+        parts.append(
+            f'<arc id="ae{i}" source="take{i}" target="eat{i}">'
+            "<inscription><text>2</text></inscription></arc>"
+        )
+    parts.append("</page></net></pnml>")
+    return "".join(parts).encode()

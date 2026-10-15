@@ -1,0 +1,127 @@
+{
+  "$defs": {
+    "NetSummary": {
+      "description": "What the API says about a stored net. Names are reached through inspection, not here.",
+      "properties": {
+        "arcs": {
+          "title": "Arcs",
+          "type": "integer"
+        },
+        "initial_tokens": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Initial Tokens"
+        },
+        "kind": {
+          "enum": [
+            "pt",
+            "symmetric",
+            "hlpn",
+            "core",
+            "other"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "net_id": {
+          "title": "Net Id",
+          "type": "string"
+        },
+        "pages": {
+          "title": "Pages",
+          "type": "integer"
+        },
+        "parent_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parent Id"
+        },
+        "places": {
+          "title": "Places",
+          "type": "integer"
+        },
+        "reductions_applied": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Reductions Applied",
+          "type": "array"
+        },
+        "source_id": {
+          "title": "Source Id",
+          "type": "string"
+        },
+        "transitions": {
+          "title": "Transitions",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "net_id",
+        "source_id",
+        "kind",
+        "pages",
+        "places",
+        "transitions",
+        "arcs"
+      ],
+      "title": "NetSummary",
+      "type": "object"
+    }
+  },
+  "description": "Counts and structural flags of a net: no names.",
+  "properties": {
+    "has_reference_nodes": {
+      "title": "Has Reference Nodes",
+      "type": "boolean"
+    },
+    "has_weighted_arcs": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Some arc has a weight above 1; undefined for nets that are not P/T",
+      "title": "Has Weighted Arcs"
+    },
+    "size_category": {
+      "enum": [
+        "small",
+        "medium",
+        "large",
+        "huge"
+      ],
+      "title": "Size Category",
+      "type": "string"
+    },
+    "summary": {
+      "$ref": "#/$defs/NetSummary"
+    }
+  },
+  "required": [
+    "summary",
+    "size_category",
+    "has_weighted_arcs",
+    "has_reference_nodes"
+  ],
+  "title": "NetOverview",
+  "type": "object"
+}

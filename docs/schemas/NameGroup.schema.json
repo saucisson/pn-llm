@@ -1,0 +1,113 @@
+{
+  "$defs": {
+    "ElementRef": {
+      "description": "Cite a place or a transition by id; the name is kept exactly as in the net.",
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "place",
+            "transition"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Name"
+        }
+      },
+      "required": [
+        "id",
+        "kind"
+      ],
+      "title": "ElementRef",
+      "type": "object"
+    },
+    "IndexRange": {
+      "description": "The values taken by one number in a family of names.",
+      "properties": {
+        "distinct": {
+          "title": "Distinct",
+          "type": "integer"
+        },
+        "max": {
+          "title": "Max",
+          "type": "integer"
+        },
+        "min": {
+          "title": "Min",
+          "type": "integer"
+        },
+        "width": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Width"
+        }
+      },
+      "required": [
+        "min",
+        "max",
+        "distinct"
+      ],
+      "title": "IndexRange",
+      "type": "object"
+    }
+  },
+  "description": "A family of names that differ only by numbers, such as ``fork_1`` to ``fork_5``.\n\n``pattern`` writes each number as ``{}``; ``indices`` gives one range per ``{}``. It is a\ndescription: the ids to use are those of ``/places`` and ``/transitions``.",
+  "properties": {
+    "count": {
+      "title": "Count",
+      "type": "integer"
+    },
+    "example": {
+      "$ref": "#/$defs/ElementRef"
+    },
+    "indices": {
+      "items": {
+        "$ref": "#/$defs/IndexRange"
+      },
+      "title": "Indices",
+      "type": "array"
+    },
+    "kind": {
+      "enum": [
+        "place",
+        "transition"
+      ],
+      "title": "Kind",
+      "type": "string"
+    },
+    "pattern": {
+      "title": "Pattern",
+      "type": "string"
+    }
+  },
+  "required": [
+    "kind",
+    "pattern",
+    "count",
+    "indices",
+    "example"
+  ],
+  "title": "NameGroup",
+  "type": "object"
+}
