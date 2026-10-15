@@ -13,6 +13,7 @@ from app.application.engines import EngineService
 from app.application.formulas import FormulaService
 from app.application.inspection import InspectionService
 from app.application.nets import NetService
+from app.application.retention import RetentionService
 
 
 def get_nets(*, request: Request) -> NetService:
@@ -50,6 +51,11 @@ def get_agent(*, request: Request) -> AgentService:
     return cast("AgentService", request.app.state.agent)
 
 
+def get_retention(*, request: Request) -> RetentionService:
+    """Return the retention service of the running application."""
+    return cast("RetentionService", request.app.state.retention)
+
+
 NetsDep = Annotated[NetService, Depends(get_nets)]
 ChecksDep = Annotated[CheckService, Depends(get_checks)]
 EnginesDep = Annotated[EngineService, Depends(get_engines)]
@@ -57,3 +63,4 @@ InspectionDep = Annotated[InspectionService, Depends(get_inspection)]
 FormulasDep = Annotated[FormulaService, Depends(get_formulas)]
 DescriptionsDep = Annotated[DescriptionService, Depends(get_descriptions)]
 AgentDep = Annotated[AgentService, Depends(get_agent)]
+RetentionDep = Annotated[RetentionService, Depends(get_retention)]

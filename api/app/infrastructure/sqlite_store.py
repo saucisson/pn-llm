@@ -11,13 +11,10 @@ Any process may mark a job whose lease expired as interrupted.
 
 from __future__ import annotations
 
-import contextlib
 import hashlib
 import sqlite3
 import time
 import zlib
-from collections.abc import Iterator
-from pathlib import Path
 
 from pydantic import TypeAdapter
 
@@ -41,7 +38,7 @@ from app.domain.sessions import (
     StoredEvent,
 )
 
-from .sqlite_migrations import migrate
+from .sqlite_database import SqliteDatabase
 
 _RESULTS = TypeAdapter(tuple[FormulaResult, ...])
 _EVENT: TypeAdapter[SessionEvent] = TypeAdapter(SessionEvent)
@@ -59,26 +56,8 @@ def _session_from_row(*, row: sqlite3.Row) -> Session:
     )
 
 
-class SqliteStore:
-    """Nets and jobs, persisted in one SQLite file."""
-
-    def __init__(self, *, path: Path) -> None:
-        """Open (and create if needed) the database at ``path``."""
-        self._path = path
-        path.parent.mkdir(parents=True, exist_ok=True)
-        migrate(path=path)
-
-    @contextlib.contextmanager
-    def _connection(self) -> Iterator[sqlite3.Connection]:
-        conn = sqlite3.connect(self._path, timeout=30)
-        try:
-            conn.row_factory = sqlite3.Row
-            # The write-ahead mode is stored in the file by the migration: nothing to switch here.
-            conn.execute("PRAGMA foreign_keys=ON")
-            with conn:  # commit on success, roll back on error
-                yield conn
-        finally:
-            conn.close()
+class SqliteStore(SqliteDatabase):
+    """Nets, jobs, descriptions, sessions and their events, persisted in one SQLite file."""
 
     @staticmethod
     def _job_from_row(*, row: sqlite3.Row) -> Job:

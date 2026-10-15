@@ -3,14 +3,15 @@
 from __future__ import annotations
 
 from http import HTTPStatus
+from typing import Annotated
 
-from fastapi import APIRouter, Request, Response
+from fastapi import APIRouter, Query, Request, Response
 from starlette.concurrency import run_in_threadpool
 
 from app.domain.errors import NotAcceptableError, UnsupportedMediaTypeError
 from app.domain.nets import NetFormat, NetRegistration
 
-from .deps import NetsDep
+from .deps import NetsDep, RetentionDep
 from .negotiation import JSON, PNML, PNML_REQUEST_TYPES, media_type_of, negotiate
 
 router = APIRouter(prefix="/v1/nets", tags=["nets"])
@@ -54,3 +55,15 @@ def get_net(*, request: Request, net_id: str, nets: NetsDep) -> Response:
         media_type=JSON,
         headers=headers,
     )
+
+
+@router.delete("/{net_id}", status_code=HTTPStatus.NO_CONTENT)
+def delete_net(
+    *,
+    net_id: str,
+    retention: RetentionDep,
+    cascade: Annotated[bool, Query(description="Also delete its jobs and sessions")] = False,
+) -> Response:
+    """Delete a net. Refused (409) while something uses it, unless ``cascade`` is set."""
+    retention.delete_net(net_id=net_id, cascade=cascade)
+    return Response(status_code=HTTPStatus.NO_CONTENT)

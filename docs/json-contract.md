@@ -167,6 +167,11 @@ events (`id` is the event number, `event` its kind, `data` the `StoredEvent`), r
 or without the description, to compare conditions. A description proposed by the assistant
 (`description_proposed`) is stored by `POST /v1/sessions/{id}/description-proposals/{proposal_id}/accept`.
 
+### Deletion
+`DELETE /v1/sessions/{id}`, `DELETE /v1/nets/{id}[?cascade=true]` and
+`DELETE /v1/descriptions/{id}?net_id=` answer 204; see `docs/architecture.md`, "Retention and
+deletion", for what each removes and when it is refused (409).
+
 ### Analyses (`POST /analyses/{operation}`, one per operation)
 | Operation | Result `data` |
 |---|---|

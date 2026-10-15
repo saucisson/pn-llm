@@ -17,7 +17,7 @@ from app.domain.models import (
     JobSubmission,
 )
 from app.domain.net_document import NetDocument
-from app.domain.nets import NetSummary, SavedNet, StoredNet
+from app.domain.nets import NetReferences, NetSummary, SavedNet, StoredNet
 from app.domain.sessions import (
     Session,
     SessionEvent,
@@ -104,6 +104,34 @@ class SessionRepository(Protocol):
 
     def expire_waiting_sessions(self, *, older_than_s: float) -> tuple[str, ...]:
         """Cancel the sessions waiting for the user for longer than this; return their ids."""
+        ...
+
+
+class RetentionRepository(Protocol):
+    """Deletion of user data (docs/architecture.md, "Retention and deletion")."""
+
+    def delete_session(self, *, session_id: str) -> bool:
+        """Delete a session and its events; False if it did not exist."""
+        ...
+
+    def purge_sessions(self, *, older_than_s: float) -> int:
+        """Delete the sessions not touched for this long, unless a run is queued or running."""
+        ...
+
+    def references_of(self, *, net_id: str) -> NetReferences:
+        """Return how many jobs and sessions refer to a net, and how many of them are live."""
+        ...
+
+    def delete_net(self, *, net_id: str) -> bool:
+        """Delete a net with its jobs, traces, sessions, events and description links."""
+        ...
+
+    def delete_description_link(self, *, description_id: str, net_id: str) -> bool:
+        """Unlink a description from a net; the text goes when no net uses it any more."""
+        ...
+
+    def purge_unreferenced(self, *, older_than_s: float) -> int:
+        """Delete nets older than this that no job or session uses, and unlinked descriptions."""
         ...
 
 

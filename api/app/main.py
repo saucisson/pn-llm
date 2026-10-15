@@ -24,6 +24,7 @@ from app.application.formulas import FormulaService
 from app.application.inspection import InspectionService
 from app.application.nets import NetService
 from app.application.ports import EngineGateway, LlmGateway
+from app.application.retention import RetentionService
 from app.application.tools import ToolFacade
 from app.application.workers import WorkerPool
 from app.domain.net_validation import DocumentLimits
@@ -32,6 +33,7 @@ from app.infrastructure.docker_runner import DockerRunner
 from app.infrastructure.engine_registry import DEFAULT_ENGINES, EngineRegistry
 from app.infrastructure.json_logging import configure_logging
 from app.infrastructure.scripted_llm import DemoLlm
+from app.infrastructure.sqlite_retention import SqliteRetention
 from app.infrastructure.sqlite_store import SqliteStore
 from app.infrastructure.unavailable_llm import UnavailableLlm
 from app.settings import Settings
@@ -83,14 +85,36 @@ def build_agent(
     )
 
 
-def sweep_once(*, config: Settings, checks: CheckService, agent: AgentService) -> None:
-    """Find lost work: expired leases, runs to resume, old finished jobs, abandoned questions."""
+def build_retention(
+    *, config: Settings, store: SqliteStore, agent: AgentService
+) -> RetentionService:
+    """Wire the deletion of user data."""
+    return RetentionService(
+        retention=SqliteRetention(path=config.database_path),
+        agent=agent,
+        nets=store,
+        descriptions=store,
+    )
+
+
+def sweep_once(
+    *, config: Settings, checks: CheckService, agent: AgentService, retention: RetentionService
+) -> None:
+    """Find lost work and apply the retention policy: leases, runs, old jobs, sessions, nets."""
     checks.recover_interrupted()
     agent.recover_lost_runs()
     if config.job_retention_days is not None:
         checks.purge_old_jobs(retention_s=config.job_retention_days * SECONDS_PER_DAY)
     if config.session_waiting_expiry_days is not None:
         agent.expire_waiting(older_than_s=config.session_waiting_expiry_days * SECONDS_PER_DAY)
+    retention.expire(
+        sessions_older_than_s=None
+        if config.session_retention_days is None
+        else config.session_retention_days * SECONDS_PER_DAY,
+        nets_older_than_s=None
+        if config.unreferenced_net_retention_days is None
+        else config.unreferenced_net_retention_days * SECONDS_PER_DAY,
+    )
 
 
 def create_app(
@@ -115,13 +139,16 @@ def create_app(
     agent = build_agent(
         config=config, store=store, checks=checks, llm=llm_gateway or build_llm(config=config)
     )
+    retention = build_retention(config=config, store=store, agent=agent)
 
     @contextlib.asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
         # Every process sweeps expired leases, so orphans are found whichever process survives.
         async def sweep() -> None:
             while True:
-                await run_in_threadpool(sweep_once, config=config, checks=checks, agent=agent)
+                await run_in_threadpool(
+                    sweep_once, config=config, checks=checks, agent=agent, retention=retention
+                )
                 await asyncio.sleep(config.job_lease_seconds / 2)
 
         sweeper = asyncio.create_task(sweep())
@@ -161,6 +188,7 @@ def create_app(
         nets=store, descriptions=store, max_bytes=config.max_description_bytes
     )
     app.state.agent = agent
+    app.state.retention = retention
     app.state.engines = EngineService(engines=registry)
     register_error_handlers(app=app)
     app.middleware("http")(log_requests)
@@ -187,6 +215,7 @@ def worker_main() -> None:
         lease_seconds=config.job_lease_seconds,
     )
     agent = build_agent(config=config, store=store, checks=checks, llm=build_llm(config=config))
+    retention = build_retention(config=config, store=store, agent=agent)
     stopping = threading.Event()
     handler: Callable[..., None] = lambda *_: stopping.set()  # noqa: E731 - signal handler
     for signum in (signal.SIGINT, signal.SIGTERM):
@@ -197,7 +226,7 @@ def worker_main() -> None:
         poll_seconds=config.worker_poll_seconds,
     ):
         while not stopping.wait(timeout=config.job_lease_seconds / 2):
-            sweep_once(config=config, checks=checks, agent=agent)
+            sweep_once(config=config, checks=checks, agent=agent, retention=retention)
 
 
 if __name__ == "__main__":

@@ -22,7 +22,7 @@ from app.domain.models import DomainModel
 from app.domain.nets import NetFormat
 from app.domain.sessions import Session, StoredEvent
 
-from .deps import AgentDep, DescriptionsDep, NetsDep
+from .deps import AgentDep, DescriptionsDep, NetsDep, RetentionDep
 from .envelopes import wrap
 
 router = APIRouter(prefix="/v1/sessions", tags=["sessions"])
@@ -160,6 +160,13 @@ def accept_description(
     started = time.perf_counter()
     stored = agent.accept_description(session_id=session_id, proposal_id=proposal_id)
     return wrap(tool="session.accept_description", net_id=None, started=started, data=stored)
+
+
+@router.delete("/{session_id}", status_code=HTTPStatus.NO_CONTENT)
+def delete_session(*, session_id: str, retention: RetentionDep) -> Response:
+    """Delete a session and its events (its run is cancelled first)."""
+    retention.delete_session(session_id=session_id)
+    return Response(status_code=HTTPStatus.NO_CONTENT)
 
 
 @router.post("/{session_id}/cancel")

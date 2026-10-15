@@ -12,7 +12,7 @@ from app.domain.contract import Envelope
 from app.domain.descriptions import Description, DescriptionOrigin, SavedDescription
 from app.domain.errors import UnsupportedMediaTypeError
 
-from .deps import DescriptionsDep
+from .deps import DescriptionsDep, RetentionDep
 from .envelopes import wrap
 from .negotiation import media_type_of
 
@@ -72,3 +72,15 @@ def get_description(
         started=started,
         data=descriptions.get(description_id=description_id),
     )
+
+
+@router.delete("/v1/descriptions/{description_id}", status_code=204)
+def delete_description(
+    *,
+    description_id: str,
+    net_id: Annotated[str, Query(description="The net the description is unlinked from")],
+    retention: RetentionDep,
+) -> Response:
+    """Unlink a description from a net; its text is deleted when no net uses it."""
+    retention.delete_description(description_id=description_id, net_id=net_id)
+    return Response(status_code=204)
