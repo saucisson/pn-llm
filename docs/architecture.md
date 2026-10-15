@@ -48,6 +48,7 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/domain/engine_contract.py` | domain | The engine contract v1: `EngineRequest`, the entries of `result.json`, traces, `EngineReport` |
 | `app/domain/engine_check.py` | domain | Check an engine report against the request and the net; ERROR for everything unusable |
 | `app/domain/replay.py` | domain | Replay firings on a P/T net; evaluate a state condition on a marking |
+| `app/domain/descriptions.py` | domain | `Description`: immutable text identified by its hash, linked to a net with an origin |
 | `app/domain/errors.py` | domain | Domain errors, the failures that are part of the API contract |
 | `app/domain/contract.py` | domain | Shared JSON contract: `Envelope`, `ElementRef`, `Marking`, `Bound`, `Page` (docs/json-contract.md) |
 | `app/application/ports.py` | application | Protocols the use cases need: `NetRepository`, `JobRepository`, `EngineGateway` |
@@ -55,6 +56,7 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/application/inspection.py` | application | `InspectionService`: summary, lists, element, search, marking, neighbourhood, name groups |
 | `app/application/formulas.py` | application | `FormulaService`: parse and validate a formula against a net |
 | `app/application/workers.py` | application | `WorkerPool`: threads that claim and run queued jobs |
+| `app/application/descriptions.py` | application | `DescriptionService`: add and read net descriptions |
 | `app/application/leases.py` | application | `LeaseKeeper`: renews a running job's lease so other processes know its owner is alive |
 | `app/application/checks.py` | application | `CheckService`: submit, execute, read and cancel checks |
 | `app/application/engines.py` | application | `EngineService`: list engines |
@@ -71,6 +73,7 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/api/engines.py` | api | Route `/v1/engines` |
 | `app/api/inspection.py` | api | Read-only inspection routes under `/v1/nets/{id}` |
 | `app/api/formulas.py` | api | Route `POST /v1/formulas/validate` |
+| `app/api/descriptions.py` | api | Routes for net descriptions |
 | `app/api/envelopes.py` | api | Build the shared result envelope |
 | `app/api/llm_tools.py` | api | Which routes may be offered to the LLM (all but the net itself) |
 | `app/settings.py` | (config) | Pydantic settings from `PNVERIF_*` environment variables |

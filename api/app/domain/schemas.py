@@ -7,6 +7,7 @@ import json
 from pydantic import BaseModel
 
 from .contract import ElementRef, Envelope, Marking, Page, PageRequest
+from .descriptions import Description
 from .engine_contract import EngineCheckData, EngineRequest, EngineTrace, Trace
 from .formula import Formula
 from .formula_check import FormulaReport, FormulaValidationRequest
@@ -19,6 +20,7 @@ from .replay import ReplayRequest, ReplayResult
 EXPORTED_MODELS: tuple[type[BaseModel], ...] = (
     ArcView,
     CheckRequest,
+    Description,
     ElementDetail,
     ElementRef,
     EngineCheckData,

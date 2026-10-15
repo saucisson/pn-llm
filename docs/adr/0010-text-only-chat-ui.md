@@ -1,6 +1,6 @@
 # 10. A text-only chat UI on a modern TypeScript stack
 
-Status: proposed (review before any code)
+Status: accepted
 
 ## Context
 The first user workflow is a conversation in text. Displaying the net graphically is wanted later

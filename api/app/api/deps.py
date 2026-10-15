@@ -7,6 +7,7 @@ from typing import Annotated, cast
 from fastapi import Depends, Request
 
 from app.application.checks import CheckService
+from app.application.descriptions import DescriptionService
 from app.application.engines import EngineService
 from app.application.formulas import FormulaService
 from app.application.inspection import InspectionService
@@ -38,8 +39,14 @@ def get_formulas(*, request: Request) -> FormulaService:
     return cast("FormulaService", request.app.state.formulas)
 
 
+def get_descriptions(*, request: Request) -> DescriptionService:
+    """Return the description service of the running application."""
+    return cast("DescriptionService", request.app.state.descriptions)
+
+
 NetsDep = Annotated[NetService, Depends(get_nets)]
 ChecksDep = Annotated[CheckService, Depends(get_checks)]
 EnginesDep = Annotated[EngineService, Depends(get_engines)]
 InspectionDep = Annotated[InspectionService, Depends(get_inspection)]
 FormulasDep = Annotated[FormulaService, Depends(get_formulas)]
+DescriptionsDep = Annotated[DescriptionService, Depends(get_descriptions)]

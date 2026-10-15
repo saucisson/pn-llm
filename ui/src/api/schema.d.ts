@@ -4,6 +4,26 @@
  */
 
 export interface paths {
+    "/v1/descriptions/{description_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Description
+         * @description A description with its links to nets (one entry per net and origin).
+         */
+        get: operations["get_description_v1_descriptions__description_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/engines": {
         parameters: {
             query?: never;
@@ -182,6 +202,30 @@ export interface paths {
          * @description Queue (or reuse) an asynchronous check of formulas on a net; a worker runs it.
          */
         post: operations["start_check_v1_nets__net_id__checks_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/nets/{net_id}/descriptions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Descriptions
+         * @description The descriptions of a net, oldest first.
+         */
+        get: operations["list_descriptions_v1_nets__net_id__descriptions_get"];
+        put?: never;
+        /**
+         * Add Description
+         * @description Add a description (text/plain or text/markdown) to a net; the same text is a no-op.
+         */
+        post: operations["add_description_v1_nets__net_id__descriptions_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -551,6 +595,23 @@ export interface components {
             op: "deadlock";
         };
         /**
+         * Description
+         * @description A description of a net, with the origin of the link to that net.
+         */
+        Description: {
+            /** Description Id */
+            description_id: string;
+            /** Net Id */
+            net_id: string;
+            /**
+             * Origin
+             * @enum {string}
+             */
+            origin: "user" | "mcc" | "llm";
+            /** Text */
+            text: string;
+        };
+        /**
          * DistantElement
          * @description An element of a neighbourhood and its distance, in arcs, from the nearest center.
          */
@@ -620,6 +681,33 @@ export interface components {
             supports_colored: boolean;
             /** Version */
             version: string;
+        };
+        /** Envelope[Description] */
+        Envelope_Description_: {
+            data?: components["schemas"]["Description"] | null;
+            /** Elapsed S */
+            elapsed_s: number;
+            error?: components["schemas"]["ErrorInfo"] | null;
+            /** Net Id */
+            net_id?: string | null;
+            /**
+             * Schema Version
+             * @default 1.0
+             * @constant
+             */
+            schema_version: "1.0";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ok" | "partial" | "failed";
+            tool: components["schemas"]["ToolInfo"];
+            truncated?: components["schemas"]["Page"] | null;
+            /**
+             * Warnings
+             * @default []
+             */
+            warnings: string[];
         };
         /** Envelope[ElementDetail] */
         Envelope_ElementDetail_: {
@@ -841,6 +929,34 @@ export interface components {
         Envelope_tuple_ArcView__________: {
             /** Data */
             data?: components["schemas"]["ArcView"][] | null;
+            /** Elapsed S */
+            elapsed_s: number;
+            error?: components["schemas"]["ErrorInfo"] | null;
+            /** Net Id */
+            net_id?: string | null;
+            /**
+             * Schema Version
+             * @default 1.0
+             * @constant
+             */
+            schema_version: "1.0";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ok" | "partial" | "failed";
+            tool: components["schemas"]["ToolInfo"];
+            truncated?: components["schemas"]["Page"] | null;
+            /**
+             * Warnings
+             * @default []
+             */
+            warnings: string[];
+        };
+        /** Envelope[tuple[Description, ...]] */
+        Envelope_tuple_Description__________: {
+            /** Data */
+            data?: components["schemas"]["Description"][] | null;
             /** Elapsed S */
             elapsed_s: number;
             error?: components["schemas"]["ErrorInfo"] | null;
@@ -1635,6 +1751,37 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    get_description_v1_descriptions__description_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                description_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_tuple_Description__________"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_engines_v1_engines_get: {
         parameters: {
             query?: never;
@@ -1922,6 +2069,70 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Envelope_Job_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_descriptions_v1_nets__net_id__descriptions_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                net_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_tuple_Description__________"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_description_v1_nets__net_id__descriptions_post: {
+        parameters: {
+            query?: {
+                origin?: "user" | "mcc" | "llm";
+            };
+            header?: never;
+            path: {
+                net_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_Description_"];
                 };
             };
             /** @description Validation Error */

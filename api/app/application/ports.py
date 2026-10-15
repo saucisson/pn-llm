@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from typing import Protocol
 
+from app.domain.descriptions import Description, DescriptionOrigin, SavedDescription
 from app.domain.engine_contract import EngineReport, EngineRequest, Trace
 from app.domain.models import (
     EngineInfo,
@@ -27,6 +28,28 @@ class NetRepository(Protocol):
 
     def load_net(self, *, net_id: str) -> StoredNet:
         """Return a stored net, or raise NotFoundError."""
+        ...
+
+
+class DescriptionRepository(Protocol):
+    """Persistent storage of net descriptions."""
+
+    def save_description(
+        self, *, net_id: str, text: str, origin: DescriptionOrigin
+    ) -> SavedDescription:
+        """Store a description and link it to a net; adding the same text twice is a no-op."""
+        ...
+
+    def descriptions_of(self, *, net_id: str) -> tuple[Description, ...]:
+        """Return the descriptions linked to a net, oldest first."""
+        ...
+
+    def load_description(self, *, description_id: str) -> tuple[Description, ...]:
+        """Return a description with each of its links (one per net and origin).
+
+        Raises:
+            NotFoundError: if the description is unknown.
+        """
         ...
 
 

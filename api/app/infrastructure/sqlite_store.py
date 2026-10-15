@@ -22,6 +22,12 @@ from pathlib import Path
 from pydantic import TypeAdapter
 
 from app.domain.canonical import canonical_bytes
+from app.domain.descriptions import (
+    Description,
+    DescriptionOrigin,
+    SavedDescription,
+    description_id_of,
+)
 from app.domain.engine_contract import Trace
 from app.domain.errors import ConflictError, NotFoundError
 from app.domain.models import CheckRequest, FormulaResult, Job, JobState, JobSubmission
@@ -89,6 +95,72 @@ class SqliteStore:
         return StoredNet(
             summary=NetSummary.model_validate_json(row["summary"]),
             document=NetDocument.model_validate_json(zlib.decompress(row["document"])),
+        )
+
+    # ---- DescriptionRepository ------------------------------------------------------------
+
+    def save_description(
+        self, *, net_id: str, text: str, origin: DescriptionOrigin
+    ) -> SavedDescription:
+        """Store a description and link it to a net; adding the same text twice is a no-op."""
+        description_id = description_id_of(text=text)
+        now = time.time()
+        with self._connection() as conn:
+            conn.execute(
+                "INSERT OR IGNORE INTO descriptions(description_id, text, created_at)"
+                " VALUES (?,?,?)",
+                (description_id, text, now),
+            )
+            cursor = conn.execute(
+                "INSERT OR IGNORE INTO net_descriptions(net_id, description_id, origin, created_at)"
+                " VALUES (?,?,?,?)",
+                (net_id, description_id, origin, now),
+            )
+        return SavedDescription(
+            description=Description(
+                description_id=description_id, net_id=net_id, origin=origin, text=text
+            ),
+            created=cursor.rowcount == 1,
+        )
+
+    def descriptions_of(self, *, net_id: str) -> tuple[Description, ...]:
+        """Return the descriptions linked to a net, oldest first."""
+        with self._connection() as conn:
+            rows = conn.execute(
+                "SELECT d.description_id, d.text, l.origin FROM net_descriptions l"
+                " JOIN descriptions d USING (description_id) WHERE l.net_id=?"
+                " ORDER BY l.created_at, d.description_id",
+                (net_id,),
+            ).fetchall()
+        return tuple(
+            Description(
+                description_id=row["description_id"],
+                net_id=net_id,
+                origin=row["origin"],
+                text=row["text"],
+            )
+            for row in rows
+        )
+
+    def load_description(self, *, description_id: str) -> tuple[Description, ...]:
+        """Return a description with each of its links (one per net and origin)."""
+        with self._connection() as conn:
+            rows = conn.execute(
+                "SELECT d.text, l.net_id, l.origin FROM descriptions d"
+                " JOIN net_descriptions l USING (description_id) WHERE d.description_id=?"
+                " ORDER BY l.created_at, l.net_id",
+                (description_id,),
+            ).fetchall()
+        if not rows:
+            raise NotFoundError(f"Unknown description: {description_id}")
+        return tuple(
+            Description(
+                description_id=description_id,
+                net_id=row["net_id"],
+                origin=row["origin"],
+                text=row["text"],
+            )
+            for row in rows
         )
 
     # ---- JobRepository --------------------------------------------------------------------

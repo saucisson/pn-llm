@@ -1,0 +1,34 @@
+{
+  "description": "A description of a net, with the origin of the link to that net.",
+  "properties": {
+    "description_id": {
+      "title": "Description Id",
+      "type": "string"
+    },
+    "net_id": {
+      "title": "Net Id",
+      "type": "string"
+    },
+    "origin": {
+      "enum": [
+        "user",
+        "mcc",
+        "llm"
+      ],
+      "title": "Origin",
+      "type": "string"
+    },
+    "text": {
+      "title": "Text",
+      "type": "string"
+    }
+  },
+  "required": [
+    "description_id",
+    "net_id",
+    "origin",
+    "text"
+  ],
+  "title": "Description",
+  "type": "object"
+}

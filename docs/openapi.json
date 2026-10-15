@@ -896,6 +896,40 @@
         "title": "Deadlock",
         "type": "object"
       },
+      "Description": {
+        "description": "A description of a net, with the origin of the link to that net.",
+        "properties": {
+          "description_id": {
+            "title": "Description Id",
+            "type": "string"
+          },
+          "net_id": {
+            "title": "Net Id",
+            "type": "string"
+          },
+          "origin": {
+            "enum": [
+              "user",
+              "mcc",
+              "llm"
+            ],
+            "title": "Origin",
+            "type": "string"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "description_id",
+          "net_id",
+          "origin",
+          "text"
+        ],
+        "title": "Description",
+        "type": "object"
+      },
       "DistantElement": {
         "description": "An element of a neighbourhood and its distance, in arcs, from the nearest center.",
         "properties": {
@@ -1035,6 +1069,89 @@
           "available"
         ],
         "title": "EngineInfo",
+        "type": "object"
+      },
+      "Envelope_Description_": {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Description"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "elapsed_s": {
+            "minimum": 0.0,
+            "title": "Elapsed S",
+            "type": "number"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorInfo"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "net_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Net Id"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "default": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "partial",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "tool": {
+            "$ref": "#/components/schemas/ToolInfo"
+          },
+          "truncated": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Page"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "warnings": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "tool",
+          "status",
+          "elapsed_s"
+        ],
+        "title": "Envelope[Description]",
         "type": "object"
       },
       "Envelope_ElementDetail_": {
@@ -1786,6 +1903,93 @@
           "elapsed_s"
         ],
         "title": "Envelope[tuple[ArcView, ...]]",
+        "type": "object"
+      },
+      "Envelope_tuple_Description__________": {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/Description"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data"
+          },
+          "elapsed_s": {
+            "minimum": 0.0,
+            "title": "Elapsed S",
+            "type": "number"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorInfo"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "net_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Net Id"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "default": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "partial",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "tool": {
+            "$ref": "#/components/schemas/ToolInfo"
+          },
+          "truncated": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Page"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "warnings": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "tool",
+          "status",
+          "elapsed_s"
+        ],
+        "title": "Envelope[tuple[Description, ...]]",
         "type": "object"
       },
       "Envelope_tuple_ElementRef__________": {
@@ -4593,6 +4797,49 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/v1/descriptions/{description_id}": {
+      "get": {
+        "description": "A description with its links to nets (one entry per net and origin).",
+        "operationId": "get_description_v1_descriptions__description_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "description_id",
+            "required": true,
+            "schema": {
+              "title": "Description Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_tuple_Description__________"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Description",
+        "tags": [
+          "descriptions"
+        ]
+      }
+    },
     "/v1/engines": {
       "get": {
         "description": "List the registered engines and whether they are available here.",
@@ -5049,6 +5296,105 @@
         "summary": "Start Check",
         "tags": [
           "checks"
+        ]
+      }
+    },
+    "/v1/nets/{net_id}/descriptions": {
+      "get": {
+        "description": "The descriptions of a net, oldest first.",
+        "operationId": "list_descriptions_v1_nets__net_id__descriptions_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "net_id",
+            "required": true,
+            "schema": {
+              "title": "Net Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_tuple_Description__________"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Descriptions",
+        "tags": [
+          "descriptions"
+        ]
+      },
+      "post": {
+        "description": "Add a description (text/plain or text/markdown) to a net; the same text is a no-op.",
+        "operationId": "add_description_v1_nets__net_id__descriptions_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "net_id",
+            "required": true,
+            "schema": {
+              "title": "Net Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "origin",
+            "required": false,
+            "schema": {
+              "default": "user",
+              "enum": [
+                "user",
+                "mcc",
+                "llm"
+              ],
+              "title": "Origin",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_Description_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Add Description",
+        "tags": [
+          "descriptions"
         ]
       }
     },

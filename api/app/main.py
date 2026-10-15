@@ -18,9 +18,10 @@ from fastapi.staticfiles import StaticFiles
 from starlette.concurrency import run_in_threadpool
 
 from app import __version__
-from app.api import engines, formulas, inspection, jobs, nets
+from app.api import descriptions, engines, formulas, inspection, jobs, nets
 from app.api.errors import register_error_handlers
 from app.application.checks import CheckService
+from app.application.descriptions import DescriptionService
 from app.application.engines import EngineService
 from app.application.formulas import FormulaService
 from app.application.inspection import InspectionService
@@ -98,11 +99,14 @@ def create_app(
     app.state.checks = checks
     app.state.inspection = InspectionService(nets=store)
     app.state.formulas = FormulaService(nets=store)
+    app.state.descriptions = DescriptionService(
+        nets=store, descriptions=store, max_bytes=config.max_description_bytes
+    )
     app.state.engines = EngineService(engines=registry)
     register_error_handlers(app=app)
     if config.ui_dir is not None and config.ui_dir.is_dir():
         app.mount("/ui", StaticFiles(directory=config.ui_dir, html=True), name="ui")
-    for module in (nets, inspection, formulas, jobs, engines):
+    for module in (nets, descriptions, inspection, formulas, jobs, engines):
         app.include_router(module.router)
     return app
 
