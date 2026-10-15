@@ -31,6 +31,7 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 |---|---|---|
 | `app/domain/models.py` | domain | Frozen pydantic models of all data (nets, formulas, jobs, results, engine output) |
 | `app/domain/errors.py` | domain | Domain errors, the failures that are part of the API contract |
+| `app/domain/contract.py` | domain | Shared JSON contract: `Envelope`, `ElementRef`, `Marking`, `Bound`, `Page` (docs/json-contract.md) |
 | `app/domain/pnml.py` | domain | Parse a PNML document into a `NetSummary` (hardened XML parsing) |
 | `app/application/ports.py` | application | Protocols the use cases need: `NetRepository`, `JobRepository`, `EngineGateway` |
 | `app/application/nets.py` | application | `NetService`: register and read nets |
@@ -113,7 +114,8 @@ inspection tools.
 Each analysis and each transformation has its own endpoint and does one thing; the endpoint
 names the operation, not the tool (ADR 0014). To add one: a route, a request model, a result
 model, a use case run by the generic job runner, an entry in the operations catalog, and an engine
-declaring it. The implemented API is the v0 subset of that contract; the backlog (M1) migrates it.
+declaring it. The implemented API is the v0 subset of that contract: `GET /v1/engines` already returns the
+envelope; nets and checks migrate with the net document (#9-#14) and the engine contract (#21).
 
 ## Known limitations
 

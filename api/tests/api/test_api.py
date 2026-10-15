@@ -119,7 +119,7 @@ def test_cancelling_a_finished_job_keeps_its_results(client):
 
 
 def test_engines_are_listed_with_capabilities(client):
-    engines = {e["name"]: e for e in client.get("/v1/engines").json()}
+    engines = {e["name"]: e for e in client.get("/v1/engines").json()["data"]}
     assert engines["dummy"]["available"] is True
     assert engines["petrivet"]["supports_colored"] is False
     assert engines["itstools"]["supports_colored"] is True
