@@ -55,8 +55,17 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/domain/conformance.py` | domain | Conformance cases, the engine-by-case matrix, wrong answers and contradictions flagged for triage |
 | `app/domain/operations.py` | domain | The operations (analyses, reductions): `OperationDefinition`, the request, the run and its outcome |
 | `app/domain/operation_check.py` | domain | Checks what an engine says an operation found: the shape, and only elements the net has, with their names |
+| `app/domain/catalog.py` | domain | Every operation (analyses and reductions) and `find_operation` |
+| `app/domain/perform.py` | domain | Perform a named operation on a document: its result, and for a reduction the net it produced |
 | `app/domain/analysis_summary.py` | domain | The size-bounded digest of the analyses given to the LLM: exact counts, a few named examples, and what could not be computed |
 | the package `app/domain/analyses` | domain | The analyses, one module each; its `__init__` is the catalog `ANALYSES` and `find_operation` |
+| `app/domain/reductions/result.py` | domain | The request and answer of every reduction rule: protected ids, removed, merged, expansions, preserved properties |
+| `app/domain/reductions/driver.py` | domain | The loop every rule shares: apply until it no longer applies, and report what changed |
+| `app/domain/reductions/working.py` | domain | The private mutable copy of a net that rules rewrite |
+| `app/domain/reductions/document.py` | domain | A reduced structure written back as a net document |
+| `app/domain/reductions/removals.py` | domain | Rules `remove-dead-transitions` and `remove-self-loop-transitions` |
+| `app/domain/reductions/parallel.py` | domain | Rules `fuse-parallel-places` and `fuse-parallel-transitions` |
+| the package `app/domain/reductions` | domain | The reduction rules; its `__init__` is the list `REDUCTIONS` |
 | `app/domain/analyses/t_invariants.py` | domain | Analysis `t-invariants`: semiflows of the transposed incidence matrix |
 | `app/domain/analyses/place_bounds.py` | domain | Analysis `place-bounds`: bounds from the P-invariants; unbounded only when a source transition feeds a place |
 | `app/domain/analyses/siphons.py` | domain | Analyses `minimal-siphons` and `minimal-traps`: branching search over the violated transitions |

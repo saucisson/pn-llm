@@ -11,7 +11,6 @@ from collections.abc import Callable
 
 from pydantic import JsonValue, ValidationError
 
-from app.domain.analyses import OPERATIONS, find_operation
 from app.domain.analyses.conflict_sets import ConflictSetsParameters, ConflictSetsResult
 from app.domain.analyses.connected_components import (
     ConnectedComponentsParameters,
@@ -23,6 +22,7 @@ from app.domain.analyses.p_invariants import PInvariantsParameters, PInvariantsR
 from app.domain.analyses.place_bounds import PlaceBoundsParameters, PlaceBoundsResult
 from app.domain.analyses.t_invariants import TInvariantsParameters, TInvariantsResult
 from app.domain.analysis_summary import AnalysisResults, Unavailable, summarize_analyses
+from app.domain.catalog import OPERATIONS, find_operation
 from app.domain.contract import ToolInfo
 from app.domain.errors import DomainError
 from app.domain.models import DomainModel, Limits

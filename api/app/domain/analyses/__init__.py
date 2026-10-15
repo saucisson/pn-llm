@@ -98,9 +98,3 @@ ANALYSES: tuple[OperationDefinition, ...] = (
         compute=connected_components,
     ),
 )
-OPERATIONS: tuple[OperationDefinition, ...] = ANALYSES
-
-
-def find_operation(*, name: str) -> OperationDefinition | None:
-    """Return the operation of that name, or None."""
-    return next((op for op in OPERATIONS if op.name == name), None)

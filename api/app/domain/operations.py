@@ -131,3 +131,19 @@ def compute_on(
     return definition.compute(
         structure=structure, parameters=definition.parameters_model.model_validate(parameters)
     )
+
+
+class LineageExpansion(DomainModel):
+    """A transition of a derived net and what its firing stands for in the parent."""
+
+    transition: str
+    original: tuple[str, ...]
+
+
+class Lineage(DomainModel):
+    """How a net was derived from another: the rule and what its transitions stand for there."""
+
+    net_id: str
+    parent_id: str
+    rule: str
+    expansions: tuple[LineageExpansion, ...] = ()

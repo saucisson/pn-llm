@@ -5,7 +5,7 @@ from __future__ import annotations
 from app.domain.canonical import net_id_of
 from app.domain.errors import PayloadTooLargeError
 from app.domain.net_validation import DocumentLimits, parse_document
-from app.domain.nets import NetFormat, SavedNet, StoredNet, summarize_document
+from app.domain.nets import NetFormat, NetSummary, SavedNet, StoredNet, summarize_document
 from app.domain.pnml_export import render_pnml
 from app.domain.pnml_import import import_pnml
 
@@ -40,6 +40,27 @@ class NetService:
             document = parse_document(payload=payload, limits=self._limits)
         net_id = net_id_of(document=document)
         summary = summarize_document(document=document, net_id=net_id)
+        return self._nets.save_net(summary=summary, document=document)
+
+    def register_derived(self, *, payload: bytes, parent: NetSummary, rule: str) -> SavedNet:
+        """Store a net produced from another by a reduction rule, linked to its parent.
+
+        The same net derived twice (from the same or another parent) is stored once; the summary
+        keeps the parent and the rules of the first derivation.
+
+        Raises:
+            PayloadTooLargeError, InvalidNetError: as for ``register``.
+        """
+        if len(payload) > self._max_upload_bytes:
+            raise PayloadTooLargeError(f"Derived net larger than {self._max_upload_bytes} bytes")
+        document = import_pnml(payload=payload, limits=self._limits)
+        net_id = net_id_of(document=document)
+        summary = summarize_document(document=document, net_id=net_id).model_copy(
+            update={
+                "parent_id": parent.net_id,
+                "reductions_applied": (*parent.reductions_applied, rule),
+            }
+        )
         return self._nets.save_net(summary=summary, document=document)
 
     def get(self, *, net_id: str) -> StoredNet:

@@ -60,6 +60,8 @@ class OperationAnswer(DomainModel):
     # The operation's result model, dumped as JSON.
     result: JsonValue
     warnings: tuple[str, ...] = ()
+    # For a reduction that applied: the new net, written to ``reduced.pnml``.
+    reduced_pnml: bytes | None = None
 
 
 def normalize_verdict(*, raw: str | bool | None) -> Verdict:
@@ -177,7 +179,9 @@ def write_operation_result(
     answer: OperationAnswer,
     elapsed_s: float,
 ) -> None:
-    """Write ``result.json`` for an analysis or a reduction."""
+    """Write ``result.json`` of an analysis or a reduction, and its net if it produced one."""
+    if answer.reduced_pnml is not None:
+        (output_dir / "reduced.pnml").write_bytes(answer.reduced_pnml)
     (output_dir / "result.json").write_text(
         Envelope[EngineOperationData](
             tool=tool,
@@ -221,7 +225,7 @@ def run_adapter(
                 answers=answers,
                 elapsed_s=time.monotonic() - started,
             )
-        elif request.kind == "analysis" and operate is not None:
+        elif request.kind in {"analysis", "reduction"} and operate is not None:
             write_operation_result(
                 output_dir=output_dir,
                 request=request,

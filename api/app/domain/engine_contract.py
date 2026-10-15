@@ -131,5 +131,7 @@ class EngineOperationReport(DomainModel):
     status: Literal["ok", "partial", "failed"]
     error_code: str | None = None
     result: JsonValue = None
+    # The net a reduction produced, as PNML (the platform imports it with its hardened importer).
+    reduced_pnml: bytes | None = None
     warnings: tuple[str, ...] = ()
     elapsed_s: float = 0.0

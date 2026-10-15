@@ -217,6 +217,20 @@ MIGRATIONS = (
     WHERE state IN ('queued', 'running', 'done')""",
         ),
     ),
+    Migration(
+        version=10,
+        description="how a net was derived from another by a reduction",
+        statements=(
+            """CREATE TABLE net_lineage (
+    net_id     TEXT NOT NULL REFERENCES nets(net_id),
+    parent_id  TEXT NOT NULL REFERENCES nets(net_id),
+    rule       TEXT NOT NULL,
+    lineage    TEXT NOT NULL,          -- the Lineage as JSON (what each transition stands for)
+    PRIMARY KEY (net_id, parent_id, rule)
+)""",
+            "CREATE INDEX net_lineage_parent ON net_lineage(parent_id)",
+        ),
+    ),
 )
 LATEST_VERSION = MIGRATIONS[-1].version
 WAL_ATTEMPTS = 50

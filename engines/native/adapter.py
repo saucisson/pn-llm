@@ -11,10 +11,9 @@ import os
 
 from pnverif_engine import AdapterInput, OperationAnswer, run_adapter
 
-from app.domain.analyses import find_operation
-from app.domain.net_structure import build_structure
 from app.domain.net_validation import DocumentLimits
-from app.domain.operations import compute_on
+from app.domain.perform import perform
+from app.domain.pnml_export import render_pnml
 from app.domain.pnml_import import import_pnml
 
 TOOL_NAME = "native"
@@ -22,16 +21,19 @@ TOOL_VERSION = os.environ["TOOL_VERSION"]
 
 
 def operate(given: AdapterInput) -> OperationAnswer:  # noqa: PLR0917 - callback of run_adapter
-    """Run the operation the request names on the net and return its result."""
+    """Run the operation the request names on the net and return its result (and reduced net)."""
     request = given.request
-    definition = find_operation(name=request.operation or "")
-    if definition is None:
-        message = f"unknown operation {request.operation!r}"
-        raise ValueError(message)
     document = import_pnml(payload=given.net_path.read_bytes(), limits=DocumentLimits())
-    structure = build_structure(document=document, net_id=request.net_id)
-    result = compute_on(definition=definition, structure=structure, parameters=request.parameters)
-    return OperationAnswer(result=result.model_dump(mode="json"))
+    performed = perform(
+        operation=request.operation or "",
+        document=document,
+        net_id=request.net_id,
+        parameters=request.parameters,
+    )
+    return OperationAnswer(
+        result=performed.result,
+        reduced_pnml=None if performed.reduced is None else render_pnml(document=performed.reduced),
+    )
 
 
 if __name__ == "__main__":

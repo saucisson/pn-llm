@@ -1,9 +1,10 @@
 import pytest
 
-from app.domain.analyses import ANALYSES, find_operation
+from app.domain.analyses import ANALYSES
 from app.domain.analyses.net_class import net_class
 from app.domain.analyses.p_invariants import PInvariantsParameters, p_invariants
 from app.domain.analyses.semiflows import minimal_semiflows
+from app.domain.catalog import find_operation
 from app.domain.net_structure import build_structure
 from app.domain.net_validation import DocumentLimits
 from app.domain.operations import NoParameters, compute_on
