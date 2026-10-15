@@ -32,14 +32,10 @@ CASES = (
 )
 
 
-@pytest.fixture(autouse=True)
-def _require_image():
-    if not runner.image_present(image=IMAGE):
-        pytest.skip(f"{IMAGE} is not available (needs Docker and a built image)")
-
-
 @pytest.fixture(scope="module")
 def report(tmp_path_factory):
+    if not runner.image_present(image=IMAGE):
+        pytest.skip(f"{IMAGE} is not available (needs Docker and a built image)")
     work = tmp_path_factory.mktemp("tapaal")
     (work / "input").mkdir()
     (work / "output").mkdir()
