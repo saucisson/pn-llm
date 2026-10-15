@@ -11082,6 +11082,132 @@
         ]
       }
     },
+    "/v1/nets/{net_id}/reductions/fuse-series-places": {
+      "post": {
+        "operationId": "reductions.fuse-series-places",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "net_id",
+            "required": true,
+            "schema": {
+              "title": "Net Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OperationRequest_ReductionParameters_"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_ReductionResult_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_RunHandle_"
+                }
+              }
+            },
+            "description": "Accepted"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Remove a place that only passes its tokens to the next one, through a transition.",
+        "tags": [
+          "operations",
+          "reductions"
+        ]
+      }
+    },
+    "/v1/nets/{net_id}/reductions/fuse-series-transitions": {
+      "post": {
+        "operationId": "reductions.fuse-series-transitions",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "net_id",
+            "required": true,
+            "schema": {
+              "title": "Net Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OperationRequest_ReductionParameters_"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_ReductionResult_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_RunHandle_"
+                }
+              }
+            },
+            "description": "Accepted"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Fuse two transitions in a chain through a place they alone fill and empty.",
+        "tags": [
+          "operations",
+          "reductions"
+        ]
+      }
+    },
     "/v1/nets/{net_id}/reductions/remove-dead-transitions": {
       "post": {
         "operationId": "reductions.remove-dead-transitions",
@@ -11139,6 +11265,69 @@
           }
         },
         "summary": "Remove the transitions that can never fire.",
+        "tags": [
+          "operations",
+          "reductions"
+        ]
+      }
+    },
+    "/v1/nets/{net_id}/reductions/remove-implicit-places": {
+      "post": {
+        "operationId": "reductions.remove-implicit-places",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "net_id",
+            "required": true,
+            "schema": {
+              "title": "Net Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OperationRequest_ReductionParameters_"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_ReductionResult_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_RunHandle_"
+                }
+              }
+            },
+            "description": "Accepted"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Remove a place that never keeps a transition from firing.",
         "tags": [
           "operations",
           "reductions"

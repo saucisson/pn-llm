@@ -65,6 +65,8 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/domain/reductions/document.py` | domain | A reduced structure written back as a net document |
 | `app/domain/reductions/removals.py` | domain | Rules `remove-dead-transitions` and `remove-self-loop-transitions` |
 | `app/domain/reductions/parallel.py` | domain | Rules `fuse-parallel-places` and `fuse-parallel-transitions` |
+| `app/domain/reductions/series.py` | domain | Rules `fuse-series-places` and `fuse-series-transitions` (Berthelot), with expansions for lifting |
+| `app/domain/reductions/implicit.py` | domain | Rule `remove-implicit-places`: sink places and places dominated by another |
 | the package `app/domain/reductions` | domain | The reduction rules; its `__init__` is the list `REDUCTIONS` |
 | `app/domain/analyses/t_invariants.py` | domain | Analysis `t-invariants`: semiflows of the transposed incidence matrix |
 | `app/domain/analyses/place_bounds.py` | domain | Analysis `place-bounds`: bounds from the P-invariants; unbounded only when a source transition feeds a place |

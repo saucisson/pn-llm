@@ -82,7 +82,7 @@ def project(*, markings, structure: NetStructure, onto):
     return {tuple((p, m[index[p]]) for p in keep) for m in markings}
 
 
-def random_net(*, seed: int):
+def random_net(*, seed: int):  # noqa: C901, PLR0912 - one generator with several optional gadgets
     """A small random P/T net, seeded, with some duplicated places and transitions."""
     rng = random.Random(seed)  # noqa: S311 - a seeded generator for test nets, not for secrets
     places = [f"p{i}" for i in range(rng.randint(2, 6))]
@@ -117,7 +117,21 @@ def random_net(*, seed: int):
                 arcs.append((source, twin_t))
                 weights[len(arcs) - 1] = weights.get(arcs.index((source, target)))
         transitions.append(twin_t)
-    marking = {p: rng.randint(0, 2) for p in places if rng.random() < 0.6}
+    # A chain gadget (source place -> in -> mid -> out -> target place) gives the series rules
+    # something to do: mid starts empty and has one producer and one consumer.
+    if rng.random() < 0.6:
+        mid = "mid"
+        places.append(mid)
+        transitions.extend(["chain_in", "chain_out"])
+        for source in rng.sample(places[:-1], rng.randint(1, min(2, len(places) - 1))):
+            arcs.append((source, "chain_in"))
+        arcs.append(("chain_in", mid))
+        arcs.append((mid, "chain_out"))
+        for target in rng.sample(places[:-1], rng.randint(1, min(2, len(places) - 1))):
+            arcs.append(("chain_out", target))
+        if rng.random() < 0.4:
+            arcs.append(("chain_in", rng.choice(places[:-1])))
+    marking = {p: rng.randint(0, 2) for p in places if rng.random() < 0.6 and p != "mid"}
     if marking.get(places[-1]) is not None and places[-1].endswith("_twin"):
         marking[places[-1]] = marking.get(places[-1].removesuffix("_twin"), 0)
     return structure_of(
