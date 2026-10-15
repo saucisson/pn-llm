@@ -31,6 +31,9 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 |---|---|---|
 | `app/domain/models.py` | domain | Frozen pydantic models of all data (nets, formulas, jobs, results, engine output) |
 | `app/domain/schemas.py` | domain | Deterministic JSON Schema rendering of the public models, committed in `docs/schemas/` (`make schemas`) |
+| `app/domain/net_document.py` | domain | `NetDocument`, the canonical JSON model of a net: pages, nodes, arcs, annotations, graphics, tool-specific data, `XmlNode` |
+| `app/domain/canonical.py` | domain | Canonical JSON (RFC 8785) of a document and the `net_id` hash |
+| `app/domain/net_validation.py` | domain | Validation shared by both formats (ids, arcs, references, P/T integers, bounds) and the JSON reader |
 | `app/domain/errors.py` | domain | Domain errors, the failures that are part of the API contract |
 | `app/domain/contract.py` | domain | Shared JSON contract: `Envelope`, `ElementRef`, `Marking`, `Bound`, `Page` (docs/json-contract.md) |
 | `app/domain/pnml.py` | domain | Parse a PNML document into a `NetSummary` (hardened XML parsing) |

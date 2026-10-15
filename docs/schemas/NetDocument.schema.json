@@ -1,0 +1,1125 @@
+{
+  "$defs": {
+    "Annotation": {
+      "description": "A name, marking, inscription, type, guard or declaration.\n\n``text`` is kept as written; typed values are derived from it, not stored twice.",
+      "properties": {
+        "extensions": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/XmlNode"
+          },
+          "title": "Extensions",
+          "type": "array"
+        },
+        "extra_attributes": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/XmlAttribute"
+          },
+          "title": "Extra Attributes",
+          "type": "array"
+        },
+        "graphics": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AnnotationGraphics"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "structure": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/XmlNode"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "text": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Text"
+        },
+        "tool_specific": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ToolSpecific"
+          },
+          "title": "Tool Specific",
+          "type": "array"
+        }
+      },
+      "title": "Annotation",
+      "type": "object"
+    },
+    "AnnotationGraphics": {
+      "description": "Graphics of an annotation.",
+      "properties": {
+        "fill": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Fill"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "font": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Font"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "line": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Line"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "offset": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Coordinates"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "title": "AnnotationGraphics",
+      "type": "object"
+    },
+    "Arc": {
+      "description": "An arc between a place-like and a transition-like node, in either direction.",
+      "properties": {
+        "extensions": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/XmlNode"
+          },
+          "title": "Extensions",
+          "type": "array"
+        },
+        "extra_attributes": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/XmlAttribute"
+          },
+          "title": "Extra Attributes",
+          "type": "array"
+        },
+        "graphics": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ArcGraphics"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "inscription": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Annotation"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "name": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Annotation"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "source": {
+          "title": "Source",
+          "type": "string"
+        },
+        "target": {
+          "title": "Target",
+          "type": "string"
+        },
+        "tool_specific": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ToolSpecific"
+          },
+          "title": "Tool Specific",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "source",
+        "target"
+      ],
+      "title": "Arc",
+      "type": "object"
+    },
+    "ArcGraphics": {
+      "description": "Graphics of an arc: intermediate points and line.",
+      "properties": {
+        "line": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Line"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "positions": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/Coordinates"
+          },
+          "title": "Positions",
+          "type": "array"
+        }
+      },
+      "title": "ArcGraphics",
+      "type": "object"
+    },
+    "Coordinates": {
+      "description": "A point or a dimension.",
+      "properties": {
+        "x": {
+          "title": "X",
+          "type": "number"
+        },
+        "y": {
+          "title": "Y",
+          "type": "number"
+        }
+      },
+      "required": [
+        "x",
+        "y"
+      ],
+      "title": "Coordinates",
+      "type": "object"
+    },
+    "Fill": {
+      "description": "Graphical fill; values are kept as written.",
+      "properties": {
+        "color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Color"
+        },
+        "gradient_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Gradient Color"
+        },
+        "gradient_rotation": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Gradient Rotation"
+        },
+        "image": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Image"
+        }
+      },
+      "title": "Fill",
+      "type": "object"
+    },
+    "Font": {
+      "description": "Graphical font; values are kept as written.",
+      "properties": {
+        "align": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Align"
+        },
+        "decoration": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Decoration"
+        },
+        "family": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Family"
+        },
+        "rotation": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Rotation"
+        },
+        "size": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Size"
+        },
+        "style": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Style"
+        },
+        "weight": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Weight"
+        }
+      },
+      "title": "Font",
+      "type": "object"
+    },
+    "Line": {
+      "description": "Graphical line; values are kept as written.",
+      "properties": {
+        "color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Color"
+        },
+        "shape": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Shape"
+        },
+        "style": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Style"
+        },
+        "width": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Width"
+        }
+      },
+      "title": "Line",
+      "type": "object"
+    },
+    "NodeGraphics": {
+      "description": "Graphics of a place, transition, reference node or page.",
+      "properties": {
+        "dimension": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Coordinates"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "fill": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Fill"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "line": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Line"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "position": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Coordinates"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "title": "NodeGraphics",
+      "type": "object"
+    },
+    "Page": {
+      "description": "A page: a container with an id.",
+      "properties": {
+        "arcs": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/Arc"
+          },
+          "title": "Arcs",
+          "type": "array"
+        },
+        "declaration": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Annotation"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "extensions": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/XmlNode"
+          },
+          "title": "Extensions",
+          "type": "array"
+        },
+        "extra_attributes": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/XmlAttribute"
+          },
+          "title": "Extra Attributes",
+          "type": "array"
+        },
+        "graphics": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/NodeGraphics"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Annotation"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "pages": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/Page"
+          },
+          "title": "Pages",
+          "type": "array"
+        },
+        "places": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/Place"
+          },
+          "title": "Places",
+          "type": "array"
+        },
+        "ref_places": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/RefPlace"
+          },
+          "title": "Ref Places",
+          "type": "array"
+        },
+        "ref_transitions": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/RefTransition"
+          },
+          "title": "Ref Transitions",
+          "type": "array"
+        },
+        "tool_specific": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ToolSpecific"
+          },
+          "title": "Tool Specific",
+          "type": "array"
+        },
+        "transitions": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/Transition"
+          },
+          "title": "Transitions",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "title": "Page",
+      "type": "object"
+    },
+    "Place": {
+      "description": "A place.",
+      "properties": {
+        "extensions": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/XmlNode"
+          },
+          "title": "Extensions",
+          "type": "array"
+        },
+        "extra_attributes": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/XmlAttribute"
+          },
+          "title": "Extra Attributes",
+          "type": "array"
+        },
+        "graphics": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/NodeGraphics"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "initial_marking": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Annotation"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "name": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Annotation"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "place_type": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Annotation"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "tool_specific": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ToolSpecific"
+          },
+          "title": "Tool Specific",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "title": "Place",
+      "type": "object"
+    },
+    "RefPlace": {
+      "description": "A reference to a place (or to another reference place) of another page.",
+      "properties": {
+        "extensions": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/XmlNode"
+          },
+          "title": "Extensions",
+          "type": "array"
+        },
+        "extra_attributes": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/XmlAttribute"
+          },
+          "title": "Extra Attributes",
+          "type": "array"
+        },
+        "graphics": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/NodeGraphics"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Annotation"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "ref": {
+          "title": "Ref",
+          "type": "string"
+        },
+        "tool_specific": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ToolSpecific"
+          },
+          "title": "Tool Specific",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "ref"
+      ],
+      "title": "RefPlace",
+      "type": "object"
+    },
+    "RefTransition": {
+      "description": "A reference to a transition (or to another reference transition) of another page.",
+      "properties": {
+        "extensions": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/XmlNode"
+          },
+          "title": "Extensions",
+          "type": "array"
+        },
+        "extra_attributes": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/XmlAttribute"
+          },
+          "title": "Extra Attributes",
+          "type": "array"
+        },
+        "graphics": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/NodeGraphics"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Annotation"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "ref": {
+          "title": "Ref",
+          "type": "string"
+        },
+        "tool_specific": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ToolSpecific"
+          },
+          "title": "Tool Specific",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "ref"
+      ],
+      "title": "RefTransition",
+      "type": "object"
+    },
+    "ToolSpecific": {
+      "description": "Opaque tool-specific data, kept in order.",
+      "properties": {
+        "content": {
+          "default": [],
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/XmlNode"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "title": "Content",
+          "type": "array"
+        },
+        "tool": {
+          "title": "Tool",
+          "type": "string"
+        },
+        "version": {
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "tool",
+        "version"
+      ],
+      "title": "ToolSpecific",
+      "type": "object"
+    },
+    "Transition": {
+      "description": "A transition.",
+      "properties": {
+        "condition": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Annotation"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "extensions": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/XmlNode"
+          },
+          "title": "Extensions",
+          "type": "array"
+        },
+        "extra_attributes": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/XmlAttribute"
+          },
+          "title": "Extra Attributes",
+          "type": "array"
+        },
+        "graphics": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/NodeGraphics"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Annotation"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "tool_specific": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ToolSpecific"
+          },
+          "title": "Tool Specific",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "title": "Transition",
+      "type": "object"
+    },
+    "XmlAttribute": {
+      "description": "An attribute of a generic XML node; the name is qualified by its namespace URI if any.",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "value"
+      ],
+      "title": "XmlAttribute",
+      "type": "object"
+    },
+    "XmlNode": {
+      "description": "A generic XML element, kept losslessly (mixed content included).",
+      "properties": {
+        "attributes": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/XmlAttribute"
+          },
+          "title": "Attributes",
+          "type": "array"
+        },
+        "content": {
+          "default": [],
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/XmlNode"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "title": "Content",
+          "type": "array"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "XmlNode",
+      "type": "object"
+    }
+  },
+  "description": "A Petri net. ``schema_version`` is not part of the identity (ADR 0015).",
+  "properties": {
+    "arcs": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/Arc"
+      },
+      "title": "Arcs",
+      "type": "array"
+    },
+    "declaration": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Annotation"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "extensions": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/XmlNode"
+      },
+      "title": "Extensions",
+      "type": "array"
+    },
+    "extra_attributes": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/XmlAttribute"
+      },
+      "title": "Extra Attributes",
+      "type": "array"
+    },
+    "graphics": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/NodeGraphics"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "name": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Annotation"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "pages": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/Page"
+      },
+      "title": "Pages",
+      "type": "array"
+    },
+    "places": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/Place"
+      },
+      "title": "Places",
+      "type": "array"
+    },
+    "ref_places": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/RefPlace"
+      },
+      "title": "Ref Places",
+      "type": "array"
+    },
+    "ref_transitions": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/RefTransition"
+      },
+      "title": "Ref Transitions",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "source_id": {
+      "minLength": 1,
+      "title": "Source Id",
+      "type": "string"
+    },
+    "tool_specific": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/ToolSpecific"
+      },
+      "title": "Tool Specific",
+      "type": "array"
+    },
+    "transitions": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/Transition"
+      },
+      "title": "Transitions",
+      "type": "array"
+    },
+    "type_uri": {
+      "title": "Type Uri",
+      "type": "string"
+    }
+  },
+  "required": [
+    "source_id",
+    "type_uri"
+  ],
+  "title": "NetDocument",
+  "type": "object"
+}

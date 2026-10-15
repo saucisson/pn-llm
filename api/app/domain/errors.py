@@ -13,9 +13,18 @@ class InvalidRequestError(DomainError):
     """The request is well-formed JSON but cannot be honoured (e.g. unknown engine)."""
 
 
+class InvalidNetError(InvalidRequestError):
+    """A net is not valid; ``location`` points at the fault (a JSON pointer, or a line for PNML)."""
+
+    def __init__(self, message: str, *, location: str | None = None) -> None:  # noqa: PLR0917 - exception message
+        """Create the error with its message and, when known, where the fault is."""
+        super().__init__(message if location is None else f"{message} (at {location})")
+        self.location = location
+
+
 class PayloadTooLargeError(DomainError):
     """The uploaded payload exceeds the configured limit."""
 
 
-class PnmlError(InvalidRequestError):
+class PnmlError(InvalidNetError):
     """The PNML document is not valid XML or does not describe a usable net."""
