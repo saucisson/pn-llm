@@ -47,6 +47,7 @@ class Settings(BaseSettings):
     # Model Checking Contest data (``python -m app.seed``): where downloads are kept, where they
     # come from, and the largest net accepted when seeding (contest nets can be huge).
     mcc_directory: Path = Path("data/mcc")
+    mcc_year: int = 2026
     mcc_base_url: str = "https://mcc.lip6.fr/2026"
     mcc_max_net_bytes: int = 512 * 1024 * 1024
 

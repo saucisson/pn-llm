@@ -147,6 +147,38 @@ MIGRATIONS = (
 )""",
         ),
     ),
+    Migration(
+        version=7,
+        description="the contest's published runs, with the provenance of each result set",
+        statements=(
+            """CREATE TABLE mcc_result_sets (
+    year   INTEGER PRIMARY KEY,
+    url    TEXT NOT NULL,
+    sha256 TEXT NOT NULL,              -- of the downloaded archive
+    runs   INTEGER NOT NULL
+)""",
+            """CREATE TABLE mcc_runs (
+    year          INTEGER NOT NULL REFERENCES mcc_result_sets(year),
+    run_id        TEXT NOT NULL,
+    tool          TEXT NOT NULL,       -- normalized: lower case, no year
+    reference     INTEGER NOT NULL,    -- 1 for a virtual or past-winner reference, not an engine
+    instance      TEXT NOT NULL,
+    family        TEXT NOT NULL,
+    net_type      TEXT,
+    examination   TEXT NOT NULL,
+    cores         INTEGER NOT NULL,
+    outcome       TEXT NOT NULL,       -- computed, did_not_compute, did_not_finish, cannot_compute
+    results       TEXT NOT NULL,       -- the contest's answer string; empty unless computed
+    techniques    TEXT NOT NULL,       -- space separated
+    memory_mb     REAL NOT NULL,
+    cpu_ms        REAL NOT NULL,
+    time_ms       REAL NOT NULL,
+    timed_out     INTEGER NOT NULL,
+    out_of_memory INTEGER NOT NULL      -- run_id is not unique: the file repeats some runs
+)""",
+            "CREATE INDEX mcc_runs_lookup ON mcc_runs(tool, examination, family)",
+        ),
+    ),
 )
 LATEST_VERSION = MIGRATIONS[-1].version
 WAL_ATTEMPTS = 50

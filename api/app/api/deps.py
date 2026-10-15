@@ -14,6 +14,7 @@ from app.application.formulas import FormulaService
 from app.application.inspection import InspectionService
 from app.application.models import ModelCatalogService
 from app.application.nets import NetService
+from app.application.results import ResultsService
 from app.application.retention import RetentionService
 
 
@@ -62,6 +63,11 @@ def get_models(*, request: Request) -> ModelCatalogService:
     return cast("ModelCatalogService", request.app.state.models)
 
 
+def get_results(*, request: Request) -> ResultsService:
+    """Return the published-results service of the running application."""
+    return cast("ResultsService", request.app.state.results)
+
+
 NetsDep = Annotated[NetService, Depends(get_nets)]
 ChecksDep = Annotated[CheckService, Depends(get_checks)]
 EnginesDep = Annotated[EngineService, Depends(get_engines)]
@@ -71,3 +77,4 @@ DescriptionsDep = Annotated[DescriptionService, Depends(get_descriptions)]
 AgentDep = Annotated[AgentService, Depends(get_agent)]
 RetentionDep = Annotated[RetentionService, Depends(get_retention)]
 ModelsDep = Annotated[ModelCatalogService, Depends(get_models)]
+ResultsDep = Annotated[ResultsService, Depends(get_results)]

@@ -5,7 +5,7 @@ Defined here, implemented in ``app.infrastructure``. All parameters are keyword-
 
 from __future__ import annotations
 
-from collections.abc import Iterator
+from collections.abc import Iterable, Iterator
 from typing import Protocol
 
 from app.domain.descriptions import Description, DescriptionOrigin, SavedDescription
@@ -13,6 +13,7 @@ from app.domain.engine_contract import EngineReport, EngineRequest, Trace
 from app.domain.llm import LlmMessage, LlmStep, ToolSpec
 from app.domain.mcc import MccFamily, MccInputNet, MccNetFile, MccNetType, ModelEntry
 from app.domain.mcc_properties import Examination, MccProperties
+from app.domain.mcc_results import MccRun, ResultFileInfo, ResultSetInfo, RunSample
 from app.domain.models import (
     EngineInfo,
     FormulaResult,
@@ -236,6 +237,14 @@ class MccSource(Protocol):
         """Yield the nets of a family, one at a time."""
         ...
 
+    def result_file(self) -> ResultFileInfo:
+        """Make the published results file available and say where it is from."""
+        ...
+
+    def result_lines(self) -> Iterator[str]:
+        """Yield the lines of the published results file."""
+        ...
+
     def inputs(self, *, only_families: tuple[str, ...]) -> Iterator[MccInputNet]:
         """Yield the instances of the contest inputs with their property files, one at a time."""
         ...
@@ -270,4 +279,24 @@ class ModelCatalogRepository(Protocol):
         Raises:
             NotFoundError: if there are none.
         """
+        ...
+
+
+class ResultsRepository(Protocol):
+    """Persistent storage of the contest's published runs."""
+
+    def replace_result_set(
+        self, *, year: int, file: ResultFileInfo, runs: Iterable[MccRun]
+    ) -> ResultSetInfo:
+        """Store the runs of a year in place of the ones stored for it, all or nothing."""
+        ...
+
+    def samples(
+        self, *, tool: str | None, examination: str | None, family: str | None
+    ) -> Iterator[RunSample]:
+        """Yield the runs matching the filters, in no particular order."""
+        ...
+
+    def result_sets(self) -> tuple[ResultSetInfo, ...]:
+        """Return the stored result sets, by year."""
         ...

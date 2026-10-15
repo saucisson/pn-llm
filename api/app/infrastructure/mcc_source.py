@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import io
 import tarfile
 import urllib.request
 from collections.abc import Iterator
@@ -19,7 +20,9 @@ from app.domain.mcc import (
     split_input_name,
 )
 from app.domain.mcc_properties import EXAMINATIONS
+from app.domain.mcc_results import ResultFileInfo
 
+RESULTS_ARCHIVE = "archives/GlobalSummary.csv.tar.gz"
 CHUNK = 1 << 20
 TIMEOUT_S = 60
 
@@ -45,6 +48,22 @@ class MccDirectory:
                 content = tar.extractfile(member) if member.isfile() else None
                 if instance is not None and content is not None:
                     yield MccNetFile(instance=instance, payload=content.read())
+
+    def result_file(self) -> ResultFileInfo:
+        """Download the published results if needed; say where they are from and their hash."""
+        archive = self._fetch(path=RESULTS_ARCHIVE)
+        digest = archive.with_name(archive.name + ".sha256").read_text().strip()
+        return ResultFileInfo(url=f"{self._base_url}/{RESULTS_ARCHIVE}", sha256=digest)
+
+    def result_lines(self) -> Iterator[str]:
+        """Yield the lines of the results file, read from its archive without unpacking it."""
+        archive = self._fetch(path=RESULTS_ARCHIVE)
+        with tarfile.open(archive, mode="r:gz") as tar:
+            member = next(entry for entry in tar if entry.isfile() and entry.name.endswith(".csv"))
+            content = tar.extractfile(member)
+            if content is None:
+                raise InvalidRequestError("The results archive holds no file")
+            yield from io.TextIOWrapper(content, encoding="utf-8", newline="")
 
     def inputs(self, *, only_families: tuple[str, ...]) -> Iterator[MccInputNet]:
         """Yield the instances of the contest inputs, each with its model and property files.

@@ -25,6 +25,7 @@ from app.application.inspection import InspectionService
 from app.application.models import ModelCatalogService
 from app.application.nets import NetService
 from app.application.ports import EngineGateway, LlmGateway
+from app.application.results import ResultsService
 from app.application.retention import RetentionService
 from app.application.tools import ToolFacade
 from app.application.workers import WorkerPool
@@ -34,6 +35,7 @@ from app.infrastructure.engine_registry import DEFAULT_ENGINES, EngineRegistry
 from app.infrastructure.json_logging import configure_logging
 from app.infrastructure.scripted_llm import DemoLlm
 from app.infrastructure.sqlite_catalog import SqliteCatalog
+from app.infrastructure.sqlite_results import SqliteResults
 from app.infrastructure.sqlite_retention import SqliteRetention
 from app.infrastructure.sqlite_store import SqliteStore
 from app.infrastructure.unavailable_llm import UnavailableLlm
@@ -180,6 +182,7 @@ def create_app(
         nets=app.state.nets,
         descriptions=store,
     )
+    app.state.results = ResultsService(results=SqliteResults(path=config.database_path))
     app.state.checks = checks
     app.state.inspection = InspectionService(nets=store)
     app.state.formulas = FormulaService(nets=store)

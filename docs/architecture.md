@@ -51,6 +51,7 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/domain/descriptions.py` | domain | `Description`: immutable text identified by its hash, linked to a net with an origin |
 | `app/domain/mcc.py` | domain | Model Checking Contest catalog: `MccFamily` parsed from the models page, `MccInstance` from archive members, `ModelEntry`, `SeedReport` |
 | `app/domain/mcc_properties.py` | domain | The contest's formula XML read into formula trees (`parse_property_set`), `BoundQuery` for upper bounds; unknown elements are refused, never skipped |
+| `app/domain/mcc_results.py` | domain | The contest's published runs: tool names normalized, the contest's own outcome classes kept (never a verdict), success rate and median time per family |
 | `app/domain/sessions.py` | domain | `Session`, the frozen event vocabulary (`SessionEvent`) and `StoredEvent`; a verdict cannot be built without an engine result |
 | `app/domain/llm.py` | domain | What the LLM port exchanges: `LlmMessage`, `LlmToolCall`, `ToolSpec`, `LlmStep` |
 | `app/domain/tool_inputs.py` | domain | The arguments of each tool offered to the LLM (their JSON Schemas are what the model sees) |
@@ -69,6 +70,7 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/application/log_context.py` | application | The request id of the request being served, read by the log formatter |
 | `app/application/retention.py` | application | `RetentionService`: delete sessions, nets and descriptions, and apply the retention policy |
 | `app/application/models.py` | application | `ModelCatalogService`: seed the platform with contest nets (family, instance, `mcc` description) and list them |
+| `app/application/results.py` | application | `ResultsService`: import the published results (all or nothing) and summarize them |
 | `app/application/leases.py` | application | `LeaseKeeper`: renews a running job's lease so other processes know its owner is alive |
 | `app/application/checks.py` | application | `CheckService`: submit, execute, read and cancel checks |
 | `app/application/engines.py` | application | `EngineService`: list engines |
@@ -76,6 +78,7 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/infrastructure/sqlite_database.py` | infrastructure | The shared base of the SQLite adapters: the file, its migration, short-lived connections |
 | `app/infrastructure/sqlite_retention.py` | infrastructure | Deletion of user data along its references |
 | `app/infrastructure/sqlite_catalog.py` | infrastructure | Contest families and the nets that are their instances |
+| `app/infrastructure/sqlite_results.py` | infrastructure | Published runs and the provenance of each result set |
 | `app/infrastructure/mcc_source.py` | infrastructure | Contest files on disk: resumable download, SHA-256 recorded on first download and checked afterwards, reading of family archives |
 | `app/infrastructure/sqlite_migrations.py` | infrastructure | Numbered schema migrations (`PRAGMA user_version`), including the conversion of first-schema databases |
 | `app/infrastructure/sqlite_backup.py` | infrastructure | Online backup and offline restore of the database |
