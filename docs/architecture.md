@@ -54,6 +54,7 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/application/nets.py` | application | `NetService`: convert an upload to the canonical document, store and read nets |
 | `app/application/inspection.py` | application | `InspectionService`: summary, lists, element, search, marking, neighbourhood, name groups |
 | `app/application/formulas.py` | application | `FormulaService`: parse and validate a formula against a net |
+| `app/application/workers.py` | application | `WorkerPool`: threads that claim and run queued jobs |
 | `app/application/leases.py` | application | `LeaseKeeper`: renews a running job's lease so other processes know its owner is alive |
 | `app/application/checks.py` | application | `CheckService`: submit, execute, read and cancel checks |
 | `app/application/engines.py` | application | `EngineService`: list engines |
@@ -103,9 +104,11 @@ add `from app.infrastructure import sqlite_store` to `app/application/nets.py` a
    `CheckRequest` and calls `CheckService.submit`.
 2. `submit` loads the net, validates the engine name, builds a queued `Job` and asks the
    `JobRepository` to create it or return the equivalent live job (idempotency).
-3. The route answers `202` with the job and, only if it is new, schedules `CheckService.execute`.
-4. `execute` marks the job running (skipped if cancelled), loads the net, asks the `EngineGateway`
-   to choose an engine and run it, turns an engine crash into `ERROR` verdicts, and stores results.
+3. The route answers `202` with the job (new, or the equivalent live one). The job waits in the
+   queue.
+4. A worker (`WorkerPool`, in any process) claims the oldest queued job atomically, loads the net,
+   asks the `EngineGateway` to choose an engine and run it, checks the report, turns an engine
+   crash into `ERROR` verdicts, and stores results and counterexamples.
 5. The client polls `GET /v1/jobs/{job_id}`.
 
 ## Data model
@@ -152,12 +155,15 @@ The API holds no state in memory that matters: any number of API processes (for 
 `uvicorn --workers 4`, or several containers) can share the same database file on one host.
 Coordination goes only through atomic conditional updates in the database:
 
-- A job is **claimed** by `mark_running`; of several processes, exactly one wins.
-- A queued or running job has a **lease** (`PNVERIF_JOB_LEASE_SECONDS`, default 60 s). The owner
+- A job is **claimed** by `claim_next_job`, one conditional `UPDATE ... RETURNING`; of several
+  workers in several processes, exactly one wins. The queue is the `jobs` table (ADR 0018).
+- A running job has a **lease** (`PNVERIF_JOB_LEASE_SECONDS`, default 60 s). The owner
   renews it three times per lease (`LeaseKeeper`) while the engine runs.
 - Every process **sweeps** expired leases at submission and every half lease (lifespan task).
-  A job whose owner died becomes `interrupted` and frees its idempotency key; a live job is never
-  touched.
+  A running job whose owner died becomes `interrupted` and frees its idempotency key; a live or
+  waiting job is never touched. `POST /v1/jobs/{id}/retry` queues an interrupted job again.
+- Workers: each API process runs `PNVERIF_EMBEDDED_WORKERS` threads; `python -m app.main` runs
+  workers only (`PNVERIF_WORKER_THREADS`).
 - **Cancellation** is a state change in the database; the owner sees it when its next renewal is
   refused, and `finish` never overwrites a cancelled or interrupted job.
 
@@ -177,7 +183,6 @@ and reductions (milestone M4) are not implemented yet.
 
 ## Known limitations
 
-- Jobs run in the API process that received them (background tasks); cancelling a job stops its
-  container at once, but a crashed API process leaves its job to the lease sweeper (issue #6).
+- Workers poll the database (`PNVERIF_WORKER_POLL_SECONDS`); one host only (ADR 0018).
 - Mounting the Docker socket gives the API near-root access to the host: local use only. Risk
   analysis and the deployment plan: `docs/security-container-launching.md`.

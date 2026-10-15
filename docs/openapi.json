@@ -4786,6 +4786,49 @@
         ]
       }
     },
+    "/v1/jobs/{job_id}/retry": {
+      "post": {
+        "description": "Queue an interrupted job again.",
+        "operationId": "retry_job_v1_jobs__job_id__retry_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_Job_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Retry Job",
+        "tags": [
+          "checks"
+        ]
+      }
+    },
     "/v1/nets": {
       "post": {
         "description": "Register a net: a JSON net document (default) or PNML. The id is the hash of the document.",
@@ -4958,7 +5001,7 @@
     },
     "/v1/nets/{net_id}/checks": {
       "post": {
-        "description": "Start (or reuse) an asynchronous check of formulas on a net.",
+        "description": "Queue (or reuse) an asynchronous check of formulas on a net; a worker runs it.",
         "operationId": "start_check_v1_nets__net_id__checks_post",
         "parameters": [
           {

@@ -57,3 +57,7 @@ class FormulaSyntaxError(InvalidRequestError):
         super().__init__(f"{message} (at offset {position})")
         self.reason = message
         self.position = position
+
+
+class ConflictError(DomainError):
+    """The request conflicts with the current state of a resource (HTTP 409)."""

@@ -18,7 +18,10 @@ def upload(client):
 
 
 def start(client, net_id, body=CHECK_BODY):
-    return client.post(f"/v1/nets/{net_id}/checks", json=body)
+    """Queue a check and let the workers run it: the test client starts none of its own."""
+    response = client.post(f"/v1/nets/{net_id}/checks", json=body)
+    client.app.state.checks.drain()
+    return response
 
 
 # ---- nets -----------------------------------------------------------------------------------
@@ -160,23 +163,22 @@ def test_nets_and_jobs_survive_a_restart(settings):
     assert start(second, net_id).json()["data"]["job_id"] == job_id  # idempotent across restarts
 
 
-def test_the_sweeper_interrupts_orphans_but_not_live_jobs(settings):
+def test_the_sweeper_interrupts_orphans_but_not_live_or_queued_jobs(tmp_path):
+    settings = Settings(database_path=tmp_path / "sweep.sqlite", embedded_workers=0)
     app = create_app(settings=settings)
     net_id = upload(TestClient(app))["net_id"]
     jobs = app.state.checks._jobs
-    jobs.create_or_get_job(
-        job=Job(job_id="orphan", net_id=net_id, state=JobState.QUEUED, request=make_request()),
-        lease_seconds=-1,
-    )
-    jobs.create_or_get_job(
-        job=Job(
-            job_id="alive",
-            net_id=net_id,
-            state=JobState.QUEUED,
-            request=make_request(engine="itstools"),
-        ),
-        lease_seconds=60,
-    )
+    for name, engine in (("orphan", "dummy"), ("alive", "itstools"), ("waiting", "tapaal")):
+        jobs.create_or_get_job(
+            job=Job(
+                job_id=name,
+                net_id=net_id,
+                state=JobState.QUEUED,
+                request=make_request(engine=engine),
+            )
+        )
+    jobs.claim_next_job(lease_seconds=-1)  # orphan: claimed, then its owner died
+    jobs.claim_next_job(lease_seconds=60)
 
     with TestClient(create_app(settings=settings)) as other_process:  # runs the lifespan sweeper
         deadline = time.monotonic() + 5
@@ -185,7 +187,59 @@ def test_the_sweeper_interrupts_orphans_but_not_live_jobs(settings):
                 break
             time.sleep(0.05)
         assert other_process.get("/v1/jobs/orphan").json()["data"]["state"] == "interrupted"
-        assert other_process.get("/v1/jobs/alive").json()["data"]["state"] == "queued"
+        assert other_process.get("/v1/jobs/alive").json()["data"]["state"] == "running"
+        assert other_process.get("/v1/jobs/waiting").json()["data"]["state"] == "queued"
+
+
+def test_a_lost_job_can_be_retried_through_the_api(tmp_path):
+    settings = Settings(database_path=tmp_path / "retry.sqlite", embedded_workers=0)
+    app = create_app(settings=settings)
+    client = TestClient(app)
+    net_id = upload(client)["net_id"]
+    job_id = client.post(f"/v1/nets/{net_id}/checks", json=CHECK_BODY).json()["data"]["job_id"]
+    app.state.checks._jobs.claim_next_job(lease_seconds=-1)
+    app.state.checks.recover_interrupted()
+
+    assert client.get(f"/v1/jobs/{job_id}").json()["data"]["state"] == "interrupted"
+    retried = client.post(f"/v1/jobs/{job_id}/retry")
+    assert retried.status_code == 202
+    assert retried.json()["data"]["state"] == "queued"
+    app.state.checks.drain()
+    assert client.get(f"/v1/jobs/{job_id}").json()["data"]["state"] == "done"
+
+
+def test_retrying_a_job_that_was_not_interrupted_is_a_422_and_an_unknown_one_a_404(client):
+    net_id = upload(client)["net_id"]
+    job_id = start(client, net_id).json()["data"]["job_id"]
+    assert client.post(f"/v1/jobs/{job_id}/retry").status_code == 422
+    assert client.post("/v1/jobs/nope/retry").status_code == 404
+
+
+def test_retrying_while_an_equivalent_job_is_live_is_a_409(tmp_path):
+    settings = Settings(database_path=tmp_path / "conflict.sqlite", embedded_workers=0)
+    app = create_app(settings=settings)
+    client = TestClient(app)
+    net_id = upload(client)["net_id"]
+    old = client.post(f"/v1/nets/{net_id}/checks", json=CHECK_BODY).json()["data"]["job_id"]
+    app.state.checks._jobs.claim_next_job(lease_seconds=-1)
+    app.state.checks.recover_interrupted()
+    client.post(f"/v1/nets/{net_id}/checks", json=CHECK_BODY)  # a new live job takes the key
+    assert client.post(f"/v1/jobs/{old}/retry").status_code == 409
+
+
+def test_embedded_workers_run_queued_jobs_without_any_help(tmp_path):
+    settings = Settings(
+        database_path=tmp_path / "workers.sqlite", embedded_workers=2, worker_poll_seconds=0.02
+    )
+    with TestClient(create_app(settings=settings)) as client:
+        net_id = upload(client)["net_id"]
+        job_id = client.post(f"/v1/nets/{net_id}/checks", json=CHECK_BODY).json()["data"]["job_id"]
+        deadline = time.monotonic() + 10
+        while time.monotonic() < deadline:
+            if client.get(f"/v1/jobs/{job_id}").json()["data"]["state"] == "done":
+                break
+            time.sleep(0.05)
+        assert client.get(f"/v1/jobs/{job_id}").json()["data"]["state"] == "done"
 
 
 def test_settings_come_from_the_environment(tmp_path, monkeypatch):

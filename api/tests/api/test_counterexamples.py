@@ -16,7 +16,9 @@ def register(client):
 
 def check(client, net_id, **overrides):
     body = {**CHECK_BODY, "formulas": [GOAL], "engine": "scripted", **overrides}
-    return client.post(f"/v1/nets/{net_id}/checks", json=body).json()["data"]["job_id"]
+    job_id = client.post(f"/v1/nets/{net_id}/checks", json=body).json()["data"]["job_id"]
+    client.app.state.checks.drain()
+    return job_id
 
 
 def test_a_check_returns_the_envelope_and_the_result_cites_its_trace(scripted_client):

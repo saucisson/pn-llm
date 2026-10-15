@@ -69,6 +69,7 @@ def test_no_tool_returns_a_net_when_called(scripted_client):
     client = scripted_client
     net_id = client.post("/v1/nets", content=MUTEX_PNML, headers=XML).json()["net_id"]
     job_id = client.post(f"/v1/nets/{net_id}/checks", json=CHECK_BODY).json()["data"]["job_id"]
+    client.app.state.checks.drain()
     envelope = json.loads((SCHEMAS / "Envelope.schema.json").read_text())
     values = {**PATH_VALUES, "job_id": job_id}
     called = 0

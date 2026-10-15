@@ -9,6 +9,8 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import signal
+import threading
 from collections.abc import AsyncIterator
 
 from fastapi import FastAPI
@@ -24,6 +26,7 @@ from app.application.formulas import FormulaService
 from app.application.inspection import InspectionService
 from app.application.nets import NetService
 from app.application.ports import EngineGateway
+from app.application.workers import WorkerPool
 from app.domain.net_validation import DocumentLimits
 from app.infrastructure.docker_runner import DockerRunner
 from app.infrastructure.engine_registry import DEFAULT_ENGINES, EngineRegistry
@@ -63,12 +66,23 @@ def create_app(
                 await asyncio.sleep(config.job_lease_seconds / 2)
 
         sweeper = asyncio.create_task(sweep())
-        try:
-            yield
-        finally:
-            sweeper.cancel()
-            with contextlib.suppress(asyncio.CancelledError):
-                await sweeper
+        with contextlib.ExitStack() as workers:
+            if config.embedded_workers > 0:
+                workers.enter_context(
+                    WorkerPool(
+                        checks=checks,
+                        size=config.embedded_workers,
+                        poll_seconds=config.worker_poll_seconds,
+                    )
+                )
+            try:
+                yield
+            finally:
+                sweeper.cancel()
+                with contextlib.suppress(asyncio.CancelledError):
+                    await sweeper
+                # Stopping waits for the jobs in progress: not on the event loop.
+                await run_in_threadpool(workers.close)
 
     app = FastAPI(title="pn-llm-verif", version=__version__, lifespan=lifespan)
     app.state.nets = NetService(
@@ -91,3 +105,31 @@ def create_app(
     for module in (nets, inspection, formulas, jobs, engines):
         app.include_router(module.router)
     return app
+
+
+def worker_main() -> None:
+    """Run job workers in this process only (``python -m app.main``), until interrupted.
+
+    Workers of several processes share the one queue in the database; the lease sweeper runs in
+    API processes and here too, so lost jobs are found whichever process survives.
+    """
+    config = Settings()
+    store = SqliteStore(path=config.database_path)
+    checks = CheckService(
+        nets=store,
+        jobs=store,
+        engines=EngineRegistry(specs=DEFAULT_ENGINES, docker=DockerRunner()),
+        lease_seconds=config.job_lease_seconds,
+    )
+    stopping = threading.Event()
+    for signum in (signal.SIGINT, signal.SIGTERM):
+        signal.signal(signum, lambda *_: stopping.set())
+    with WorkerPool(
+        checks=checks, size=config.worker_threads, poll_seconds=config.worker_poll_seconds
+    ):
+        while not stopping.wait(timeout=config.job_lease_seconds / 2):
+            checks.recover_interrupted()
+
+
+if __name__ == "__main__":
+    worker_main()

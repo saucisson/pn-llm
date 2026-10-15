@@ -30,3 +30,10 @@ class Settings(BaseSettings):
     job_retention_days: float | None = None
     # Directory of the built UI (ui/dist), served under /ui; None or a missing directory: no UI.
     ui_dir: Path | None = None
+    # Worker threads started inside each API process; 0 for an API process that only enqueues
+    # (workers then run elsewhere: ``python -m app.main``).
+    embedded_workers: int = 2
+    # How long an idle worker waits before looking at the queue again.
+    worker_poll_seconds: float = 0.5
+    # Worker threads of ``python -m app.main``.
+    worker_threads: int = 2
