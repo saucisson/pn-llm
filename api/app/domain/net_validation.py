@@ -14,9 +14,11 @@ from .net_document import NetDocument
 class DocumentLimits(DomainModel):
     """Bounds on what a document may contain; exceeding one is a 422, never a crash.
 
-    The depth of XML trees is bounded by the parsers (the PNML importer, pydantic for JSON).
+    XML bounds apply to the PNML importer; pydantic bounds the depth of JSON itself.
     """
 
+    max_xml_depth: int = Field(default=64, ge=1)
+    max_xml_elements: int = Field(default=50_000_000, ge=1)
     max_elements: int = Field(default=5_000_000, ge=1)
     max_page_depth: int = Field(default=32, ge=1)
     max_string_length: int = Field(default=65_536, ge=1)
