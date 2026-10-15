@@ -172,6 +172,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/models/results/sets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Result Sets
+         * @description List the stored sets of published results with their provenance (URL, year, hash).
+         */
+        get: operations["get_result_sets_v1_models_results_sets_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/models/results/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Result Summary
+         * @description Success rate and median time of each tool per examination and family, from the contest.
+         */
+        get: operations["get_result_summary_v1_models_results_summary_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/models/{net_id}/properties/{examination}": {
         parameters: {
             query?: never;
@@ -1623,6 +1663,62 @@ export interface components {
              */
             warnings: string[];
         };
+        /** Envelope[tuple[ResultSetInfo, ...]] */
+        Envelope_tuple_ResultSetInfo__________: {
+            /** Data */
+            data?: components["schemas"]["ResultSetInfo"][] | null;
+            /** Elapsed S */
+            elapsed_s: number;
+            error?: components["schemas"]["ErrorInfo"] | null;
+            /** Net Id */
+            net_id?: string | null;
+            /**
+             * Schema Version
+             * @default 1.0
+             * @constant
+             */
+            schema_version: "1.0";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ok" | "partial" | "failed";
+            tool: components["schemas"]["ToolInfo"];
+            truncated?: components["schemas"]["Page"] | null;
+            /**
+             * Warnings
+             * @default []
+             */
+            warnings: string[];
+        };
+        /** Envelope[tuple[RunStatistics, ...]] */
+        Envelope_tuple_RunStatistics__________: {
+            /** Data */
+            data?: components["schemas"]["RunStatistics"][] | null;
+            /** Elapsed S */
+            elapsed_s: number;
+            error?: components["schemas"]["ErrorInfo"] | null;
+            /** Net Id */
+            net_id?: string | null;
+            /**
+             * Schema Version
+             * @default 1.0
+             * @constant
+             */
+            schema_version: "1.0";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ok" | "partial" | "failed";
+            tool: components["schemas"]["ToolInfo"];
+            truncated?: components["schemas"]["Page"] | null;
+            /**
+             * Warnings
+             * @default []
+             */
+            warnings: string[];
+        };
         /**
          * ErrorInfo
          * @description Expected failure of a tool (timeout, out of memory, ...), reported in the envelope.
@@ -2325,6 +2421,20 @@ export interface components {
             with_description: boolean;
         };
         /**
+         * ResultSetInfo
+         * @description Where a set of results comes from.
+         */
+        ResultSetInfo: {
+            /** Runs */
+            runs: number;
+            /** Sha256 */
+            sha256: string;
+            /** Url */
+            url: string;
+            /** Year */
+            year: number;
+        };
+        /**
          * RunFinished
          * @description The agent ended its turn.
          */
@@ -2339,6 +2449,30 @@ export interface components {
              * @enum {string}
              */
             reason: "completed" | "waiting_for_user" | "budget_exhausted" | "error" | "cancelled";
+        };
+        /**
+         * RunStatistics
+         * @description How a tool did on an examination over the instances of a family.
+         */
+        RunStatistics: {
+            /** Computed */
+            computed: number;
+            /** Examination */
+            examination: string;
+            /** Family */
+            family: string;
+            /** Median Time Ms */
+            median_time_ms: number | null;
+            /** Out Of Memory */
+            out_of_memory: number;
+            /** Runs */
+            runs: number;
+            /** Success Rate */
+            success_rate: number;
+            /** Timeouts */
+            timeouts: number;
+            /** Tool */
+            tool: string;
         };
         /**
          * Session
@@ -2919,6 +3053,61 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Envelope_tuple_MccFamily__________"];
+                };
+            };
+        };
+    };
+    get_result_sets_v1_models_results_sets_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_tuple_ResultSetInfo__________"];
+                };
+            };
+        };
+    };
+    get_result_summary_v1_models_results_summary_get: {
+        parameters: {
+            query?: {
+                tool?: string | null;
+                examination?: string | null;
+                family?: string | null;
+                limit?: number;
+                cursor?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_tuple_RunStatistics__________"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

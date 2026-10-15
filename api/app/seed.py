@@ -11,18 +11,25 @@ import sys
 
 from app.application.models import ModelCatalogService
 from app.application.nets import NetService
+from app.application.results import ResultsService
 from app.infrastructure.json_logging import configure_logging
 from app.infrastructure.mcc_source import MccDirectory
 from app.infrastructure.sqlite_catalog import SqliteCatalog
+from app.infrastructure.sqlite_results import SqliteResults
 from app.infrastructure.sqlite_store import SqliteStore
 from app.settings import Settings
 
 
 def seed_main() -> None:
-    """Download and store the chosen families, then print the report as JSON."""
+    """Download and store the chosen families (or the results), then print the report as JSON."""
     parser = argparse.ArgumentParser(description="Seed the platform with contest models.")
     parser.add_argument("families", nargs="*", help="family names (default: all of them)")
     parser.add_argument("--max-nets-per-family", type=int, default=None)
+    parser.add_argument(
+        "--results-only",
+        action="store_true",
+        help="store the published results (about 5 MB) of the contest year and stop",
+    )
     parser.add_argument(
         "--properties",
         action="store_true",
@@ -42,8 +49,15 @@ def seed_main() -> None:
         ),
         descriptions=store,
     )
+    source = MccDirectory(directory=config.mcc_directory, base_url=config.mcc_base_url)
+    if arguments.results_only:
+        stored = ResultsService(results=SqliteResults(path=config.database_path)).import_results(
+            source=source, year=config.mcc_year
+        )
+        sys.stdout.write(stored.model_dump_json(indent=2) + "\n")
+        return
     report = service.seed(
-        source=MccDirectory(directory=config.mcc_directory, base_url=config.mcc_base_url),
+        source=source,
         only_families=tuple(arguments.families),
         max_nets_per_family=arguments.max_nets_per_family,
         with_properties=arguments.properties,

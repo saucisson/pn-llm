@@ -2933,6 +2933,180 @@
         "title": "Envelope[tuple[NameGroup, ...]]",
         "type": "object"
       },
+      "Envelope_tuple_ResultSetInfo__________": {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ResultSetInfo"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data"
+          },
+          "elapsed_s": {
+            "minimum": 0.0,
+            "title": "Elapsed S",
+            "type": "number"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorInfo"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "net_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Net Id"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "default": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "partial",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "tool": {
+            "$ref": "#/components/schemas/ToolInfo"
+          },
+          "truncated": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Page"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "warnings": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "tool",
+          "status",
+          "elapsed_s"
+        ],
+        "title": "Envelope[tuple[ResultSetInfo, ...]]",
+        "type": "object"
+      },
+      "Envelope_tuple_RunStatistics__________": {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/RunStatistics"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data"
+          },
+          "elapsed_s": {
+            "minimum": 0.0,
+            "title": "Elapsed S",
+            "type": "number"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorInfo"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "net_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Net Id"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "default": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "partial",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "tool": {
+            "$ref": "#/components/schemas/ToolInfo"
+          },
+          "truncated": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Page"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "warnings": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "tool",
+          "status",
+          "elapsed_s"
+        ],
+        "title": "Envelope[tuple[RunStatistics, ...]]",
+        "type": "object"
+      },
       "ErrorInfo": {
         "description": "Expected failure of a tool (timeout, out of memory, ...), reported in the envelope.",
         "properties": {
@@ -5493,6 +5667,35 @@
         "title": "RestartRequest",
         "type": "object"
       },
+      "ResultSetInfo": {
+        "description": "Where a set of results comes from.",
+        "properties": {
+          "runs": {
+            "title": "Runs",
+            "type": "integer"
+          },
+          "sha256": {
+            "title": "Sha256",
+            "type": "string"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          },
+          "year": {
+            "title": "Year",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "year",
+          "url",
+          "sha256",
+          "runs"
+        ],
+        "title": "ResultSetInfo",
+        "type": "object"
+      },
       "RunFinished": {
         "description": "The agent ended its turn.",
         "properties": {
@@ -5518,6 +5721,67 @@
           "reason"
         ],
         "title": "RunFinished",
+        "type": "object"
+      },
+      "RunStatistics": {
+        "description": "How a tool did on an examination over the instances of a family.",
+        "properties": {
+          "computed": {
+            "title": "Computed",
+            "type": "integer"
+          },
+          "examination": {
+            "title": "Examination",
+            "type": "string"
+          },
+          "family": {
+            "title": "Family",
+            "type": "string"
+          },
+          "median_time_ms": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Median Time Ms"
+          },
+          "out_of_memory": {
+            "title": "Out Of Memory",
+            "type": "integer"
+          },
+          "runs": {
+            "title": "Runs",
+            "type": "integer"
+          },
+          "success_rate": {
+            "title": "Success Rate",
+            "type": "number"
+          },
+          "timeouts": {
+            "title": "Timeouts",
+            "type": "integer"
+          },
+          "tool": {
+            "title": "Tool",
+            "type": "string"
+          }
+        },
+        "required": [
+          "tool",
+          "examination",
+          "family",
+          "runs",
+          "computed",
+          "timeouts",
+          "out_of_memory",
+          "success_rate",
+          "median_time_ms"
+        ],
+        "title": "RunStatistics",
         "type": "object"
       },
       "Session": {
@@ -6621,6 +6885,138 @@
           }
         },
         "summary": "Get Model Families",
+        "tags": [
+          "models"
+        ]
+      }
+    },
+    "/v1/models/results/sets": {
+      "get": {
+        "description": "List the stored sets of published results with their provenance (URL, year, hash).",
+        "operationId": "get_result_sets_v1_models_results_sets_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_tuple_ResultSetInfo__________"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Result Sets",
+        "tags": [
+          "models"
+        ]
+      }
+    },
+    "/v1/models/results/summary": {
+      "get": {
+        "description": "Success rate and median time of each tool per examination and family, from the contest.",
+        "operationId": "get_result_summary_v1_models_results_summary_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "tool",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tool"
+            }
+          },
+          {
+            "in": "query",
+            "name": "examination",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Examination"
+            }
+          },
+          {
+            "in": "query",
+            "name": "family",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Family"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 500,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_tuple_RunStatistics__________"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Result Summary",
         "tags": [
           "models"
         ]

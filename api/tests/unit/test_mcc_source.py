@@ -98,3 +98,19 @@ def test_inputs_give_each_instance_its_model_and_property_files(site, tmp_path):
         ("CTLCardinality", b"<property-set/>")
     ]
     assert len(list(source.inputs(only_families=()))) == 2
+
+
+def test_the_published_results_are_read_from_their_archive_with_provenance(site, tmp_path):
+    url, root = site
+    buffer = io.BytesIO()
+    with tarfile.open(fileobj=buffer, mode="w:gz") as tar:
+        data = b"a,b\n1,2\n"
+        info = tarfile.TarInfo("GlobalSummary.csv")
+        info.size = len(data)
+        tar.addfile(info, io.BytesIO(data))
+    (root / "archives" / "GlobalSummary.csv.tar.gz").write_bytes(buffer.getvalue())
+    source = MccDirectory(directory=tmp_path / "cache", base_url=url)
+    file = source.result_file()
+    assert file.url == f"{url}/archives/GlobalSummary.csv.tar.gz"
+    assert len(file.sha256) == 64
+    assert list(source.result_lines()) == ["a,b\n", "1,2\n"]

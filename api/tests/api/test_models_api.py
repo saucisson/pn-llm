@@ -45,3 +45,18 @@ def test_properties_of_a_net_are_served_per_examination(client):
     }
     assert client.get(f"/v1/models/{net_id}/properties/LTLCardinality").status_code == 404
     assert client.get(f"/v1/models/{net_id}/properties/Nope").status_code == 422
+
+
+def test_published_results_are_summarized_per_tool_with_their_provenance(client):
+    from app.domain.mcc_results import HEADER
+    from tests.unit.test_mcc_results import ROWS
+    from tests.unit.test_results_service import FakeContest
+
+    client.app.state.results.import_results(
+        source=FakeContest(lines=(f"### {HEADER}", *ROWS)), year=2026
+    )
+    summary = client.get("/v1/models/results/summary", params={"family": "Big"}).json()["data"]
+    assert {row["tool"] for row in summary} == {"itstools", "petrivet", "ty"}
+    sets = client.get("/v1/models/results/sets").json()["data"]
+    assert (sets[0]["year"], sets[0]["runs"]) == (2026, 5)
+    assert sets[0]["sha256"]

@@ -9,8 +9,9 @@ from fastapi import APIRouter
 from app.domain.contract import Envelope
 from app.domain.mcc import MccFamily, MccNetType, ModelEntry
 from app.domain.mcc_properties import Examination, MccProperties
+from app.domain.mcc_results import ResultSetInfo, RunStatistics
 
-from .deps import ModelsDep
+from .deps import ModelsDep, ResultsDep
 from .envelopes import wrap
 from .inspection import PageDep
 
@@ -49,4 +50,34 @@ def get_model_properties(
         net_id=net_id,
         started=started,
         data=models.properties(net_id=net_id, examination=examination),
+    )
+
+
+@router.get("/models/results/summary")
+def get_result_summary(
+    *,
+    results: ResultsDep,
+    page: PageDep,
+    tool: str | None = None,
+    examination: str | None = None,
+    family: str | None = None,
+) -> Envelope[tuple[RunStatistics, ...]]:
+    """Success rate and median time of each tool per examination and family, from the contest."""
+    started = time.perf_counter()
+    found = results.statistics(tool=tool, examination=examination, family=family, page=page)
+    return wrap(
+        tool="models.results.summary",
+        net_id=None,
+        started=started,
+        data=found.items,
+        page=found.page,
+    )
+
+
+@router.get("/models/results/sets")
+def get_result_sets(*, results: ResultsDep) -> Envelope[tuple[ResultSetInfo, ...]]:
+    """List the stored sets of published results with their provenance (URL, year, hash)."""
+    started = time.perf_counter()
+    return wrap(
+        tool="models.results.sets", net_id=None, started=started, data=results.result_sets()
     )
