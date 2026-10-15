@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Literal
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -39,3 +40,18 @@ class Settings(BaseSettings):
     worker_threads: int = 2
     # Largest accepted description of a net (UTF-8 bytes).
     max_description_bytes: int = 65_536
+
+    # The language model behind the chat: "none" (sessions end with an explanatory error),
+    # "scripted" (an offline demonstration, no key) or "anthropic".
+    llm_provider: Literal["none", "scripted", "anthropic"] = "none"
+    # Budgets of one agent run.
+    agent_max_steps: int = 40
+    agent_max_tool_calls: int = 80
+    agent_max_tokens: int = 400_000
+    agent_max_seconds: float = 900.0
+    # Largest answer of a tool, in characters; a bigger one is refused with advice.
+    tool_result_max_chars: int = 16_000
+    # How often a check waits for its engine to answer.
+    tool_poll_seconds: float = 0.2
+    # A session waiting for the user for this many days is cancelled; None waits for ever.
+    session_waiting_expiry_days: float | None = 7.0

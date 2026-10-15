@@ -61,3 +61,7 @@ class FormulaSyntaxError(InvalidRequestError):
 
 class ConflictError(DomainError):
     """The request conflicts with the current state of a resource (HTTP 409)."""
+
+
+class LlmUnavailableError(DomainError):
+    """No language model is configured, or the provider cannot be reached."""

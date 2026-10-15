@@ -58,7 +58,6 @@ from .inspection import InspectionService
 MAX_TRACE_STEPS = 200
 MAX_MARKING_ENTRIES = 50
 JOB_GRACE_SECONDS = 30.0
-QUESTION_ID_LENGTH = 12
 FINAL_STATES = frozenset({JobState.DONE, JobState.CANCELLED, JobState.INTERRUPTED})
 
 
@@ -67,6 +66,8 @@ class ToolContext(DomainModel):
 
     session: Session
     description: Description | None = None
+    # Set by the facade for each call: the id of the call being served.
+    call_id: str = ""
 
 
 class ToolOutcome(DomainModel):
@@ -302,7 +303,11 @@ class ToolFacade:
             where = ".".join(str(part) for part in first["loc"]) or "arguments"
             return failure(message=f"Invalid arguments ({where}): {first['msg']}")
         try:
-            outcome = tool.run(context=context, arguments=arguments, is_cancelled=is_cancelled)
+            outcome = tool.run(
+                context=context.model_copy(update={"call_id": call.call_id}),
+                arguments=arguments,
+                is_cancelled=is_cancelled,
+            )
         except DomainError as exc:
             return failure(message=str(exc))
         if contains_net(text=outcome.content):
@@ -602,7 +607,8 @@ class ToolFacade:
         self, *, context: ToolContext, arguments: AskUserArguments, is_cancelled: Callable[[], bool]
     ) -> ToolOutcome:
         """Record a question; the run then waits for the answer."""
-        question = Question(question_id=f"q-{time.time_ns()}", text=arguments.question)
+        # The question is identified by the call that asked it: the answer completes that call.
+        question = Question(question_id=context.call_id, text=arguments.question)
         return ToolOutcome(
             ok=True,
             content=ToolPayload(status="ok", data="question sent to the user").model_dump_json(

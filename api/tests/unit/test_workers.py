@@ -56,7 +56,7 @@ def test_workers_run_every_job_exactly_once(store, net_id):
     checks = service(store=store)
     job_ids = submit_many(checks=checks, net_id=net_id, count=20)
 
-    with WorkerPool(checks=checks, size=4, poll_seconds=0.01):
+    with WorkerPool(runners=(checks.run_next,), size=4, poll_seconds=0.01):
         assert wait_until(
             condition=lambda: all(checks.get(job_id=j).state is JobState.DONE for j in job_ids)
         )
@@ -67,7 +67,7 @@ def test_workers_run_every_job_exactly_once(store, net_id):
 def test_a_pool_waits_for_the_job_in_progress_when_it_stops(store, net_id):
     checks = service(store=store)
     [job_id] = submit_many(checks=checks, net_id=net_id, count=1)
-    with WorkerPool(checks=checks, size=1, poll_seconds=0.01):
+    with WorkerPool(runners=(checks.run_next,), size=1, poll_seconds=0.01):
         wait_until(condition=lambda: checks.get(job_id=job_id).state is not JobState.QUEUED)
     assert checks.get(job_id=job_id).state is JobState.DONE
 

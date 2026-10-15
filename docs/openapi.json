@@ -181,6 +181,53 @@
         "title": "And",
         "type": "object"
       },
+      "Answer": {
+        "description": "The answer of the user to an open question.",
+        "properties": {
+          "kind": {
+            "const": "answer",
+            "default": "answer",
+            "title": "Kind",
+            "type": "string"
+          },
+          "question_id": {
+            "title": "Question Id",
+            "type": "string"
+          },
+          "text": {
+            "minLength": 1,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "question_id",
+          "text"
+        ],
+        "title": "Answer",
+        "type": "object"
+      },
+      "AnswerRequest": {
+        "description": "Body of ``POST /v1/sessions/{id}/answers``: the open question and the answer.",
+        "properties": {
+          "question_id": {
+            "title": "Question Id",
+            "type": "string"
+          },
+          "text": {
+            "maxLength": 8000,
+            "minLength": 1,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "question_id",
+          "text"
+        ],
+        "title": "AnswerRequest",
+        "type": "object"
+      },
       "ArcView": {
         "description": "An arc with both ends cited by reference.",
         "properties": {
@@ -214,6 +261,32 @@
         "title": "ArcView",
         "type": "object"
       },
+      "AssistantMessage": {
+        "description": "Text written by the LLM. It is labelled as such: never a verdict, never a fact of the net.",
+        "properties": {
+          "kind": {
+            "const": "assistant_message",
+            "default": "assistant_message",
+            "title": "Kind",
+            "type": "string"
+          },
+          "source": {
+            "const": "llm",
+            "default": "llm",
+            "title": "Source",
+            "type": "string"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "title": "AssistantMessage",
+        "type": "object"
+      },
       "AtomKinds": {
         "description": "Which classes of atom a formula uses; the MCC keeps two classes apart.",
         "properties": {
@@ -236,6 +309,32 @@
           "deadlock"
         ],
         "title": "AtomKinds",
+        "type": "object"
+      },
+      "BudgetExhausted": {
+        "description": "The run stopped because it reached a budget.",
+        "properties": {
+          "budget": {
+            "enum": [
+              "steps",
+              "tool_calls",
+              "tokens",
+              "wall_time"
+            ],
+            "title": "Budget",
+            "type": "string"
+          },
+          "kind": {
+            "const": "budget_exhausted",
+            "default": "budget_exhausted",
+            "title": "Kind",
+            "type": "string"
+          }
+        },
+        "required": [
+          "budget"
+        ],
+        "title": "BudgetExhausted",
         "type": "object"
       },
       "CheckRequest-Input": {
@@ -288,6 +387,34 @@
           "formulas"
         ],
         "title": "CheckRequest",
+        "type": "object"
+      },
+      "CheckSubmitted": {
+        "description": "A check was queued on the platform for some formulas.",
+        "properties": {
+          "formula_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Formula Ids",
+            "type": "array"
+          },
+          "job_id": {
+            "title": "Job Id",
+            "type": "string"
+          },
+          "kind": {
+            "const": "check_submitted",
+            "default": "check_submitted",
+            "title": "Kind",
+            "type": "string"
+          }
+        },
+        "required": [
+          "job_id",
+          "formula_ids"
+        ],
+        "title": "CheckSubmitted",
         "type": "object"
       },
       "Compare": {
@@ -1735,6 +1862,172 @@
         "title": "Envelope[ReplayResult]",
         "type": "object"
       },
+      "Envelope_Session_": {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Session"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "elapsed_s": {
+            "minimum": 0.0,
+            "title": "Elapsed S",
+            "type": "number"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorInfo"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "net_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Net Id"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "default": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "partial",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "tool": {
+            "$ref": "#/components/schemas/ToolInfo"
+          },
+          "truncated": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Page"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "warnings": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "tool",
+          "status",
+          "elapsed_s"
+        ],
+        "title": "Envelope[Session]",
+        "type": "object"
+      },
+      "Envelope_StoredEvent_": {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/StoredEvent"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "elapsed_s": {
+            "minimum": 0.0,
+            "title": "Elapsed S",
+            "type": "number"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorInfo"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "net_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Net Id"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "default": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "partial",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "tool": {
+            "$ref": "#/components/schemas/ToolInfo"
+          },
+          "truncated": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Page"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "warnings": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "tool",
+          "status",
+          "elapsed_s"
+        ],
+        "title": "Envelope[StoredEvent]",
+        "type": "object"
+      },
       "Envelope_Trace_": {
         "properties": {
           "data": {
@@ -2595,7 +2888,7 @@
             "title": "Trace Url"
           },
           "verdict": {
-            "$ref": "#/components/schemas/Verdict"
+            "$ref": "#/components/schemas/app__domain__models__Verdict"
           },
           "warnings": {
             "default": [],
@@ -3668,6 +3961,22 @@
         "title": "MarkingEntry",
         "type": "object"
       },
+      "MessageRequest": {
+        "description": "Body of ``POST /v1/sessions/{id}/messages``.",
+        "properties": {
+          "text": {
+            "maxLength": 8000,
+            "minLength": 1,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "title": "MessageRequest",
+        "type": "object"
+      },
       "MissingTokens": {
         "description": "A place that holds fewer tokens than a firing needs.",
         "properties": {
@@ -4351,6 +4660,56 @@
         "title": "PageRequest",
         "type": "object"
       },
+      "PropertyProposed": {
+        "description": "A property the LLM proposes to check, with its reason.",
+        "properties": {
+          "formula": {
+            "$ref": "#/components/schemas/Formula-Output"
+          },
+          "kind": {
+            "const": "property_proposed",
+            "default": "property_proposed",
+            "title": "Kind",
+            "type": "string"
+          },
+          "rationale": {
+            "default": "",
+            "title": "Rationale",
+            "type": "string"
+          }
+        },
+        "required": [
+          "formula"
+        ],
+        "title": "PropertyProposed",
+        "type": "object"
+      },
+      "Question": {
+        "description": "The LLM asks the user something; the session waits for the answer.",
+        "properties": {
+          "kind": {
+            "const": "question",
+            "default": "question",
+            "title": "Kind",
+            "type": "string"
+          },
+          "question_id": {
+            "title": "Question Id",
+            "type": "string"
+          },
+          "text": {
+            "minLength": 1,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "question_id",
+          "text"
+        ],
+        "title": "Question",
+        "type": "object"
+      },
       "ReplayFailure": {
         "description": "Where a replay stopped: the firing that was not enabled and what was missing.",
         "properties": {
@@ -4550,6 +4909,304 @@
         "title": "ReplayResult",
         "type": "object"
       },
+      "RunFinished": {
+        "description": "The agent ended its turn.",
+        "properties": {
+          "kind": {
+            "const": "run_finished",
+            "default": "run_finished",
+            "title": "Kind",
+            "type": "string"
+          },
+          "reason": {
+            "enum": [
+              "completed",
+              "waiting_for_user",
+              "budget_exhausted",
+              "error",
+              "cancelled"
+            ],
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "reason"
+        ],
+        "title": "RunFinished",
+        "type": "object"
+      },
+      "Session": {
+        "description": "A conversation about one net, with an optional description and the goal of the user.",
+        "properties": {
+          "created_at": {
+            "title": "Created At",
+            "type": "number"
+          },
+          "description_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description Id"
+          },
+          "net_id": {
+            "title": "Net Id",
+            "type": "string"
+          },
+          "session_id": {
+            "title": "Session Id",
+            "type": "string"
+          },
+          "state": {
+            "$ref": "#/components/schemas/SessionState"
+          },
+          "updated_at": {
+            "title": "Updated At",
+            "type": "number"
+          }
+        },
+        "required": [
+          "session_id",
+          "net_id",
+          "state",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "Session",
+        "type": "object"
+      },
+      "SessionCancelled": {
+        "description": "The user cancelled the session.",
+        "properties": {
+          "kind": {
+            "const": "session_cancelled",
+            "default": "session_cancelled",
+            "title": "Kind",
+            "type": "string"
+          }
+        },
+        "title": "SessionCancelled",
+        "type": "object"
+      },
+      "SessionError": {
+        "description": "The run failed for a reason that is not the user's.",
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "kind": {
+            "const": "session_error",
+            "default": "session_error",
+            "title": "Kind",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ],
+        "title": "SessionError",
+        "type": "object"
+      },
+      "SessionStarted": {
+        "description": "The inputs of the user: the net, an optional description and the goal.",
+        "properties": {
+          "description_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description Id"
+          },
+          "description_origin": {
+            "anyOf": [
+              {
+                "enum": [
+                  "user",
+                  "mcc",
+                  "llm"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description Origin"
+          },
+          "goal": {
+            "minLength": 1,
+            "title": "Goal",
+            "type": "string"
+          },
+          "kind": {
+            "const": "session_started",
+            "default": "session_started",
+            "title": "Kind",
+            "type": "string"
+          },
+          "net_id": {
+            "title": "Net Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "net_id",
+          "goal"
+        ],
+        "title": "SessionStarted",
+        "type": "object"
+      },
+      "SessionState": {
+        "description": "Where a session is in its life.",
+        "enum": [
+          "queued",
+          "running",
+          "waiting_for_user",
+          "idle",
+          "cancelled"
+        ],
+        "title": "SessionState",
+        "type": "string"
+      },
+      "StartSessionRequest": {
+        "description": "Body of ``POST /v1/sessions``: the net, an optional description and the goal.",
+        "properties": {
+          "description_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description Id"
+          },
+          "goal": {
+            "maxLength": 8000,
+            "minLength": 1,
+            "title": "Goal",
+            "type": "string"
+          },
+          "net_id": {
+            "title": "Net Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "net_id",
+          "goal"
+        ],
+        "title": "StartSessionRequest",
+        "type": "object"
+      },
+      "StoredEvent": {
+        "description": "An event with its place in the session: numbers start at 1 and only grow by one.",
+        "properties": {
+          "at": {
+            "title": "At",
+            "type": "number"
+          },
+          "event": {
+            "discriminator": {
+              "mapping": {
+                "answer": "#/components/schemas/Answer",
+                "assistant_message": "#/components/schemas/AssistantMessage",
+                "budget_exhausted": "#/components/schemas/BudgetExhausted",
+                "check_submitted": "#/components/schemas/CheckSubmitted",
+                "property_proposed": "#/components/schemas/PropertyProposed",
+                "question": "#/components/schemas/Question",
+                "run_finished": "#/components/schemas/RunFinished",
+                "session_cancelled": "#/components/schemas/SessionCancelled",
+                "session_error": "#/components/schemas/SessionError",
+                "session_started": "#/components/schemas/SessionStarted",
+                "tool_call": "#/components/schemas/ToolCall",
+                "tool_result": "#/components/schemas/ToolResult",
+                "user_message": "#/components/schemas/UserMessage",
+                "verdict": "#/components/schemas/app__domain__sessions__Verdict"
+              },
+              "propertyName": "kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/SessionStarted"
+              },
+              {
+                "$ref": "#/components/schemas/UserMessage"
+              },
+              {
+                "$ref": "#/components/schemas/AssistantMessage"
+              },
+              {
+                "$ref": "#/components/schemas/ToolCall"
+              },
+              {
+                "$ref": "#/components/schemas/ToolResult"
+              },
+              {
+                "$ref": "#/components/schemas/PropertyProposed"
+              },
+              {
+                "$ref": "#/components/schemas/CheckSubmitted"
+              },
+              {
+                "$ref": "#/components/schemas/app__domain__sessions__Verdict"
+              },
+              {
+                "$ref": "#/components/schemas/Question"
+              },
+              {
+                "$ref": "#/components/schemas/Answer"
+              },
+              {
+                "$ref": "#/components/schemas/BudgetExhausted"
+              },
+              {
+                "$ref": "#/components/schemas/SessionError"
+              },
+              {
+                "$ref": "#/components/schemas/RunFinished"
+              },
+              {
+                "$ref": "#/components/schemas/SessionCancelled"
+              }
+            ],
+            "title": "Event"
+          },
+          "number": {
+            "minimum": 1.0,
+            "title": "Number",
+            "type": "integer"
+          },
+          "session_id": {
+            "title": "Session Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "session_id",
+          "number",
+          "at",
+          "event"
+        ],
+        "title": "StoredEvent",
+        "type": "object"
+      },
       "TokenCount": {
         "description": "A term: the sum of the tokens held by some places.",
         "properties": {
@@ -4613,6 +5270,36 @@
         "title": "Tokens",
         "type": "object"
       },
+      "ToolCall": {
+        "description": "The LLM asked for a tool; ``arguments`` is the JSON text it gave.",
+        "properties": {
+          "arguments": {
+            "title": "Arguments",
+            "type": "string"
+          },
+          "call_id": {
+            "title": "Call Id",
+            "type": "string"
+          },
+          "kind": {
+            "const": "tool_call",
+            "default": "tool_call",
+            "title": "Kind",
+            "type": "string"
+          },
+          "tool": {
+            "title": "Tool",
+            "type": "string"
+          }
+        },
+        "required": [
+          "call_id",
+          "tool",
+          "arguments"
+        ],
+        "title": "ToolCall",
+        "type": "object"
+      },
       "ToolInfo": {
         "description": "The tool and pinned version that produced a result.",
         "properties": {
@@ -4630,6 +5317,41 @@
           "version"
         ],
         "title": "ToolInfo",
+        "type": "object"
+      },
+      "ToolResult": {
+        "description": "What a tool answered, as text, exactly as the model saw it (ADR 0017).",
+        "properties": {
+          "call_id": {
+            "title": "Call Id",
+            "type": "string"
+          },
+          "content": {
+            "title": "Content",
+            "type": "string"
+          },
+          "kind": {
+            "const": "tool_result",
+            "default": "tool_result",
+            "title": "Kind",
+            "type": "string"
+          },
+          "ok": {
+            "title": "Ok",
+            "type": "boolean"
+          },
+          "tool": {
+            "title": "Tool",
+            "type": "string"
+          }
+        },
+        "required": [
+          "call_id",
+          "tool",
+          "ok",
+          "content"
+        ],
+        "title": "ToolResult",
         "type": "object"
       },
       "Trace": {
@@ -4707,6 +5429,27 @@
         "title": "Truth",
         "type": "object"
       },
+      "UserMessage": {
+        "description": "A message of the user.",
+        "properties": {
+          "kind": {
+            "const": "user_message",
+            "default": "user_message",
+            "title": "Kind",
+            "type": "string"
+          },
+          "text": {
+            "minLength": 1,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "title": "UserMessage",
+        "type": "object"
+      },
       "ValidationError": {
         "properties": {
           "ctx": {
@@ -4747,19 +5490,6 @@
         "title": "ValidationError",
         "type": "object"
       },
-      "Verdict": {
-        "description": "Outcome of one verification. UNKNOWN must never be confused with FALSE.",
-        "enum": [
-          "TRUE",
-          "FALSE",
-          "UNKNOWN",
-          "TIMEOUT",
-          "OOM",
-          "ERROR"
-        ],
-        "title": "Verdict",
-        "type": "string"
-      },
       "WeightedRef": {
         "description": "A neighbour of an element, and the arc that links them.",
         "properties": {
@@ -4787,6 +5517,73 @@
           "element"
         ],
         "title": "WeightedRef",
+        "type": "object"
+      },
+      "app__domain__models__Verdict": {
+        "description": "Outcome of one verification. UNKNOWN must never be confused with FALSE.",
+        "enum": [
+          "TRUE",
+          "FALSE",
+          "UNKNOWN",
+          "TIMEOUT",
+          "OOM",
+          "ERROR"
+        ],
+        "title": "Verdict",
+        "type": "string"
+      },
+      "app__domain__sessions__Verdict": {
+        "description": "The verdict an engine gave: the only way a verdict enters a conversation (ADR 0006).\n\nIt refers to the job and the result of the engine that produced it, and names the engine and\nits version. It cannot be built without them.",
+        "properties": {
+          "engine": {
+            "minLength": 1,
+            "title": "Engine",
+            "type": "string"
+          },
+          "engine_version": {
+            "minLength": 1,
+            "title": "Engine Version",
+            "type": "string"
+          },
+          "formula_id": {
+            "minLength": 1,
+            "title": "Formula Id",
+            "type": "string"
+          },
+          "has_trace": {
+            "default": false,
+            "title": "Has Trace",
+            "type": "boolean"
+          },
+          "job_id": {
+            "minLength": 1,
+            "title": "Job Id",
+            "type": "string"
+          },
+          "kind": {
+            "const": "verdict",
+            "default": "verdict",
+            "title": "Kind",
+            "type": "string"
+          },
+          "result_index": {
+            "minimum": 0.0,
+            "title": "Result Index",
+            "type": "integer"
+          },
+          "verdict": {
+            "$ref": "#/components/schemas/app__domain__models__Verdict"
+          }
+        },
+        "required": [
+          "job_id",
+          "result_index",
+          "formula_id",
+          "verdict",
+          "engine",
+          "engine_version"
+        ],
+        "title": "Verdict",
         "type": "object"
       }
     }
@@ -6058,6 +6855,324 @@
         "summary": "List Transitions",
         "tags": [
           "inspection"
+        ]
+      }
+    },
+    "/v1/sessions": {
+      "post": {
+        "description": "Open a session on a net; the agent starts working at once.",
+        "operationId": "start_session_v1_sessions_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartSessionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_Session_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Start Session",
+        "tags": [
+          "sessions"
+        ]
+      }
+    },
+    "/v1/sessions/{session_id}": {
+      "get": {
+        "description": "The state of a session.",
+        "operationId": "get_session_v1_sessions__session_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_Session_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Session",
+        "tags": [
+          "sessions"
+        ]
+      }
+    },
+    "/v1/sessions/{session_id}/answers": {
+      "post": {
+        "description": "Answer the question the agent is waiting on.",
+        "operationId": "post_answer_v1_sessions__session_id__answers_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnswerRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_StoredEvent_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Answer",
+        "tags": [
+          "sessions"
+        ]
+      }
+    },
+    "/v1/sessions/{session_id}/cancel": {
+      "post": {
+        "description": "Cancel a session: the run stops and a check in progress is cancelled.",
+        "operationId": "cancel_session_v1_sessions__session_id__cancel_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_Session_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Cancel Session",
+        "tags": [
+          "sessions"
+        ]
+      }
+    },
+    "/v1/sessions/{session_id}/events": {
+      "get": {
+        "description": "The events of a session: JSON, or a stream with ``Accept: text/event-stream``.\n\nA stream resumes after ``after`` or after the ``Last-Event-ID`` header; without ``follow`` it\nends when there is nothing more to send.",
+        "operationId": "get_events_v1_sessions__session_id__events_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Events after this number",
+            "in": "query",
+            "name": "after",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Events after this number",
+              "title": "After"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 200,
+              "maximum": 500,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Stream: keep the connection open",
+            "in": "query",
+            "name": "follow",
+            "required": false,
+            "schema": {
+              "default": true,
+              "description": "Stream: keep the connection open",
+              "title": "Follow",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Events",
+        "tags": [
+          "sessions"
+        ]
+      }
+    },
+    "/v1/sessions/{session_id}/messages": {
+      "post": {
+        "description": "Add a message once the agent has finished its turn.",
+        "operationId": "post_message_v1_sessions__session_id__messages_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MessageRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_StoredEvent_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Message",
+        "tags": [
+          "sessions"
         ]
       }
     }

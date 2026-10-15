@@ -88,8 +88,9 @@ class CheckService:
         engine = self._engines.choose(requested=job.request.engine)
         try:
             with LeaseKeeper(
-                jobs=self._jobs,
-                job_id=job_id,
+                renew=lambda: self._jobs.renew_lease(
+                    job_id=job_id, lease_seconds=self._lease_seconds
+                ),
                 lease_seconds=self._lease_seconds,
                 on_lost=lambda: self._engines.stop(job_id=job_id),
             ):
