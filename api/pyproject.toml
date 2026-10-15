@@ -1,0 +1,196 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pn-llm-verif"
+version = "0.1.0"
+description = "REST API for static analysis and model checking of Petri nets, drivable by an LLM"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.29",
+    "pydantic>=2.6",
+    "pydantic-settings>=2.2",
+    "defusedxml>=0.7",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8",
+    "pytest-cov>=5",
+    "httpx2>=2.13",
+    "ruff~=0.17",
+    "mypy>=1.10",
+    "import-linter>=2.0",
+    "pre-commit>=3.7",
+    "pip-audit>=2.7",
+    "types-defusedxml>=0.7",
+]
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+
+# ---------------------------------------------------------------------------------------------
+# Lint and format: ruff. Same command everywhere (editor, pre-commit, CI): see ../Makefile.
+# ---------------------------------------------------------------------------------------------
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["."]
+
+[tool.ruff.lint]
+preview = true
+explicit-preview-rules = true  # preview mode only for the rules listed below
+select = [
+    "E", "W",   # pycodestyle
+    "F",        # pyflakes: unused imports/variables, undefined names
+    "I",        # import ordering
+    "N",        # naming
+    "B",        # bugbear: likely bugs
+    "BLE",      # no blind `except Exception` without justification
+    "A",        # no shadowing of builtins
+    "C4",       # comprehension simplifications
+    "C90",      # cyclomatic complexity (limit below)
+    "UP",       # modern Python syntax
+    "SIM",      # simplifications
+    "RET",      # return statements
+    "PTH",      # pathlib instead of os.path
+    "PT",       # pytest style
+    "S",        # security (bandit rules)
+    "T20",      # no print() left in code
+    "PL",       # pylint rules: too many branches/statements, magic numbers, ...
+    "PLR0917",  # (preview) every parameter must be keyword-only: calls always name arguments
+    "RUF",      # ruff-specific
+    # Comment and docstring policy (docs/contributing.md):
+    "D",        # every public module/class/function/method has an imperative docstring
+    "ERA",      # no commented-out code
+    "FIX",      # no TODO/FIXME/XXX/HACK comments: open an issue instead
+]
+ignore = [
+    "D105", "D107",  # magic methods and __init__: the class docstring covers them
+]
+
+# Limits are generous on purpose: a long linear function is preferred to artificial helpers.
+[tool.ruff.lint.mccabe]
+max-complexity = 15
+
+[tool.ruff.lint.pylint]
+max-args = 6
+max-positional-args = 0
+max-branches = 15
+max-statements = 60
+
+[tool.ruff.lint.isort]
+# Explicit so that import sorting is identical whether ruff runs from the repo root (hooks) or api/.
+known-first-party = ["app", "tests"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+"**/tests/**" = [
+    "D",        # test names are the documentation
+    "S101",     # assert is how pytest works
+    "PLR2004",  # magic values are fine in assertions
+    "PLR0917",  # pytest injects fixtures by name; tests are not part of the API
+    "PLC0415",  # local imports in tests are fine
+]
+
+[tool.ruff.format]
+quote-style = "double"
+
+# ---------------------------------------------------------------------------------------------
+# Types: mypy in strict mode.
+# ---------------------------------------------------------------------------------------------
+[tool.mypy]
+strict = true
+plugins = ["pydantic.mypy"]
+files = ["app"]  # production code is fully typed; tests are linted but not type-checked
+warn_unreachable = true
+
+# ---------------------------------------------------------------------------------------------
+# Architecture: import-linter. Checked at every commit. Rationale: docs/architecture.md.
+# ---------------------------------------------------------------------------------------------
+[tool.importlinter]
+root_package = "app"
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+name = "Onion: dependencies point inward (main > api | infrastructure > application > domain)"
+type = "layers"
+layers = [
+    "app.main",
+    "app.api | app.infrastructure",
+    "app.application",
+    "app.domain",
+]
+
+[[tool.importlinter.contracts]]
+name = "Domain and application know no framework, database or process"
+type = "forbidden"
+allow_indirect_imports = true
+source_modules = ["app.domain", "app.application"]
+forbidden_modules = ["fastapi", "starlette", "sqlite3", "subprocess", "docker"]
+
+[[tool.importlinter.contracts]]
+name = "Infrastructure does not know the web framework"
+type = "forbidden"
+allow_indirect_imports = true
+source_modules = ["app.infrastructure"]
+forbidden_modules = ["fastapi", "starlette"]
+
+[[tool.importlinter.contracts]]
+name = "Only the SQLite adapter talks to SQLite"
+type = "forbidden"
+allow_indirect_imports = true
+source_modules = [
+    "app.domain", "app.application", "app.api", "app.main",
+    "app.infrastructure.engine_registry", "app.infrastructure.docker_runner",
+]
+forbidden_modules = ["sqlite3"]
+
+[[tool.importlinter.contracts]]
+name = "Only the Docker adapter starts subprocesses"
+type = "forbidden"
+allow_indirect_imports = true
+source_modules = [
+    "app.domain", "app.application", "app.api", "app.main",
+    "app.infrastructure.engine_registry", "app.infrastructure.sqlite_store",
+]
+forbidden_modules = ["subprocess"]
+
+[[tool.importlinter.contracts]]
+name = "The SQLite and Docker adapters are independent of each other"
+type = "independence"
+modules = ["app.infrastructure.sqlite_store", "app.infrastructure.docker_runner"]
+
+[[tool.importlinter.contracts]]
+name = "Leaf adapters do not depend on the engine registry"
+type = "forbidden"
+source_modules = ["app.infrastructure.sqlite_store", "app.infrastructure.docker_runner"]
+forbidden_modules = ["app.infrastructure.engine_registry"]
+
+# ---------------------------------------------------------------------------------------------
+# Tests and coverage (policy: docs/testing.md)
+# ---------------------------------------------------------------------------------------------
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--strict-markers --strict-config"
+markers = [
+    "docker: needs a working Docker daemon (skipped when Docker is unavailable)",
+]
+filterwarnings = ["error"]
+
+[tool.coverage.run]
+source = ["app"]
+branch = true
+
+[tool.coverage.report]
+fail_under = 90
+show_missing = true
+skip_covered = true
+exclude_also = [
+    "if TYPE_CHECKING:",
+    "pragma: no cover",
+]

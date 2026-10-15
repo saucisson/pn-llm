@@ -1,0 +1,176 @@
+import time
+
+from fastapi.testclient import TestClient
+
+from app.domain.models import Job, JobState
+from app.main import create_app
+from app.settings import Settings
+from tests.support import CHECK_BODY, MUTEX_PNML, make_request
+
+XML = {"Content-Type": "application/xml"}
+
+
+def upload(client):
+    response = client.post("/v1/nets", content=MUTEX_PNML, headers=XML)
+    assert response.status_code == 201
+    return response.json()
+
+
+def start(client, net_id, body=CHECK_BODY):
+    return client.post(f"/v1/nets/{net_id}/checks", json=body)
+
+
+# ---- nets -----------------------------------------------------------------------------------
+
+
+def test_upload_summarizes_the_net_and_keeps_names(client):
+    net = upload(client)
+    assert (net["places"], net["transitions"], net["arcs"]) == (3, 2, 6)
+    assert "lock" in net["place_names"]
+    assert net["net_type"] == "pt"
+
+
+def test_upload_is_idempotent(client):
+    assert upload(client)["net_id"] == upload(client)["net_id"]
+
+
+def test_get_net(client):
+    net_id = upload(client)["net_id"]
+    assert client.get(f"/v1/nets/{net_id}").json()["net_id"] == net_id
+
+
+def test_invalid_pnml_is_a_422_problem(client):
+    response = client.post("/v1/nets", content=b"<not xml", headers=XML)
+    assert response.status_code == 422
+    assert response.headers["content-type"].startswith("application/problem+json")
+    assert "Invalid XML" in response.json()["detail"]
+
+
+def test_empty_net_is_rejected(client):
+    assert client.post("/v1/nets", content=b"<pnml><net><page/></net></pnml>").status_code == 422
+
+
+def test_oversized_upload_is_a_413(tmp_path):
+    settings = Settings(database_path=tmp_path / "small.sqlite", max_pnml_bytes=10)
+    small = TestClient(create_app(settings=settings))
+    assert small.post("/v1/nets", content=MUTEX_PNML).status_code == 413
+
+
+def test_unknown_net_is_a_404_problem(client):
+    response = client.get("/v1/nets/doesnotexist")
+    assert response.status_code == 404
+    assert response.headers["content-type"].startswith("application/problem+json")
+
+
+# ---- checks and jobs ------------------------------------------------------------------------
+
+
+def test_check_lifecycle_with_the_dummy_engine(client):
+    net_id = upload(client)["net_id"]
+    response = start(client, net_id)
+    assert response.status_code == 202
+    job = client.get(f"/v1/jobs/{response.json()['job_id']}").json()
+    assert job["state"] == "done"  # TestClient runs background tasks before returning
+    # The dummy engine verifies nothing: it must NEVER answer TRUE or FALSE
+    assert job["results"][0]["verdict"] == "UNKNOWN"
+
+
+def test_same_request_returns_the_same_job(client):
+    net_id = upload(client)["net_id"]
+    assert start(client, net_id).json()["job_id"] == start(client, net_id).json()["job_id"]
+
+
+def test_different_limits_make_a_different_job(client):
+    net_id = upload(client)["net_id"]
+    other = {**CHECK_BODY, "limits": {"timeout_s": 10, "memory_mb": 512}}
+    assert start(client, net_id).json()["job_id"] != start(client, net_id, other).json()["job_id"]
+
+
+def test_unknown_engine_is_a_422(client):
+    net_id = upload(client)["net_id"]
+    body = {"formulas": [{"id": "f", "text": "x"}], "engine": "nope"}
+    assert start(client, net_id, body).status_code == 422
+
+
+def test_invalid_body_is_rejected(client):
+    net_id = upload(client)["net_id"]
+    assert start(client, net_id, {"formulas": []}).status_code == 422
+
+
+def test_check_on_unknown_net_is_a_404(client):
+    assert start(client, "nope").status_code == 404
+
+
+def test_unknown_job_is_a_404(client):
+    assert client.get("/v1/jobs/nope").status_code == 404
+    assert client.delete("/v1/jobs/nope").status_code == 404
+
+
+def test_cancelling_a_finished_job_keeps_its_results(client):
+    net_id = upload(client)["net_id"]
+    job_id = start(client, net_id).json()["job_id"]
+    assert client.delete(f"/v1/jobs/{job_id}").status_code == 204
+    job = client.get(f"/v1/jobs/{job_id}").json()
+    assert job["state"] == "done"
+    assert job["results"]
+
+
+# ---- engines --------------------------------------------------------------------------------
+
+
+def test_engines_are_listed_with_capabilities(client):
+    engines = {e["name"]: e for e in client.get("/v1/engines").json()}
+    assert engines["dummy"]["available"] is True
+    assert engines["petrivet"]["supports_colored"] is False
+    assert engines["itstools"]["supports_colored"] is True
+
+
+# ---- persistence and settings ---------------------------------------------------------------
+
+
+def test_nets_and_jobs_survive_a_restart(settings):
+    first = TestClient(create_app(settings=settings))
+    net_id = upload(first)["net_id"]
+    job_id = start(first, net_id).json()["job_id"]
+
+    second = TestClient(create_app(settings=settings))  # new process, same database file
+    assert second.get(f"/v1/nets/{net_id}").json()["places"] == 3
+    job = second.get(f"/v1/jobs/{job_id}").json()
+    assert job["state"] == "done"
+    assert job["results"][0]["engine"] == "dummy"
+    assert start(second, net_id).json()["job_id"] == job_id  # idempotent across restarts
+
+
+def test_the_sweeper_interrupts_orphans_but_not_live_jobs(settings):
+    app = create_app(settings=settings)
+    net_id = upload(TestClient(app))["net_id"]
+    jobs = app.state.checks._jobs
+    jobs.create_or_get_job(
+        job=Job(job_id="orphan", net_id=net_id, state=JobState.QUEUED, request=make_request()),
+        lease_seconds=-1,
+    )
+    jobs.create_or_get_job(
+        job=Job(
+            job_id="alive",
+            net_id=net_id,
+            state=JobState.QUEUED,
+            request=make_request(engine="itstools"),
+        ),
+        lease_seconds=60,
+    )
+
+    with TestClient(create_app(settings=settings)) as other_process:  # runs the lifespan sweeper
+        deadline = time.monotonic() + 5
+        while time.monotonic() < deadline:
+            if other_process.get("/v1/jobs/orphan").json()["state"] == "interrupted":
+                break
+            time.sleep(0.05)
+        assert other_process.get("/v1/jobs/orphan").json()["state"] == "interrupted"
+        assert other_process.get("/v1/jobs/alive").json()["state"] == "queued"
+
+
+def test_settings_come_from_the_environment(tmp_path, monkeypatch):
+    target = tmp_path / "from_env.sqlite"
+    monkeypatch.setenv("PNVERIF_DATABASE_PATH", str(target))
+    create_app()
+    assert target.exists()

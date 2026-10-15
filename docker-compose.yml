@@ -1,0 +1,21 @@
+# Local prototype (WSL2). Engine images are built here but launched on demand by the API
+# (ephemeral docker run), not as permanent services.
+services:
+  api:
+    build: ./api
+    ports: ["8000:8000"]
+    environment:
+      PNVERIF_DATABASE_PATH: /data/pnverif.sqlite
+    volumes:
+      - pnverif-data:/data   # persistent storage (SQLite)
+      # WARNING: gives the API near-root access to the host. Acceptable locally only.
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  # Profile "engines": docker compose --profile engines build
+  engine-dummy:
+    build: ./engines/dummy
+    image: pn-llm-verif/dummy:latest
+    profiles: ["engines"]
+
+volumes:
+  pnverif-data:

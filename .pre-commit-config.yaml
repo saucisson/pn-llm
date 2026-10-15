@@ -1,0 +1,69 @@
+# Quality gates. Install once with `make setup`. Same checks run in CI.
+# Local hooks use the tools of the active virtualenv (api/.venv, see Makefile).
+default_install_hook_types: [pre-commit, commit-msg, pre-push]
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: mixed-line-ending
+        args: [--fix=lf]
+      - id: check-yaml
+      - id: check-toml
+      - id: check-case-conflict
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: [--maxkb=500]
+      - id: detect-private-key
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.17.0
+    hooks:
+      - id: ruff
+        name: ruff lint (style, docstrings, comments policy, security)
+        args: [--config, api/pyproject.toml, --fix]
+      - id: ruff-format
+        name: ruff format
+        args: [--config, api/pyproject.toml]
+
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.11.0.1-1
+    hooks:
+      - id: shellcheck
+
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v4.4.0
+    hooks:
+      - id: conventional-pre-commit
+        stages: [commit-msg]
+        args: [feat, fix, refactor, docs, test, chore, ci, build, perf, revert]
+
+  - repo: local
+    hooks:
+      - id: mypy
+        name: mypy --strict
+        entry: bash -c 'cd api && mypy'
+        language: system
+        pass_filenames: false
+        files: ^api/.*\.(py|toml)$
+      - id: import-linter
+        name: architecture rules (import-linter)
+        entry: bash -c 'cd api && lint-imports'
+        language: system
+        pass_filenames: false
+        files: ^api/.*\.(py|toml)$
+      - id: architecture-doc
+        name: architecture document in sync with modules
+        entry: python3 scripts/check_architecture_doc.py
+        language: system
+        pass_filenames: false
+        files: ^(api/app/.*\.py|docs/architecture\.md)$
+      - id: tests
+        name: tests with coverage threshold
+        entry: bash -c 'cd api && pytest -q --cov=app --cov-branch'
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push]

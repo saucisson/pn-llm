@@ -1,0 +1,85 @@
+"""Ports: what the use cases require from the outside world.
+
+Defined here, implemented in ``app.infrastructure``. All parameters are keyword-only.
+"""
+
+from __future__ import annotations
+
+from typing import Protocol
+
+from app.domain.models import (
+    CheckRequest,
+    EngineInfo,
+    FormulaResult,
+    Job,
+    JobSubmission,
+    NetSummary,
+    StoredNet,
+)
+
+
+class NetRepository(Protocol):
+    """Persistent storage of nets."""
+
+    def save_net(self, *, summary: NetSummary, pnml: bytes) -> StoredNet:
+        """Store a net if it is new; return what is stored (the existing net if already known)."""
+        ...
+
+    def load_net(self, *, net_id: str) -> StoredNet:
+        """Return a stored net, or raise NotFoundError."""
+        ...
+
+
+class JobRepository(Protocol):
+    """Persistent storage of jobs."""
+
+    def create_or_get_job(self, *, job: Job, lease_seconds: float) -> JobSubmission:
+        """Insert ``job`` unless an equivalent live job exists (idempotency); say which was used.
+
+        A live job carries a lease: its owner must renew it, or it can be marked interrupted.
+        """
+        ...
+
+    def load_job(self, *, job_id: str) -> Job:
+        """Return a job, or raise NotFoundError."""
+        ...
+
+    def mark_running(self, *, job_id: str, lease_seconds: float) -> bool:
+        """Atomically claim a queued job; return False if it was not queued (another owner won)."""
+        ...
+
+    def renew_lease(self, *, job_id: str, lease_seconds: float) -> bool:
+        """Extend a running job's lease; return False if it is no longer running."""
+        ...
+
+    def cancel(self, *, job_id: str) -> None:
+        """Cancel a queued or running job; finished jobs are left untouched."""
+        ...
+
+    def finish(self, *, job_id: str, results: tuple[FormulaResult, ...]) -> None:
+        """Store results and mark the job done, only if it is still running."""
+        ...
+
+    def recover_interrupted(self) -> int:
+        """Mark live jobs whose lease expired as interrupted; safe to call from any process."""
+        ...
+
+
+class EngineGateway(Protocol):
+    """The verification engines."""
+
+    def list_engines(self) -> tuple[EngineInfo, ...]:
+        """Return every registered engine with its availability on this machine."""
+        ...
+
+    def is_known(self, *, name: str) -> bool:
+        """Return True if ``name`` is a registered engine."""
+        ...
+
+    def choose(self, *, requested: str) -> str:
+        """Return the engine to use for a request ("auto" lets the gateway decide)."""
+        ...
+
+    def run(self, *, engine: str, pnml: bytes, request: CheckRequest) -> tuple[FormulaResult, ...]:
+        """Run an engine on a net; return one result per formula."""
+        ...

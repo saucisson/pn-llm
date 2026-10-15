@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+# MCC models and binaries: fetched by script, not versioned
+bench/models/
+engines/*/bin/
+# Local SQLite database (and WAL files)
+data/
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+.env
