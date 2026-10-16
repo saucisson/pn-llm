@@ -12,6 +12,7 @@ from app.domain.formula_check import (
 )
 from app.domain.formula_text import formula_from_text
 from app.domain.net_structure import build_structure
+from app.domain.patterns import PatternRequest, instantiate
 
 from .ports import NetRepository
 
@@ -52,3 +53,16 @@ class FormulaService:
                 )
         structure = build_structure(document=stored.document, net_id=request.net_id)
         return check_formula(formula=formula, structure=structure)
+
+    def from_pattern(
+        self, *, net_id: str, request: PatternRequest, formula_id: str
+    ) -> FormulaReport:
+        """Build the formula of a specification pattern and check it against the net.
+
+        Raises:
+            NotFoundError: if the net is unknown.
+            InvalidRequestError: if the pattern lacks a parameter or a condition is temporal.
+            FormulaSyntaxError: if a condition does not parse.
+        """
+        formula = instantiate(request=request, formula_id=formula_id)
+        return self.validate(request=FormulaValidationRequest(net_id=net_id, formula=formula))

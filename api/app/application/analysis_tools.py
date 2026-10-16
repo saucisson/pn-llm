@@ -6,7 +6,6 @@ sees it. The agent works the queue itself while it waits, so it never depends on
 
 from __future__ import annotations
 
-import time
 from collections.abc import Callable
 
 from pydantic import JsonValue, ValidationError
@@ -24,21 +23,19 @@ from app.domain.analyses.t_invariants import TInvariantsParameters, TInvariantsR
 from app.domain.analysis_summary import AnalysisResults, Unavailable, summarize_analyses
 from app.domain.catalog import OPERATIONS, find_operation
 from app.domain.contract import ToolInfo
-from app.domain.errors import DomainError
+from app.domain.formula import Formula
 from app.domain.models import DomainModel, Limits
 from app.domain.operations import (
     NoParameters,
     OperationRequest,
-    OperationRun,
-    RunState,
 )
 from app.domain.tool_inputs import AnalyzeArguments, NoArguments
+from app.domain.triviality import StructuralFacts, Triviality, triviality_of
 
+from .analysis_runner import AnalysisRunner
 from .operations import OperationService
 from .tool_kit import Tool, ToolContext, ToolOutcome, answer, define_tool, failure
 
-GRACE_SECONDS = 30.0
-UNFINISHED = frozenset({RunState.QUEUED, RunState.RUNNING})
 # The digest asks for the cheap analyses with bounded searches; the heavy ones by name.
 SUMMARY_TIMEOUT_S = 60
 SUMMARY_MAX_ROWS = 5_000
@@ -52,6 +49,13 @@ class AnalysisData(DomainModel):
     result: JsonValue
 
 
+class FormulaTriviality(DomainModel):
+    """The reasons a property says nothing, found from the structure of the net."""
+
+    formula_id: str
+    findings: tuple[Triviality, ...]
+
+
 class AnalysisTools:
     """The tools that ask the platform for structural analyses."""
 
@@ -60,7 +64,7 @@ class AnalysisTools:
     ) -> None:
         """Create the tools over the operation service."""
         self._operations = operations
-        self._poll_seconds = poll_seconds
+        self._runner = AnalysisRunner(operations=operations, poll_seconds=poll_seconds)
         self._summary_max_chars = summary_max_chars
 
     def tools(self) -> tuple[Tool, ...]:
@@ -90,21 +94,6 @@ class AnalysisTools:
             ),
         )
 
-    def wait_for(
-        self, *, run: OperationRun, timeout_s: int, is_cancelled: Callable[[], bool]
-    ) -> OperationRun | None:
-        """Work the queue until the run has finished; None if it was cancelled or timed out."""
-        deadline = time.monotonic() + timeout_s + GRACE_SECONDS
-        current = run
-        while current.state in UNFINISHED:
-            if is_cancelled() or time.monotonic() > deadline:
-                self._operations.cancel(run_id=run.run_id)
-                return None
-            if not self._operations.run_next():
-                time.sleep(self._poll_seconds)
-            current = self._operations.get(run_id=run.run_id)
-        return current
-
     def analyze(
         self, *, context: ToolContext, arguments: AnalyzeArguments, is_cancelled: Callable[[], bool]
     ) -> ToolOutcome:
@@ -122,7 +111,7 @@ class AnalysisTools:
             operation=definition.name,
             request=OperationRequest(limits=limits, parameters=parameters),
         )
-        run = self.wait_for(
+        run = self._runner.wait_for(
             run=submission.run, timeout_s=limits.timeout_s, is_cancelled=is_cancelled
         )
         if run is None:
@@ -136,83 +125,54 @@ class AnalysisTools:
             )
         )
 
-    def ask[R: DomainModel](
-        self,
-        *,
-        context: ToolContext,
-        name: str,
-        parameters: DomainModel,
-        result_type: type[R],
-        is_cancelled: Callable[[], bool],
-    ) -> R | Unavailable:
-        """Run one analysis for the digest: its result, or why there is none."""
-        limits = Limits(timeout_s=SUMMARY_TIMEOUT_S)
-        try:
-            submission = self._operations.submit(
-                net_id=context.session.net_id,
-                operation=name,
-                request=OperationRequest(limits=limits, parameters=parameters),
-            )
-        except DomainError as exc:
-            return Unavailable(operation=name, reason=str(exc))
-        run = self.wait_for(
-            run=submission.run, timeout_s=limits.timeout_s, is_cancelled=is_cancelled
-        )
-        if run is None:
-            return Unavailable(operation=name, reason="cancelled or timed out")
-        if run.outcome is None or run.outcome.status != "ok":
-            code = run.outcome.error.code if run.outcome and run.outcome.error else run.state.value
-            return Unavailable(operation=name, reason=code)
-        return result_type.model_validate(run.outcome.result)
-
     def analysis_summary(
         self, *, context: ToolContext, arguments: NoArguments, is_cancelled: Callable[[], bool]
     ) -> ToolOutcome:
         """Run the cheap analyses and report a digest that fits the budget."""
-        net_class = self.ask(
-            context=context,
+        net_class = self._runner.ask(
+            net_id=context.session.net_id,
             name="net-class",
             parameters=NoParameters(),
             result_type=NetClassResult,
             is_cancelled=is_cancelled,
         )
-        p_invariants = self.ask(
-            context=context,
+        p_invariants = self._runner.ask(
+            net_id=context.session.net_id,
             name="p-invariants",
             parameters=PInvariantsParameters(max_rows=SUMMARY_MAX_ROWS, max_invariants=20),
             result_type=PInvariantsResult,
             is_cancelled=is_cancelled,
         )
-        t_invariants = self.ask(
-            context=context,
+        t_invariants = self._runner.ask(
+            net_id=context.session.net_id,
             name="t-invariants",
             parameters=TInvariantsParameters(max_rows=SUMMARY_MAX_ROWS, max_invariants=20),
             result_type=TInvariantsResult,
             is_cancelled=is_cancelled,
         )
-        place_bounds = self.ask(
-            context=context,
+        place_bounds = self._runner.ask(
+            net_id=context.session.net_id,
             name="place-bounds",
             parameters=PlaceBoundsParameters(max_rows=SUMMARY_MAX_ROWS, max_places=1),
             result_type=PlaceBoundsResult,
             is_cancelled=is_cancelled,
         )
-        dead = self.ask(
-            context=context,
+        dead = self._runner.ask(
+            net_id=context.session.net_id,
             name="dead-transitions",
             parameters=NoParameters(),
             result_type=DeadTransitionsResult,
             is_cancelled=is_cancelled,
         )
-        conflicts = self.ask(
-            context=context,
+        conflicts = self._runner.ask(
+            net_id=context.session.net_id,
             name="conflict-sets",
             parameters=ConflictSetsParameters(max_groups=10),
             result_type=ConflictSetsResult,
             is_cancelled=is_cancelled,
         )
-        components = self.ask(
-            context=context,
+        components = self._runner.ask(
+            net_id=context.session.net_id,
             name="connected-components",
             parameters=ConnectedComponentsParameters(max_components=10, max_elements=1),
             result_type=ConnectedComponentsResult,
@@ -232,3 +192,43 @@ class AnalysisTools:
             unavailable=tuple(item for item in asked if isinstance(item, Unavailable)),
         )
         return answer(data=summarize_analyses(results=results, max_chars=self._summary_max_chars))
+
+    def triviality(
+        self, *, net_id: str, formulas: tuple[Formula, ...], is_cancelled: Callable[[], bool]
+    ) -> tuple[FormulaTriviality, ...]:
+        """Find the properties the structure of the net already decides, and say why.
+
+        Nothing is found for a net the analyses do not cover (colored nets): an analysis that
+        gave no result adds no fact.
+        """
+        bounds = self._runner.ask(
+            net_id=net_id,
+            name="place-bounds",
+            parameters=PlaceBoundsParameters(max_rows=SUMMARY_MAX_ROWS, max_places=100_000),
+            result_type=PlaceBoundsResult,
+            is_cancelled=is_cancelled,
+        )
+        invariants = self._runner.ask(
+            net_id=net_id,
+            name="p-invariants",
+            parameters=PInvariantsParameters(max_rows=SUMMARY_MAX_ROWS),
+            result_type=PInvariantsResult,
+            is_cancelled=is_cancelled,
+        )
+        dead = self._runner.ask(
+            net_id=net_id,
+            name="dead-transitions",
+            parameters=NoParameters(),
+            result_type=DeadTransitionsResult,
+            is_cancelled=is_cancelled,
+        )
+        facts = StructuralFacts(
+            bounds=bounds if isinstance(bounds, PlaceBoundsResult) else None,
+            invariants=invariants if isinstance(invariants, PInvariantsResult) else None,
+            dead=dead if isinstance(dead, DeadTransitionsResult) else None,
+        )
+        found = tuple(
+            FormulaTriviality(formula_id=f.id, findings=triviality_of(formula=f, facts=facts))
+            for f in formulas
+        )
+        return tuple(item for item in found if item.findings)

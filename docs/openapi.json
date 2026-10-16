@@ -4821,6 +4821,93 @@
         "title": "Envelope[tuple[OperationDescription, ...]]",
         "type": "object"
       },
+      "Envelope_tuple_PatternInfo__________": {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/PatternInfo"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data"
+          },
+          "elapsed_s": {
+            "minimum": 0.0,
+            "title": "Elapsed S",
+            "type": "number"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorInfo"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "net_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Net Id"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "default": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "partial",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "tool": {
+            "$ref": "#/components/schemas/ToolInfo"
+          },
+          "truncated": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Page"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "warnings": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "tool",
+          "status",
+          "elapsed_s"
+        ],
+        "title": "Envelope[tuple[PatternInfo, ...]]",
+        "type": "object"
+      },
       "Envelope_tuple_ResultSetInfo__________": {
         "properties": {
           "data": {
@@ -7925,6 +8012,131 @@
         "title": "PageRequest",
         "type": "object"
       },
+      "PatternFormulaRequest": {
+        "description": "Body of ``POST /v1/formulas/from-pattern``.",
+        "properties": {
+          "id": {
+            "default": "f1",
+            "title": "Id",
+            "type": "string"
+          },
+          "net_id": {
+            "title": "Net Id",
+            "type": "string"
+          },
+          "pattern": {
+            "$ref": "#/components/schemas/PatternRequest"
+          }
+        },
+        "required": [
+          "net_id",
+          "pattern"
+        ],
+        "title": "PatternFormulaRequest",
+        "type": "object"
+      },
+      "PatternInfo": {
+        "description": "A pattern, what it means and which parameters it takes.",
+        "properties": {
+          "meaning": {
+            "title": "Meaning",
+            "type": "string"
+          },
+          "name": {
+            "enum": [
+              "absence",
+              "universality",
+              "existence",
+              "bound",
+              "response",
+              "precedence",
+              "exclusion",
+              "recurrence"
+            ],
+            "title": "Name",
+            "type": "string"
+          },
+          "parameters": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Parameters",
+            "type": "array"
+          }
+        },
+        "required": [
+          "name",
+          "meaning",
+          "parameters"
+        ],
+        "title": "PatternInfo",
+        "type": "object"
+      },
+      "PatternRequest": {
+        "description": "What the model gives to build a formula from a pattern.",
+        "properties": {
+          "k": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Token bound (bound)",
+            "title": "K"
+          },
+          "logic": {
+            "default": "ctl",
+            "enum": [
+              "ctl",
+              "ltl"
+            ],
+            "title": "Logic",
+            "type": "string"
+          },
+          "p": {
+            "description": "Condition on a marking, in the text syntax",
+            "minLength": 1,
+            "title": "P",
+            "type": "string"
+          },
+          "pattern": {
+            "enum": [
+              "absence",
+              "universality",
+              "existence",
+              "bound",
+              "response",
+              "precedence",
+              "exclusion",
+              "recurrence"
+            ],
+            "title": "Pattern",
+            "type": "string"
+          },
+          "q": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Second condition (response, precedence, exclusion)",
+            "title": "Q"
+          }
+        },
+        "required": [
+          "pattern",
+          "p"
+        ],
+        "title": "PatternRequest",
+        "type": "object"
+      },
       "PlaceBound": {
         "description": "The bound of one place.",
         "properties": {
@@ -9956,6 +10168,70 @@
         "summary": "Get Equivalence",
         "tags": [
           "engines"
+        ]
+      }
+    },
+    "/v1/formulas/from-pattern": {
+      "post": {
+        "description": "Build the formula of a pattern (absence, response, bound, ...) and check it on the net.",
+        "operationId": "formula_from_pattern_v1_formulas_from_pattern_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PatternFormulaRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_FormulaReport_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Formula From Pattern",
+        "tags": [
+          "formulas"
+        ]
+      }
+    },
+    "/v1/formulas/patterns": {
+      "get": {
+        "description": "List the specification patterns and the parameters each takes.",
+        "operationId": "list_patterns_v1_formulas_patterns_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_tuple_PatternInfo__________"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Patterns",
+        "tags": [
+          "formulas"
         ]
       }
     },

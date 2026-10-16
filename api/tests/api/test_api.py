@@ -315,3 +315,24 @@ def test_the_colored_summary_of_a_p_t_net_is_a_422_problem(client):
     assert response.status_code == 422
     assert "symmetric" in response.json()["detail"]
     assert client.get("/v1/nets/nope/colored").status_code == 404
+
+
+def test_patterns_are_listed_and_build_formulas_checked_on_the_net(client):
+    patterns = client.get("/v1/formulas/patterns").json()["data"]
+    assert {p["name"] for p in patterns} >= {"absence", "response", "bound", "precedence"}
+    net_id = upload(client)["net_id"]
+    body = {
+        "net_id": net_id,
+        "id": "never_two",
+        "pattern": {"pattern": "bound", "logic": "ctl", "p": '"crit1" >= 0', "k": 1},
+    }
+    report = client.post("/v1/formulas/from-pattern", json=body).json()["data"]
+    assert report["valid"] is True
+    assert report["formula"]["id"] == "never_two"
+    assert report["formula"]["gloss"] == "crit1 never holds more than 1 tokens"
+    missing = client.post(
+        "/v1/formulas/from-pattern",
+        json={**body, "pattern": {"pattern": "response", "p": '"crit1" >= 1'}},
+    )
+    assert missing.status_code == 422
+    assert "needs the parameter q" in missing.json()["detail"]

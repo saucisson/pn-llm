@@ -125,6 +125,18 @@ class ScriptedEngines:
     def stop(self, *, job_id):
         self.stopped.append(job_id)
 
+    # Operations (analyses, reductions) are answered like the native engine does, in-process.
+    def choose_for(self, *, operation, requested):
+        return InProcessNative().choose_for(operation=operation, requested=requested)
+
+    def version_of(self, *, engine):
+        return InProcessNative().version_of(engine=engine)
+
+    def run_operation(self, *, engine, pnml, request, job_id):
+        return InProcessNative().run_operation(
+            engine=engine, pnml=pnml, request=request, job_id=job_id
+        )
+
     def run(self, *, engine, pnml, request, job_id):
         from app.domain.engine_contract import (
             EngineFormulaResult,

@@ -10,6 +10,7 @@ from pydantic import Field, JsonValue
 
 from .formula import Logic
 from .models import DomainModel
+from .patterns import PatternRequest
 
 TOOL_PAGE_LIMIT = 30
 TOOL_PAGE_MAX = 100
@@ -85,6 +86,13 @@ class ValidateFormulaArguments(DomainModel):
     """Check a formula against the net without running an engine."""
 
     formula: FormulaText
+
+
+class PatternArguments(DomainModel):
+    """Build a property from a specification pattern."""
+
+    id: str = Field(min_length=1, description="Your name for the property")
+    pattern: PatternRequest
 
 
 class CheckFormulasArguments(DomainModel):

@@ -55,6 +55,8 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/domain/capabilities.py` | domain | Classes of properties, the contest examinations a class needs, the capability table |
 | `app/domain/equivalence.py` | domain | When engines are interchangeable for a class: known differences, caveats and breaks |
 | `app/domain/portfolio.py` | domain | Merging the answers of several engines: shared verdicts, contradictions kept as evidence, settled only by a counterexample replayed on the net |
+| `app/domain/patterns.py` | domain | Specification patterns (absence, response, bound, ...) instantiated into formulas deterministically |
+| `app/domain/triviality.py` | domain | Properties the structure of the net already decides: vacuous premises, holds in every state, holds in none |
 | `app/domain/conformance.py` | domain | Conformance cases, the engine-by-case matrix, wrong answers and contradictions flagged for triage |
 | `app/domain/operations.py` | domain | The operations (analyses, reductions): `OperationDefinition`, the request, the run and its outcome |
 | `app/domain/operation_check.py` | domain | Checks what an engine says an operation found: the shape, and only elements the net has, with their names |
@@ -111,6 +113,7 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/application/conformance.py` | application | `ConformanceService`: the same cases through the engine gateway for several engines |
 | `app/application/operations.py` | application | `OperationService`: describe, submit, run and read operations; a finished run is the cache of its key |
 | `app/application/tool_kit.py` | application | What every tool is made of: context, outcome, trimmed JSON answers |
+| `app/application/analysis_runner.py` | application | Submit an analysis from inside a tool and wait for it, working the queue meanwhile |
 | `app/application/analysis_tools.py` | application | The tools `analysis_summary` and `analyze`: the operation runner as the agent's tools |
 | `app/application/traces.py` | application | `TraceService`: counterexamples on the original net or the reduced one they were found on |
 | `app/application/results.py` | application | `ResultsService`: import the published results (all or nothing) and summarize them |
