@@ -48,6 +48,14 @@ const EVERY_KIND: readonly SessionEvent[] = [
   { kind: "run_finished", reason: "completed" },
   { kind: "description_proposed", proposal_id: "p1", text: "A lock shared by two processes." },
   { kind: "description_accepted", proposal_id: "p1", description_id: "d2" },
+  {
+    kind: "counterexample_classified",
+    job_id: "j1",
+    result_index: 0,
+    formula_id: "f1",
+    classification: "model_bug",
+    explanation: "Both enter.",
+  },
   { kind: "session_cancelled" },
 ];
 

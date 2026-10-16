@@ -330,7 +330,7 @@ def build_with_advice(*, store, engines):
         analyses=make_analysis_tools(store=store, path=store._path),
         max_result_chars=20_000,
         poll_seconds=0.001,
-        advice=AdviceTools(formulas=formulas, selection=selection),
+        advice=AdviceTools(formulas=formulas, selection=selection, checks=checks),
     )
 
 
@@ -396,3 +396,53 @@ def test_an_answer_brings_no_moves(store, net_id):
     assert (
         payload(outcome)["data"]["next_moves"] == [] or "next_moves" not in payload(outcome)["data"]
     )
+
+
+def classify(facade, context, job_id, index=0, text="Two processes enter together."):
+    return call(
+        facade,
+        context,
+        "classify_counterexample",
+        {
+            "job_id": job_id,
+            "result_index": index,
+            "classification": "model_bug",
+            "explanation": text,
+        },
+    )
+
+
+def test_a_counterexample_reading_is_recorded_as_an_interpretation_and_changes_no_verdict(
+    store, net_id
+):
+    from tests.support import PortfolioEngines
+
+    engines = PortfolioEngines(
+        answers={"a": ("FALSE", 1, ("enter1",), False)},
+    )
+    facade = build_with_advice(store=store, engines=engines)
+    context = context_for(net_id=net_id)
+    job_id = payload(check(facade, context))["data"]["job_id"]
+    outcome = classify(facade, context, job_id)
+    assert outcome.ok, outcome.content
+    (event,) = outcome.events
+    assert (event.kind, event.classification, event.formula_id) == (
+        "counterexample_classified",
+        "model_bug",
+        "reach",
+    )
+    assert "verdict" not in outcome.content
+
+
+def test_only_a_false_with_a_counterexample_on_this_net_can_be_classified(store, net_id):
+    from tests.support import PortfolioEngines
+
+    engines = PortfolioEngines(answers={"a": ("TRUE", 1, None, False)})
+    facade = build_with_advice(store=store, engines=engines)
+    context = context_for(net_id=net_id)
+    job_id = payload(check(facade, context))["data"]["job_id"]
+    assert "nothing to classify" in payload(classify(facade, context, job_id))["error"]
+    assert "no such result" in payload(classify(facade, context, job_id, index=5))["error"]
+    other = save(store=store, document=MUTEX_DOCUMENT.model_copy(update={"source_id": "other"}))
+    stolen = classify(facade, context_for(net_id=other), job_id)
+    assert "another net" in payload(stolen)["error"]

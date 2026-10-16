@@ -1622,6 +1622,33 @@ export interface components {
             value: number;
         };
         /**
+         * CounterexampleClassified
+         * @description How the language model reads a counterexample: its interpretation, never a verdict.
+         *
+         *     The verdict stays the engine's; this says what the model thinks the FALSE means. The platform
+         *     only checks that the result it refers to is a FALSE with a counterexample on this net.
+         */
+        CounterexampleClassified: {
+            /**
+             * Classification
+             * @enum {string}
+             */
+            classification: "model_bug" | "property_too_strong" | "expected_behaviour";
+            /** Explanation */
+            explanation: string;
+            /** Formula Id */
+            formula_id: string;
+            /** Job Id */
+            job_id: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "counterexample_classified";
+            /** Result Index */
+            result_index: number;
+        };
+        /**
          * CtlUnary
          * @description CTL operators with one operand: a path quantifier and a temporal operator.
          */
@@ -4404,7 +4431,7 @@ export interface components {
             /** At */
             at: number;
             /** Event */
-            event: components["schemas"]["SessionStarted"] | components["schemas"]["UserMessage"] | components["schemas"]["AssistantMessage"] | components["schemas"]["ToolCall"] | components["schemas"]["ToolResult"] | components["schemas"]["PropertyProposed"] | components["schemas"]["CheckSubmitted"] | components["schemas"]["app__domain__sessions__Verdict"] | components["schemas"]["Question"] | components["schemas"]["Answer"] | components["schemas"]["BudgetExhausted"] | components["schemas"]["SessionError"] | components["schemas"]["RunFinished"] | components["schemas"]["DescriptionProposed"] | components["schemas"]["DescriptionAccepted"] | components["schemas"]["SessionCancelled"];
+            event: components["schemas"]["SessionStarted"] | components["schemas"]["UserMessage"] | components["schemas"]["AssistantMessage"] | components["schemas"]["ToolCall"] | components["schemas"]["ToolResult"] | components["schemas"]["PropertyProposed"] | components["schemas"]["CheckSubmitted"] | components["schemas"]["app__domain__sessions__Verdict"] | components["schemas"]["Question"] | components["schemas"]["Answer"] | components["schemas"]["BudgetExhausted"] | components["schemas"]["SessionError"] | components["schemas"]["RunFinished"] | components["schemas"]["DescriptionProposed"] | components["schemas"]["DescriptionAccepted"] | components["schemas"]["CounterexampleClassified"] | components["schemas"]["SessionCancelled"];
             /** Number */
             number: number;
             /** Session Id */

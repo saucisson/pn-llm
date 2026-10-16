@@ -106,6 +106,16 @@ export function EventItem({ event }: { readonly event: SessionEvent }) {
       );
     case "description_accepted":
       return <p className="event note">Description accepted and stored (origin: llm).</p>;
+    case "counterexample_classified":
+      return (
+        <article className="event property">
+          <h3>
+            Counterexample of {event.formula_id} read as {event.classification.replaceAll("_", " ")}
+          </h3>
+          <p className="text">{event.explanation}</p>
+          <small>The assistant's interpretation: it changes no verdict.</small>
+        </article>
+      );
     case "session_cancelled":
       return <p className="event note">Session cancelled.</p>;
   }

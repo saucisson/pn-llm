@@ -862,6 +862,55 @@
         "title": "Constant",
         "type": "object"
       },
+      "CounterexampleClassified": {
+        "description": "How the language model reads a counterexample: its interpretation, never a verdict.\n\nThe verdict stays the engine's; this says what the model thinks the FALSE means. The platform\nonly checks that the result it refers to is a FALSE with a counterexample on this net.",
+        "properties": {
+          "classification": {
+            "enum": [
+              "model_bug",
+              "property_too_strong",
+              "expected_behaviour"
+            ],
+            "title": "Classification",
+            "type": "string"
+          },
+          "explanation": {
+            "minLength": 1,
+            "title": "Explanation",
+            "type": "string"
+          },
+          "formula_id": {
+            "minLength": 1,
+            "title": "Formula Id",
+            "type": "string"
+          },
+          "job_id": {
+            "minLength": 1,
+            "title": "Job Id",
+            "type": "string"
+          },
+          "kind": {
+            "const": "counterexample_classified",
+            "default": "counterexample_classified",
+            "title": "Kind",
+            "type": "string"
+          },
+          "result_index": {
+            "minimum": 0.0,
+            "title": "Result Index",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "job_id",
+          "result_index",
+          "formula_id",
+          "classification",
+          "explanation"
+        ],
+        "title": "CounterexampleClassified",
+        "type": "object"
+      },
       "CtlUnary-Input": {
         "description": "CTL operators with one operand: a path quantifier and a temporal operator.",
         "properties": {
@@ -9271,6 +9320,7 @@
                 "assistant_message": "#/components/schemas/AssistantMessage",
                 "budget_exhausted": "#/components/schemas/BudgetExhausted",
                 "check_submitted": "#/components/schemas/CheckSubmitted",
+                "counterexample_classified": "#/components/schemas/CounterexampleClassified",
                 "description_accepted": "#/components/schemas/DescriptionAccepted",
                 "description_proposed": "#/components/schemas/DescriptionProposed",
                 "property_proposed": "#/components/schemas/PropertyProposed",
@@ -9331,6 +9381,9 @@
               },
               {
                 "$ref": "#/components/schemas/DescriptionAccepted"
+              },
+              {
+                "$ref": "#/components/schemas/CounterexampleClassified"
               },
               {
                 "$ref": "#/components/schemas/SessionCancelled"

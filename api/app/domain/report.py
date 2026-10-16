@@ -15,6 +15,7 @@ from .sessions import (
     Answer,
     AssistantMessage,
     BudgetExhausted,
+    CounterexampleClassified,
     DescriptionAccepted,
     Question,
     Session,
@@ -41,6 +42,14 @@ class ReportedVerdict(DomainModel):
     has_counterexample: bool
 
 
+class ReportedReading(DomainModel):
+    """How the language model read a counterexample (its interpretation, not a verdict)."""
+
+    formula_id: str
+    classification: str
+    explanation: str
+
+
 class ReportedExchange(DomainModel):
     """A line of the conversation: who said it, and what."""
 
@@ -56,6 +65,7 @@ class SessionReport(DomainModel):
     goal: str
     description: Description | None = None
     verdicts: tuple[ReportedVerdict, ...] = ()
+    readings: tuple[ReportedReading, ...] = ()
     conversation: tuple[ReportedExchange, ...] = ()
     problems: tuple[str, ...] = ()
     event_count: int
@@ -71,6 +81,7 @@ def build_report(
     """Build the report of a session from its events."""
     proposed: dict[str, ProposedEvent] = {}
     verdicts: list[ReportedVerdict] = []
+    readings: list[ReportedReading] = []
     conversation: list[ReportedExchange] = []
     problems: list[str] = []
     goal = ""
@@ -95,6 +106,14 @@ def build_report(
                     has_counterexample=event.has_trace,
                 )
             )
+        elif isinstance(event, CounterexampleClassified):
+            readings.append(
+                ReportedReading(
+                    formula_id=event.formula_id,
+                    classification=event.classification,
+                    explanation=event.explanation,
+                )
+            )
         elif isinstance(event, UserMessage | Answer):
             conversation.append(ReportedExchange(who="user", text=event.text))
         elif isinstance(event, AssistantMessage):
@@ -117,6 +136,7 @@ def build_report(
         goal=goal,
         description=description,
         verdicts=tuple(verdicts),
+        readings=tuple(readings),
         conversation=tuple(conversation),
         problems=tuple(problems),
         event_count=len(events),
@@ -196,6 +216,21 @@ def render_markdown(*, report: SessionReport) -> str:
             lines += [
                 f"- {code(text=item.formula_id)}: {item.gloss.replace(chr(10), ' ')}"
                 for item in glossed
+            ]
+    if report.readings:
+        lines += [
+            "",
+            "## Counterexamples as read by the assistant",
+            "",
+            "_Interpretations written by the language model; they change no verdict._",
+            "",
+        ]
+        for reading in report.readings:
+            lines += [
+                f"- {code(text=reading.formula_id)}: **{reading.classification}**",
+                "",
+                block(text=reading.explanation),
+                "",
             ]
     lines += ["", "## Conversation", ""]
     for exchange in report.conversation:

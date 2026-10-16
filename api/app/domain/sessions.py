@@ -117,6 +117,9 @@ class Verdict(DomainModel):
     has_trace: bool = False
 
 
+CounterexampleClass = Literal["model_bug", "property_too_strong", "expected_behaviour"]
+
+
 class Question(DomainModel):
     """The LLM asks the user something; the session waits for the answer."""
 
@@ -171,6 +174,21 @@ class DescriptionAccepted(DomainModel):
     description_id: str
 
 
+class CounterexampleClassified(DomainModel):
+    """How the language model reads a counterexample: its interpretation, never a verdict.
+
+    The verdict stays the engine's; this says what the model thinks the FALSE means. The platform
+    only checks that the result it refers to is a FALSE with a counterexample on this net.
+    """
+
+    kind: Literal["counterexample_classified"] = "counterexample_classified"
+    job_id: str = Field(min_length=1)
+    result_index: int = Field(ge=0)
+    formula_id: str = Field(min_length=1)
+    classification: CounterexampleClass
+    explanation: str = Field(min_length=1)
+
+
 class SessionCancelled(DomainModel):
     """The user cancelled the session."""
 
@@ -193,6 +211,7 @@ SessionEvent = Annotated[
     | RunFinished
     | DescriptionProposed
     | DescriptionAccepted
+    | CounterexampleClassified
     | SessionCancelled,
     Field(discriminator="kind"),
 ]
