@@ -19,7 +19,7 @@ from .colored import (
     IntegerRangeSort,
     ProductSort,
     UnsupportedColoredError,
-    children,
+    place_sort_id,
     read_declarations,
     sort_size,
 )
@@ -183,15 +183,7 @@ def summarize_colored(*, document: NetDocument, examples: int = 3) -> ColoredSum
     domain_of: dict[str, str] = {}
     by_sort: dict[str, list[Place]] = defaultdict(list)
     for place in places:
-        node = None if place.place_type is None else place.place_type.structure
-        inner = () if node is None else children(node=node)
-        if not inner:
-            raise UnsupportedColoredError(f"The place {place.id!r} has no declared sort")
-        sort_id = (
-            "dot"
-            if inner[0].name.endswith("}dot") or inner[0].name == "dot"
-            else next((a.value for a in inner[0].attributes if a.name == "declaration"), "")
-        )
+        sort_id = place_sort_id(place=place)
         if sort_id != "dot" and sort_id not in sizes:
             raise UnsupportedColoredError(
                 f"The place {place.id!r} has the undeclared sort {sort_id!r}"

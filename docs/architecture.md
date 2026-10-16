@@ -104,6 +104,7 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/domain/evaluation_report.py` | domain | The report of an evaluation: each claim with its measure, threshold and outcome, deviations, negative results |
 | `app/domain/study_measures.py` | domain | Interaction measures a session log gives (time to the first definitive verdict, properties, questions, verdicts) |
 | `app/domain/freeze.py` | domain | The manifest of a frozen evaluation: families (dev, test; public, unpublished, synthetic), rule, thresholds, versions |
+| `app/domain/unfolding.py` | domain | Unfold a symmetric net into a P/T net, with the mapping (colored place and color, transition and binding) and size limits |
 | `app/domain/predictor.py` | domain | Instance features, decision trees (CART) giving the chance an engine answers, the `Predictor` model |
 | `app/domain/selection_evaluation.py` | domain | Training the predictor from contest runs and scoring it against the single best engine and the oracle, by family |
 | `app/domain/mcc_results.py` | domain | The contest's published runs: tool names normalized, the contest's own outcome classes kept (never a verdict), success rate and median time per family |

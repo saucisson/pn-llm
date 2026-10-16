@@ -237,7 +237,9 @@ def test_runs_are_read_one_per_engine_and_question_references_left_out_a_rerun_t
     assert got[("Big-PT-1", "tapaal", EXAM)].time_ms == 500
 
 
-def test_the_trainer_reads_only_development_families_and_refuses_when_there_is_nothing(settings):
+def test_the_trainer_reads_only_development_families_and_refuses_when_there_is_nothing(
+    settings, monkeypatch, capsys, tmp_path
+):
     catalog = SqliteCatalog(path=settings.database_path)
     results = SqliteResults(path=settings.database_path)
     splits = SqliteSplits(path=settings.database_path)
@@ -271,6 +273,33 @@ def test_the_trainer_reads_only_development_families_and_refuses_when_there_is_n
     held_out = {a.family for a in splits.load_split(name="v1").assignments if a.role == "test"}
     assert held_out
     assert {f.family for f in report.validation.score.by_family}.isdisjoint(held_out)
+
+    # The command does the same from the database and writes the model for the settings to load.
+    from app import train_predictor
+    from app.domain.predictor import Predictor
+
+    out = tmp_path / "model.json"
+    monkeypatch.setenv("PNVERIF_DATABASE_PATH", str(settings.database_path))
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "prog",
+            "--split",
+            "v1",
+            "--out",
+            str(out),
+            "--max-depth",
+            "3",
+            "--min-leaf",
+            "2",
+            "--margins",
+            "0.0",
+            "1.0",
+        ],
+    )
+    train_predictor.train_main()
+    assert Predictor.model_validate_json(out.read_text()).trained_on.startswith("split v1")
+    assert "margin" in capsys.readouterr().out
 
 
 # ---- the selector with a model -----------------------------------------------------------------
