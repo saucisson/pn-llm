@@ -75,3 +75,28 @@ def test_the_audit_command_exits_zero_on_a_sound_database_and_prints_its_report(
         run(monkeypatch, audit_sessions.audit_main)
     assert stopped.value.code == 0
     assert json.loads(capsys.readouterr().out)["sound"] is True
+
+
+def test_the_study_command_measures_the_sessions_of_the_database(
+    monkeypatch, capsys, settings, store
+):
+    from app import study
+    from app.domain.canonical import net_id_of
+    from app.domain.nets import summarize_document
+    from app.domain.sessions import Session, SessionStarted, SessionState
+    from tests.support import MUTEX_DOCUMENT
+
+    net_id = net_id_of(document=MUTEX_DOCUMENT)
+    store.save_net(
+        summary=summarize_document(document=MUTEX_DOCUMENT, net_id=net_id), document=MUTEX_DOCUMENT
+    )
+    session = Session(
+        session_id="s1", net_id=net_id, state=SessionState.IDLE, created_at=1.0, updated_at=1.0
+    )
+    store.create_session(session=session, started=SessionStarted(net_id=net_id, goal="g"))
+    monkeypatch.setenv("PNVERIF_DATABASE_PATH", str(settings.database_path))
+    run(monkeypatch, study.study_main)
+    out = json.loads(capsys.readouterr().out)
+    assert [m["session_id"] for m in out] == ["s1"]
+    run(monkeypatch, study.study_main, "--session", "s1")
+    assert json.loads(capsys.readouterr().out)[0]["questions"] == 0

@@ -102,6 +102,7 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/domain/analysis_stats.py` | domain | Family-level statistics: paired differences, seeded bootstrap intervals, Holm correction, the protocol's analysis |
 | `app/domain/rating.py` | domain | Blind rating sheets (condition hidden, identical properties rated once), Cohen's kappa between raters, ratings as per-family values (M8) |
 | `app/domain/evaluation_report.py` | domain | The report of an evaluation: each claim with its measure, threshold and outcome, deviations, negative results |
+| `app/domain/study_measures.py` | domain | Interaction measures a session log gives (time to the first definitive verdict, properties, questions, verdicts) |
 | `app/domain/predictor.py` | domain | Instance features, decision trees (CART) giving the chance an engine answers, the `Predictor` model |
 | `app/domain/selection_evaluation.py` | domain | Training the predictor from contest runs and scoring it against the single best engine and the oracle, by family |
 | `app/domain/mcc_results.py` | domain | The contest's published runs: tool names normalized, the contest's own outcome classes kept (never a verdict), success rate and median time per family |
@@ -140,6 +141,7 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/application/soundness.py` | application | `SoundnessAuditor`: read sessions and the jobs their verdicts cite, and report what does not hold |
 | `app/application/experiment.py` | application | `ExperimentRunner`: the deterministic judge, measuring a property set on a net and its mutants under a budget |
 | `app/application/experiment_sessions.py` | application | `ModelConditionRunner`: a session of the model in non-interactive mode, then the common measurement |
+| `app/application/session_log.py` | application | `read_events`: the whole event log of a session |
 | `app/application/engines.py` | application | `EngineService`: list engines (with filters), capabilities, equivalence |
 | `app/infrastructure/sqlite_store.py` | infrastructure | SQLite implementation of `NetRepository` and `JobRepository` |
 | `app/infrastructure/sqlite_database.py` | infrastructure | The shared base of the SQLite adapters: the file, its migration, short-lived connections |
@@ -180,6 +182,7 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/analyze_runs.py` | main | `python -m app.analyze_runs RUNS.jsonl`: the protocol's analysis of run records, as JSON |
 | `app/rate.py` | main | `python -m app.rate sheet\|analyze`: draw the blind sheet and its key, then the agreement and values from filled ratings |
 | `app/report_evaluation.py` | main | `python -m app.report_evaluation --analysis FILE`: write the evaluation report as Markdown |
+| `app/study.py` | main | `python -m app.study`: interaction measures of the study sessions as JSON |
 | `app/seed.py` | main | `python -m app.seed [family...]`: download and store contest models; nothing downloaded is versioned |
 | `app/conformance.py` | main | `python -m app.conformance --cases FILE`: loads cases, runs them, prints the matrix, exits 1 when a row needs triage |
 
