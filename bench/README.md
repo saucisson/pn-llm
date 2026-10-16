@@ -94,3 +94,18 @@ being written back in original names before judging. Every question is answered 
 removed, renumbered `L2-1`.. and cut to the budget; the record keeps the session id (replayable),
 the model id (`PNVERIF_ANTHROPIC_MODEL`, or the provider name) and the prompt hash (system prompt
 and tools).
+
+## Analysis
+
+```bash
+python -m app.run_experiment --split v1 --condition L3 --repetitions 5 > l3.jsonl
+python -m app.analyze_runs b0.jsonl l1.jsonl l2.jsonl l3.jsonl n.jsonl > analysis.json
+```
+
+`app/domain/analysis_stats.py` averages each measure inside a family (repetitions first), then
+compares conditions by the paired difference per family: mean, a seeded percentile bootstrap
+interval over families (10,000 resamples), a bootstrap p-value. The primary outcome is M6 of L3
+minus M6 of B0; the secondary comparisons (L3 against L2, L2 against L1, N against L2, and L3
+against B0 on the other measures) are corrected with Holm's method. A family missing for one of two
+conditions is excluded from that comparison and named in `excluded`. The script is identical on dev
+and test. The decision thresholds are applied when the report is written (`docs/evaluation.md`).

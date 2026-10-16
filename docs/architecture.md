@@ -99,6 +99,7 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/domain/obfuscation.py` | domain | Condition N: deterministic renaming of a P/T net's elements (all names dropped) and the way back for properties |
 | `app/domain/experiment.py` | domain | An experimental run: condition, budget, provenance (seed, commit, tools, model, prompt) and the record of what was measured |
 | `app/domain/conditions.py` | domain | What each condition (L1, L2, L3, N) gives the model: tools, description, the goal, the hash of the prompt |
+| `app/domain/analysis_stats.py` | domain | Family-level statistics: paired differences, seeded bootstrap intervals, Holm correction, the protocol's analysis |
 | `app/domain/predictor.py` | domain | Instance features, decision trees (CART) giving the chance an engine answers, the `Predictor` model |
 | `app/domain/selection_evaluation.py` | domain | Training the predictor from contest runs and scoring it against the single best engine and the oracle, by family |
 | `app/domain/mcc_results.py` | domain | The contest's published runs: tool names normalized, the contest's own outcome classes kept (never a verdict), success rate and median time per family |
@@ -174,6 +175,7 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/train_predictor.py` | main | `python -m app.train_predictor --split NAME --out FILE`: train and validate the engine predictor, write it as JSON |
 | `app/audit_sessions.py` | main | `python -m app.audit_sessions [--session ID]`: prints the soundness report, exits 1 when a verdict is unsupported |
 | `app/run_experiment.py` | main | `python -m app.run_experiment --split NAME`: run a condition on the families of a split, one JSON record per run |
+| `app/analyze_runs.py` | main | `python -m app.analyze_runs RUNS.jsonl`: the protocol's analysis of run records, as JSON |
 | `app/seed.py` | main | `python -m app.seed [family...]`: download and store contest models; nothing downloaded is versioned |
 | `app/conformance.py` | main | `python -m app.conformance --cases FILE`: loads cases, runs them, prints the matrix, exits 1 when a row needs triage |
 
