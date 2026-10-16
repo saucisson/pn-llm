@@ -13,7 +13,7 @@ from typing import Literal
 
 from pydantic import ConfigDict, Field, JsonValue
 
-from .contract import ErrorInfo, ToolInfo
+from .contract import Assignment, ErrorInfo, ToolInfo
 from .models import DomainModel, Limits
 from .net_document import NetDocument
 from .net_structure import NetStructure
@@ -149,6 +149,8 @@ class LineageExpansion(DomainModel):
 
     transition: str
     original: tuple[str, ...]
+    # For an unfolding: the binding of the colored transition this transition stands for.
+    binding: tuple[Assignment, ...] = ()
 
 
 class Lineage(DomainModel):

@@ -281,7 +281,7 @@
         "type": "object"
       },
       "Assignment": {
-        "description": "The color a variable takes in a binding.",
+        "description": "The color a variable takes in a binding of a colored transition.",
         "properties": {
           "color": {
             "title": "Color",
@@ -9797,6 +9797,20 @@
       "TraceStep": {
         "description": "One firing, as the platform reports it: the transition cited by reference.",
         "properties": {
+          "binding": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/Assignment"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Binding"
+          },
           "transition": {
             "$ref": "#/components/schemas/ElementRef"
           }

@@ -1342,7 +1342,7 @@ export interface components {
         };
         /**
          * Assignment
-         * @description The color a variable takes in a binding.
+         * @description The color a variable takes in a binding of a colored transition.
          */
         Assignment: {
             /** Color */
@@ -4638,6 +4638,8 @@ export interface components {
          * @description One firing, as the platform reports it: the transition cited by reference.
          */
         TraceStep: {
+            /** Binding */
+            binding?: components["schemas"]["Assignment"][] | null;
             transition: components["schemas"]["ElementRef"];
         };
         /**

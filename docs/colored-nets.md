@@ -64,3 +64,13 @@ The unfolding is the operation `unfold` (`POST /v1/nets/{id}/reductions/unfold`,
 it runs in the `native` engine, stores the unfolded P/T net linked to its parent (`parent_id`,
 `reductions_applied: ["unfold"]`) and answers with `new_net_id` and the mapping. A P/T net, or an
 unfolding over the limits, is a failed run with the reason in `error.message`.
+
+## Counterexamples on colored nets
+
+A check on the unfolded net gives a trace of unfolded transitions. The unfolding records, for each
+of them, the colored transition and the binding it stands for in the lineage of the net, so the
+trace is served on the colored net like a trace of a reduced net is served on the original
+(`GET /v1/jobs/{id}/results/{i}/trace`): each step is the colored transition with its `binding`
+(`[{"variable": "x", "color": "2"}, ...]`). `?net=reduced` gives the unfolded trace as found.
+The colored trace is not replayed (the replay is for P/T nets): its validity rests on the replay of
+the unfolded trace, done when the check was interpreted.

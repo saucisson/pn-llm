@@ -388,10 +388,10 @@ def test_deleting_a_net_removes_the_lineage_of_its_children(client, settings):
 class ChecksAndOperations:
     """One gateway for both paths: the scripted engine for checks, the native one for operations."""
 
-    def __init__(self):
+    def __init__(self, trace_steps=("x", "y")):
         from tests.support import ScriptedEngines
 
-        self._checks = ScriptedEngines(trace_steps=("x", "y"))
+        self._checks = ScriptedEngines(trace_steps=trace_steps)
         self._operations = InProcessNative()
 
     def __getattr__(self, name):
@@ -474,3 +474,41 @@ def test_a_p_t_net_cannot_be_unfolded_and_a_net_too_large_is_refused_with_a_clea
     too_large = failure_of(colored, {"parameters": {"max_arcs": 2}})
     assert too_large["state"] == "failed"
     assert "arcs" in too_large["error"]["message"]
+
+
+def test_a_counterexample_found_on_the_unfolding_is_given_on_the_colored_net_with_its_binding(
+    settings,
+):
+    app = create_app(
+        settings=settings.model_copy(update={"operation_wait_seconds": 0}),
+        engine_gateway=ChecksAndOperations(trace_steps=("pick_2_1", "pick_3_2")),
+    )
+    client = TestClient(app)
+    colored = client.post("/v1/nets", content=GUARDED, headers=XML).json()["net_id"]
+    ask(client, colored, "unfold")
+    app.state.operations.drain()
+    child = ask(client, colored, "unfold").json()["data"]["new_net_id"]
+    body = {
+        "formulas": [
+            {
+                "id": "f1",
+                "logic": "state",
+                "ast": {"op": "tokens", "place": "pairs_2", "cmp": ">=", "value": 1},
+            }
+        ],
+        "engine": "scripted",
+    }
+    job = client.post(f"/v1/nets/{child}/checks", json=body).json()["data"]["job_id"]
+    app.state.checks.drain()
+    url = f"/v1/jobs/{job}/results/0/trace"
+    lifted = client.get(url).json()
+    assert lifted["net_id"] == colored
+    steps = lifted["data"]["steps"]
+    assert [s["transition"]["id"] for s in steps] == ["pick", "pick"]
+    assert [{a["variable"]: a["color"] for a in s["binding"]} for s in steps] == [
+        {"x": "2", "y": "1"},
+        {"x": "3", "y": "2"},
+    ]
+    unfolded = client.get(url, params={"net": "reduced"}).json()
+    assert [s["transition"]["id"] for s in unfolded["data"]["steps"]] == ["pick_2_1", "pick_3_2"]
+    assert all("binding" not in s for s in unfolded["data"]["steps"])

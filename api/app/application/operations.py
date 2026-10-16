@@ -36,6 +36,7 @@ from app.domain.operations import (
 )
 from app.domain.pnml_export import render_pnml
 from app.domain.reductions.result import ReductionResult
+from app.domain.unfolding import UnfoldingMapping
 
 from .leases import LeaseKeeper
 from .nets import NetService
@@ -229,6 +230,11 @@ class OperationService:
         result = ReductionResult.model_validate(outcome.result)
         # The result may carry more than a reduction's fields (the unfolding's mapping): keep it.
         raw = outcome.result if isinstance(outcome.result, dict) else {}
+        unfolding = (
+            UnfoldingMapping.model_validate(raw["mapping"])
+            if "mapping" in raw
+            else UnfoldingMapping(places=(), transitions=())
+        )
         if not result.changed:
             return outcome.model_copy(update={"result": {**raw, "parent_id": parent.net_id}})
         if report.reduced_pnml is None:
@@ -250,12 +256,23 @@ class OperationService:
                 net_id=saved.stored.summary.net_id,
                 parent_id=parent.net_id,
                 rule=run.operation,
-                expansions=tuple(
-                    LineageExpansion(
-                        transition=item.transition.id,
-                        original=tuple(ref.id for ref in item.original),
-                    )
-                    for item in result.expansions
+                expansions=(
+                    *(
+                        LineageExpansion(
+                            transition=item.transition.id,
+                            original=tuple(ref.id for ref in item.original),
+                        )
+                        for item in result.expansions
+                    ),
+                    # An unfolding says what each of its transitions stands for in its mapping.
+                    *(
+                        LineageExpansion(
+                            transition=item.unfolded,
+                            original=(item.original,),
+                            binding=tuple(item.binding),
+                        )
+                        for item in unfolding.transitions
+                    ),
                 ),
             )
         )

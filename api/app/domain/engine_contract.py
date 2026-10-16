@@ -12,7 +12,7 @@ from typing import Literal
 
 from pydantic import Field, JsonValue, model_validator
 
-from .contract import ElementRef, Marking
+from .contract import Assignment, ElementRef, Marking
 from .formula import Formula
 from .models import DomainModel, Limits, Verdict
 
@@ -92,6 +92,8 @@ class TraceStep(DomainModel):
     """One firing, as the platform reports it: the transition cited by reference."""
 
     transition: ElementRef
+    # For a trace lifted to a colored net: the binding under which the transition fired.
+    binding: tuple[Assignment, ...] | None = Field(default=None, exclude_if=lambda v: v is None)
 
 
 class Trace(DomainModel):

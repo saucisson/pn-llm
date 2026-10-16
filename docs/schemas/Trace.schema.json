@@ -1,5 +1,24 @@
 {
   "$defs": {
+    "Assignment": {
+      "description": "The color a variable takes in a binding of a colored transition.",
+      "properties": {
+        "color": {
+          "title": "Color",
+          "type": "string"
+        },
+        "variable": {
+          "title": "Variable",
+          "type": "string"
+        }
+      },
+      "required": [
+        "variable",
+        "color"
+      ],
+      "title": "Assignment",
+      "type": "object"
+    },
     "ElementRef": {
       "description": "Cite a place or a transition by id; the name is kept exactly as in the net.",
       "properties": {
@@ -72,6 +91,21 @@
     "TraceStep": {
       "description": "One firing, as the platform reports it: the transition cited by reference.",
       "properties": {
+        "binding": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/Assignment"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Binding"
+        },
         "transition": {
           "$ref": "#/$defs/ElementRef"
         }
