@@ -56,3 +56,12 @@ Families are aggregated first, then conditions are averaged over families.
 
 Status: operators and judging are in place; running the properties on the mutants through the
 engines (same budget as every condition) belongs to the runner.
+
+## Condition N: obfuscated names
+
+`obfuscate_names` (`app/domain/obfuscation.py`) renames the places `p1..`, the transitions `t1..`
+(sorted by original id, so the same net always gives the same renaming), the arcs and the pages,
+and drops every name, graphic and tool-specific datum, including the names of the net and its pages.
+The model sees only this net; `restore_formula` writes the properties it proposes back with the
+original ids before the engines judge them, so results are comparable with the other conditions.
+Colored nets are refused (their declarations would need renaming).
