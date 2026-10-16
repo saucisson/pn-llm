@@ -81,5 +81,16 @@ python -m app.run_experiment --split v1 --role dev --repetitions 5      # B0 on 
 ```
 
 The net of a family is its first stored P/T instance by name. The test families are refused unless
-`--frozen TAG` names the frozen version. Only B0 runs from this command today; the model
-conditions L1 to L3 and N need the session driver (next).
+`--frozen TAG` names the frozen version.
+
+### Model conditions
+
+`--condition L1|L2|L3|N` lets the model work in a session (`ModelConditionRunner`) with the same
+system prompt and budgets for all. L1 is given inspection and checks only (no analysis tools, no
+structural verdict on checked properties, no engine choice); L2 all tools; L3 also the description
+stored for the net (a family without one is skipped); N is L2 on the obfuscated net, the properties
+being written back in original names before judging. Every question is answered with the same
+"no answer is available" and counted. The properties are taken from the session events, duplicates
+removed, renumbered `L2-1`.. and cut to the budget; the record keeps the session id (replayable),
+the model id (`PNVERIF_ANTHROPIC_MODEL`, or the provider name) and the prompt hash (system prompt
+and tools).

@@ -81,3 +81,8 @@ class RunRecord(DomainModel):
     non_triviality: FamilyNonTriviality
     mutants: tuple[MutantRecord, ...]
     mutation: MutationScore
+    # For a model condition: the stored session (replayable from its events), how many distinct
+    # properties it proposed before the budget cut them, and the questions answered "no answer".
+    session_id: str | None = None
+    proposed: int | None = None
+    questions: int = 0

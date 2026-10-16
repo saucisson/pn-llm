@@ -71,6 +71,22 @@ class ExperimentRunner:
         The properties beyond the budget are not measured: every condition gets the same number.
         """
         kept = formulas[: spec.budget.max_properties]
+        if not kept:
+            # Nothing was proposed: there is nothing to check, and no mutant can be killed.
+            return RunRecord(
+                spec=spec,
+                net_id=net_id,
+                tools=(),
+                properties=(),
+                findings=(),
+                non_triviality=score_property_set(
+                    property_set=PropertySet(
+                        condition=spec.condition, family=spec.family, property_ids=()
+                    )
+                ),
+                mutants=(),
+                mutation=score_family(family=spec.family, judgements=()),
+            )
         structure = self._inspection.structure(net_id=net_id)
         original = self.check_all(
             net_id=net_id, formulas=kept, timeout_s=spec.budget.check_timeout_s

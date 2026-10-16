@@ -34,6 +34,7 @@ from app.application.checks import CheckService
 from app.application.descriptions import DescriptionService
 from app.application.engines import EngineService
 from app.application.experiment import ExperimentRunner
+from app.application.experiment_sessions import ConditionAgent, ModelConditionRunner
 from app.application.formulas import FormulaService
 from app.application.inspection import InspectionService
 from app.application.models import ModelCatalogService
@@ -47,6 +48,9 @@ from app.application.splits import SplitService
 from app.application.tools import ToolFacade
 from app.application.traces import TraceService
 from app.application.workers import WorkerPool
+from app.domain.conditions import prompt_hash, tools_allowed
+from app.domain.conversation import SYSTEM_PROMPT
+from app.domain.models import DomainModel
 from app.domain.predictor import Predictor
 from app.infrastructure.anthropic_llm import AnthropicLlm
 from app.infrastructure.docker_runner import DockerRunner
@@ -82,7 +86,7 @@ def build_llm(*, config: Settings) -> LlmGateway:
     return UnavailableLlm()
 
 
-def build_agent(
+def build_agent(  # noqa: PLR0913 - the wiring of one agent names each of its collaborators
     *,
     config: Settings,
     store: SqliteStore,
@@ -90,6 +94,7 @@ def build_agent(
     operations: OperationService,
     selection: SelectionService,
     llm: LlmGateway,
+    only: frozenset[str] | None = None,
 ) -> AgentService:
     """Wire the agent over the store, the use cases it exposes as tools, and a language model."""
     formulas = FormulaService(nets=store)
@@ -105,6 +110,7 @@ def build_agent(
         max_result_chars=config.tool_result_max_chars,
         poll_seconds=config.tool_poll_seconds,
         advice=AdviceTools(formulas=formulas, selection=selection, checks=checks),
+        only=only,
     )
     return AgentService(
         sessions=store,
@@ -157,8 +163,15 @@ def build_operations(
     )
 
 
-def build_experiment_runner(*, config: Settings) -> ExperimentRunner:
-    """Wire the judge of the experiments: real engines, the platform's checks and analyses."""
+class Experiments(DomainModel, arbitrary_types_allowed=True):
+    """The judge and the runner of the model conditions, wired over the same platform."""
+
+    judge: ExperimentRunner
+    models: ModelConditionRunner
+
+
+def build_experiments(*, config: Settings) -> Experiments:
+    """Wire the experiments: real engines, and one agent per model condition (other tools)."""
     store = SqliteStore(path=config.database_path)
     registry = EngineRegistry(specs=DEFAULT_ENGINES, docker=DockerRunner())
     selection = SelectionService(
@@ -167,22 +180,67 @@ def build_experiment_runner(*, config: Settings) -> ExperimentRunner:
         results=SqliteResults(path=config.database_path),
         predictor=load_predictor(path=config.predictor_path),
     )
-    return ExperimentRunner(
-        nets=NetService(
-            nets=store, max_upload_bytes=config.max_upload_bytes, limits=config.document_limits()
-        ),
-        checks=CheckService(
-            nets=store,
-            jobs=store,
-            engines=registry,
-            lease_seconds=config.job_lease_seconds,
-            selection=selection,
-        ),
+    checks = CheckService(
+        nets=store,
+        jobs=store,
+        engines=registry,
+        lease_seconds=config.job_lease_seconds,
+        selection=selection,
+    )
+    operations = build_operations(config=config, store=store, engines=registry)
+    nets = NetService(
+        nets=store, max_upload_bytes=config.max_upload_bytes, limits=config.document_limits()
+    )
+    judge = ExperimentRunner(
+        nets=nets,
+        checks=checks,
         inspection=InspectionService(nets=store),
         analyses=AnalysisTools(
-            operations=build_operations(config=config, store=store, engines=registry),
+            operations=operations,
             poll_seconds=config.tool_poll_seconds,
             summary_max_chars=config.analysis_summary_max_chars,
+        ),
+    )
+    llm = build_llm(config=config)
+    everything = build_agent(
+        config=config,
+        store=store,
+        checks=checks,
+        operations=operations,
+        selection=selection,
+        llm=llm,
+    )
+    offered = tuple(spec.name for spec in everything.tool_specs())
+    agents = []
+    for condition in ("L1", "L2", "L3", "N"):
+        agent = build_agent(
+            config=config,
+            store=store,
+            checks=checks,
+            operations=operations,
+            selection=selection,
+            llm=llm,
+            only=tools_allowed(condition=condition, offered=offered),
+        )
+        agents.append(
+            ConditionAgent(
+                condition=condition,
+                agent=agent,
+                prompt_hash=prompt_hash(system=SYSTEM_PROMPT, tools=agent.tool_specs()),
+            )
+        )
+    return Experiments(
+        judge=judge,
+        models=ModelConditionRunner(
+            runner=judge,
+            agents=tuple(agents),
+            nets=nets,
+            descriptions=store,
+            model_id=(
+                config.anthropic_model
+                if config.llm_provider == "anthropic"
+                else config.llm_provider
+            ),
         ),
     )
 
