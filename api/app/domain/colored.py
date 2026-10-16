@@ -15,7 +15,7 @@ from pydantic import Field
 
 from .errors import InvalidRequestError
 from .models import DomainModel
-from .net_document import NetDocument, XmlNode
+from .net_document import NetDocument, Place, XmlNode
 
 
 class UnsupportedColoredError(InvalidRequestError):
@@ -109,6 +109,21 @@ class Declarations(DomainModel):
                 f"The net uses the sort {sort_id!r}, which it does not declare"
             )
         return found
+
+
+def place_sort_id(*, place: Place) -> str:
+    """Return the id of the sort a place of a colored net holds (``dot`` for the dot sort).
+
+    Raises:
+        UnsupportedColoredError: if the place declares no sort.
+    """
+    node = None if place.place_type is None else place.place_type.structure
+    inner = () if node is None else children(node=node)
+    if not inner:
+        raise UnsupportedColoredError(f"The place {place.id!r} has no declared sort")
+    if inner[0].name.endswith("}dot") or inner[0].name == "dot":
+        return "dot"
+    return next((a.value for a in inner[0].attributes if a.name == "declaration"), "")
 
 
 def local(*, name: str) -> str:

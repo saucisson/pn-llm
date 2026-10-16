@@ -36,3 +36,25 @@ and says so in a warning.
 Unfolding with a mapping from unfolded elements to colored ones, formulas per color or binding,
 counterexamples with bindings, and the link between a colored contest model and its P/T version
 are open (#53 to #57, #60).
+
+## Unfolding
+
+`unfold` (`app/domain/unfolding.py`) turns a symmetric net into the P/T net it stands for:
+
+- a place over a sort of `n` values becomes `n` places, named `<place>_<color>` (a place over one
+  value keeps its id); the initial marking is evaluated per color;
+- a transition becomes one transition per assignment of the variables it uses (in its inscriptions
+  and guard) that satisfies the guard and for which every inscription is defined; it is named
+  `<transition>_<color of each variable, by variable name>`; a clash gets a `~n` suffix;
+- an inscription (`n'x`, sums and differences of multisets, `all`, tuples, successor, predecessor)
+  becomes arcs weighted by multiplicity; a successor past the end of a range or of a non-cyclic
+  enumeration leaves that binding out, a subtraction below zero is refused;
+- colors are named as in the net: constants by name, numbers as such, tuples with their parts joined
+  by dots (`1.a`).
+
+The mapping lists every unfolded place with its colored place and color, and every unfolded
+transition with its colored transition and binding. The unfolding is bounded by `UnfoldLimits`
+(places, transitions, arcs; one transition with more bindings than the limit is refused at once) and
+reports an `UnfoldingTooLargeError` instead of exhausting memory. The contest's
+`Philosophers-COL-000100` unfolds to 500 places and 500 transitions, the size of
+`Philosophers-PT-000100`.
