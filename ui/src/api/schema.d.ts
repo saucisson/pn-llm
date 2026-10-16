@@ -892,6 +892,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/nets/{net_id}/reductions/unfold": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Unfold a colored net into the P/T net it stands for, with the mapping. */
+        post: operations["reductions.unfold"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/nets/{net_id}/replay": {
         parameters: {
             query?: never;
@@ -1322,6 +1339,16 @@ export interface components {
             target: components["schemas"]["ElementRef"];
             /** Weight */
             weight?: number | null;
+        };
+        /**
+         * Assignment
+         * @description The color a variable takes in a binding.
+         */
+        Assignment: {
+            /** Color */
+            color: string;
+            /** Variable */
+            variable: string;
         };
         /**
          * AssistantMessage
@@ -2626,6 +2653,33 @@ export interface components {
              */
             warnings: string[];
         };
+        /** Envelope[UnfoldResult] */
+        Envelope_UnfoldResult_: {
+            data?: components["schemas"]["UnfoldResult"] | null;
+            /** Elapsed S */
+            elapsed_s: number;
+            error?: components["schemas"]["ErrorInfo"] | null;
+            /** Net Id */
+            net_id?: string | null;
+            /**
+             * Schema Version
+             * @default 1.0
+             * @constant
+             */
+            schema_version: "1.0";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ok" | "partial" | "failed";
+            tool: components["schemas"]["ToolInfo"];
+            truncated?: components["schemas"]["Page"] | null;
+            /**
+             * Warnings
+             * @default []
+             */
+            warnings: string[];
+        };
         /** Envelope[tuple[ArcView, ...]] */
         Envelope_tuple_ArcView__________: {
             /** Data */
@@ -3810,6 +3864,16 @@ export interface components {
             limits?: components["schemas"]["Limits"];
             parameters: components["schemas"]["TInvariantsParameters"];
         };
+        /** OperationRequest[UnfoldParameters] */
+        OperationRequest_UnfoldParameters_: {
+            /**
+             * Engine
+             * @default auto
+             */
+            engine: string;
+            limits?: components["schemas"]["Limits"];
+            parameters: components["schemas"]["UnfoldParameters"];
+        };
         /**
          * Or
          * @description Disjunction of at least two operands.
@@ -4641,6 +4705,72 @@ export interface components {
             kind: "unbounded";
         };
         /**
+         * UnfoldParameters
+         * @description The size limits of the unfolding (``protected`` and the like do not apply).
+         */
+        UnfoldParameters: {
+            /**
+             * Max Arcs
+             * @default 1000000
+             */
+            max_arcs: number;
+            /**
+             * Max Places
+             * @default 200000
+             */
+            max_places: number;
+            /**
+             * Max Transitions
+             * @default 200000
+             */
+            max_transitions: number;
+            /**
+             * Protected
+             * @description Ignored: nothing is merged
+             * @default []
+             */
+            protected: string[];
+        };
+        /**
+         * UnfoldResult
+         * @description The answer of the unfolding: the usual fields of a reduction and the mapping.
+         */
+        UnfoldResult: {
+            /** Applications */
+            applications: number;
+            /** Changed */
+            changed: boolean;
+            /**
+             * Expansions
+             * @default []
+             */
+            expansions: components["schemas"]["TransitionExpansion"][];
+            mapping: components["schemas"]["UnfoldingMapping"];
+            /**
+             * Merged
+             * @default []
+             */
+            merged: components["schemas"]["MergedElements"][];
+            /** New Net Id */
+            new_net_id?: string | null;
+            /** Note */
+            note?: string | null;
+            /** Parent Id */
+            parent_id?: string | null;
+            /**
+             * Preserves
+             * @default []
+             */
+            preserves: string[];
+            /**
+             * Removed
+             * @default []
+             */
+            removed: components["schemas"]["ElementRef"][];
+            /** Rule */
+            rule: string;
+        };
+        /**
          * UnfoldedEstimate
          * @description How big the unfolded P/T net would be, at most (guards can only make it smaller).
          */
@@ -4651,6 +4781,40 @@ export interface components {
             places: number;
             /** Transitions Upper Bound */
             transitions_upper_bound: number;
+        };
+        /**
+         * UnfoldedPlace
+         * @description An unfolded place and the colored place and color it stands for.
+         */
+        UnfoldedPlace: {
+            /** Color */
+            color: string;
+            /** Original */
+            original: string;
+            /** Unfolded */
+            unfolded: string;
+        };
+        /**
+         * UnfoldedTransition
+         * @description An unfolded transition and the colored transition and binding it stands for.
+         */
+        UnfoldedTransition: {
+            /** Binding */
+            binding: components["schemas"]["Assignment"][];
+            /** Original */
+            original: string;
+            /** Unfolded */
+            unfolded: string;
+        };
+        /**
+         * UnfoldingMapping
+         * @description The relation between the unfolded net and the colored one.
+         */
+        UnfoldingMapping: {
+            /** Places */
+            places: components["schemas"]["UnfoldedPlace"][];
+            /** Transitions */
+            transitions: components["schemas"]["UnfoldedTransition"][];
         };
         /**
          * UnknownBound
@@ -6493,6 +6657,50 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Envelope_ReductionResult_"];
+                };
+            };
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_RunHandle_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    "reductions.unfold": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                net_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OperationRequest_UnfoldParameters_"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_UnfoldResult_"];
                 };
             };
             /** @description Accepted */

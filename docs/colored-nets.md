@@ -58,3 +58,9 @@ transition with its colored transition and binding. The unfolding is bounded by 
 reports an `UnfoldingTooLargeError` instead of exhausting memory. The contest's
 `Philosophers-COL-000100` unfolds to 500 places and 500 transitions, the size of
 `Philosophers-PT-000100`.
+
+The unfolding is the operation `unfold` (`POST /v1/nets/{id}/reductions/unfold`, body
+`{"parameters": {"max_places": ..., "max_transitions": ..., "max_arcs": ...}}`). Like any reduction
+it runs in the `native` engine, stores the unfolded P/T net linked to its parent (`parent_id`,
+`reductions_applied: ["unfold"]`) and answers with `new_net_id` and the mapping. A P/T net, or an
+unfolding over the limits, is a failed run with the reason in `error.message`.

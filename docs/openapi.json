@@ -280,6 +280,25 @@
         "title": "ArcView",
         "type": "object"
       },
+      "Assignment": {
+        "description": "The color a variable takes in a binding.",
+        "properties": {
+          "color": {
+            "title": "Color",
+            "type": "string"
+          },
+          "variable": {
+            "title": "Variable",
+            "type": "string"
+          }
+        },
+        "required": [
+          "variable",
+          "color"
+        ],
+        "title": "Assignment",
+        "type": "object"
+      },
       "AssistantMessage": {
         "description": "Text written by the LLM. It is labelled as such: never a verdict, never a fact of the net.",
         "properties": {
@@ -3998,6 +4017,89 @@
           "elapsed_s"
         ],
         "title": "Envelope[TrapsResult]",
+        "type": "object"
+      },
+      "Envelope_UnfoldResult_": {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UnfoldResult"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "elapsed_s": {
+            "minimum": 0.0,
+            "title": "Elapsed S",
+            "type": "number"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorInfo"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "net_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Net Id"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "default": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "partial",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "tool": {
+            "$ref": "#/components/schemas/ToolInfo"
+          },
+          "truncated": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Page"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "warnings": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "tool",
+          "status",
+          "elapsed_s"
+        ],
+        "title": "Envelope[UnfoldResult]",
         "type": "object"
       },
       "Envelope_tuple_ArcView__________": {
@@ -7745,6 +7847,26 @@
         "title": "OperationRequest[TInvariantsParameters]",
         "type": "object"
       },
+      "OperationRequest_UnfoldParameters_": {
+        "properties": {
+          "engine": {
+            "default": "auto",
+            "title": "Engine",
+            "type": "string"
+          },
+          "limits": {
+            "$ref": "#/components/schemas/Limits"
+          },
+          "parameters": {
+            "$ref": "#/components/schemas/UnfoldParameters"
+          }
+        },
+        "required": [
+          "parameters"
+        ],
+        "title": "OperationRequest[UnfoldParameters]",
+        "type": "object"
+      },
       "Or-Input": {
         "description": "Disjunction of at least two operands.",
         "properties": {
@@ -9806,6 +9928,134 @@
         "title": "UnboundedBound",
         "type": "object"
       },
+      "UnfoldParameters": {
+        "description": "The size limits of the unfolding (``protected`` and the like do not apply).",
+        "properties": {
+          "max_arcs": {
+            "default": 1000000,
+            "minimum": 1.0,
+            "title": "Max Arcs",
+            "type": "integer"
+          },
+          "max_places": {
+            "default": 200000,
+            "minimum": 1.0,
+            "title": "Max Places",
+            "type": "integer"
+          },
+          "max_transitions": {
+            "default": 200000,
+            "minimum": 1.0,
+            "title": "Max Transitions",
+            "type": "integer"
+          },
+          "protected": {
+            "default": [],
+            "description": "Ignored: nothing is merged",
+            "items": {
+              "type": "string"
+            },
+            "title": "Protected",
+            "type": "array"
+          }
+        },
+        "title": "UnfoldParameters",
+        "type": "object"
+      },
+      "UnfoldResult": {
+        "description": "The answer of the unfolding: the usual fields of a reduction and the mapping.",
+        "properties": {
+          "applications": {
+            "minimum": 0.0,
+            "title": "Applications",
+            "type": "integer"
+          },
+          "changed": {
+            "title": "Changed",
+            "type": "boolean"
+          },
+          "expansions": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/TransitionExpansion"
+            },
+            "title": "Expansions",
+            "type": "array"
+          },
+          "mapping": {
+            "$ref": "#/components/schemas/UnfoldingMapping"
+          },
+          "merged": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/MergedElements"
+            },
+            "title": "Merged",
+            "type": "array"
+          },
+          "new_net_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "New Net Id"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "parent_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Id"
+          },
+          "preserves": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Preserves",
+            "type": "array"
+          },
+          "removed": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/ElementRef"
+            },
+            "title": "Removed",
+            "type": "array"
+          },
+          "rule": {
+            "title": "Rule",
+            "type": "string"
+          }
+        },
+        "required": [
+          "rule",
+          "changed",
+          "applications",
+          "mapping"
+        ],
+        "title": "UnfoldResult",
+        "type": "object"
+      },
       "UnfoldedEstimate": {
         "description": "How big the unfolded P/T net would be, at most (guards can only make it smaller).",
         "properties": {
@@ -9828,6 +10078,82 @@
           "arcs_estimate"
         ],
         "title": "UnfoldedEstimate",
+        "type": "object"
+      },
+      "UnfoldedPlace": {
+        "description": "An unfolded place and the colored place and color it stands for.",
+        "properties": {
+          "color": {
+            "title": "Color",
+            "type": "string"
+          },
+          "original": {
+            "title": "Original",
+            "type": "string"
+          },
+          "unfolded": {
+            "title": "Unfolded",
+            "type": "string"
+          }
+        },
+        "required": [
+          "original",
+          "color",
+          "unfolded"
+        ],
+        "title": "UnfoldedPlace",
+        "type": "object"
+      },
+      "UnfoldedTransition": {
+        "description": "An unfolded transition and the colored transition and binding it stands for.",
+        "properties": {
+          "binding": {
+            "items": {
+              "$ref": "#/components/schemas/Assignment"
+            },
+            "title": "Binding",
+            "type": "array"
+          },
+          "original": {
+            "title": "Original",
+            "type": "string"
+          },
+          "unfolded": {
+            "title": "Unfolded",
+            "type": "string"
+          }
+        },
+        "required": [
+          "original",
+          "binding",
+          "unfolded"
+        ],
+        "title": "UnfoldedTransition",
+        "type": "object"
+      },
+      "UnfoldingMapping": {
+        "description": "The relation between the unfolded net and the colored one.",
+        "properties": {
+          "places": {
+            "items": {
+              "$ref": "#/components/schemas/UnfoldedPlace"
+            },
+            "title": "Places",
+            "type": "array"
+          },
+          "transitions": {
+            "items": {
+              "$ref": "#/components/schemas/UnfoldedTransition"
+            },
+            "title": "Transitions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "places",
+          "transitions"
+        ],
+        "title": "UnfoldingMapping",
         "type": "object"
       },
       "UnknownBound": {
@@ -12837,6 +13163,69 @@
           }
         },
         "summary": "Remove the transitions that consume exactly what they produce.",
+        "tags": [
+          "operations",
+          "reductions"
+        ]
+      }
+    },
+    "/v1/nets/{net_id}/reductions/unfold": {
+      "post": {
+        "operationId": "reductions.unfold",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "net_id",
+            "required": true,
+            "schema": {
+              "title": "Net Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OperationRequest_UnfoldParameters_"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_UnfoldResult_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_RunHandle_"
+                }
+              }
+            },
+            "description": "Accepted"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Unfold a colored net into the P/T net it stands for, with the mapping.",
         "tags": [
           "operations",
           "reductions"

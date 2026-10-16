@@ -5,8 +5,9 @@ from __future__ import annotations
 from .analyses import ANALYSES
 from .operations import OperationDefinition
 from .reductions import REDUCTIONS
+from .unfold_operation import UNFOLD
 
-OPERATIONS: tuple[OperationDefinition, ...] = (*ANALYSES, *REDUCTIONS)
+OPERATIONS: tuple[OperationDefinition, ...] = (*ANALYSES, *REDUCTIONS, UNFOLD)
 
 
 def find_operation(*, name: str) -> OperationDefinition | None:

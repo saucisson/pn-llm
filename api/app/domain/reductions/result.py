@@ -6,6 +6,7 @@ from pydantic import Field, field_validator
 
 from app.domain.contract import ElementRef
 from app.domain.models import DomainModel
+from app.domain.net_document import NetDocument
 from app.domain.net_structure import NetStructure
 
 
@@ -63,3 +64,10 @@ class ReductionComputation(DomainModel):
 
     result: ReductionResult
     reduced: NetStructure | None = None
+
+
+class DocumentComputation(DomainModel):
+    """What a transformation that works on the net document returns: the answer and the new net."""
+
+    result: DomainModel
+    document: NetDocument

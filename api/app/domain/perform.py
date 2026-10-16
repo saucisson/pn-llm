@@ -11,7 +11,7 @@ from .net_document import NetDocument
 from .net_structure import build_structure
 from .operations import compute_on
 from .reductions.document import structure_to_document
-from .reductions.result import ReductionComputation
+from .reductions.result import DocumentComputation, ReductionComputation
 
 
 class Performed(DomainModel):
@@ -36,7 +36,10 @@ def perform(
         definition=definition,
         structure=build_structure(document=document, net_id=net_id),
         parameters=parameters,
+        document=document,
     )
+    if isinstance(computed, DocumentComputation):
+        return Performed(result=computed.result.model_dump(mode="json"), reduced=computed.document)
     if isinstance(computed, ReductionComputation):
         return Performed(
             result=computed.result.model_dump(mode="json"),

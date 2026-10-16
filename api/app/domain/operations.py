@@ -15,6 +15,7 @@ from pydantic import ConfigDict, Field, JsonValue
 
 from .contract import ErrorInfo, ToolInfo
 from .models import DomainModel, Limits
+from .net_document import NetDocument
 from .net_structure import NetStructure
 
 OperationKind = Literal["analysis", "reduction"]
@@ -51,6 +52,8 @@ class OperationDefinition(DomainModel):
     supports_colored: bool = False
     # For a reduction: the properties it preserves (docs/json-contract.md).
     preserves: tuple[str, ...] = ()
+    # Whether ``compute`` also needs the net document (colors are not in the structure).
+    uses_document: bool = False
 
     @property
     def route(self) -> str:
@@ -125,12 +128,20 @@ class RunHandle(DomainModel):
 
 
 def compute_on(
-    *, definition: OperationDefinition, structure: NetStructure, parameters: JsonValue
+    *,
+    definition: OperationDefinition,
+    structure: NetStructure,
+    parameters: JsonValue,
+    document: NetDocument | None = None,
 ) -> DomainModel:
-    """Validate ``parameters`` and run an operation's function on a net."""
-    return definition.compute(
-        structure=structure, parameters=definition.parameters_model.model_validate(parameters)
-    )
+    """Validate ``parameters`` and run an operation's function on a net.
+
+    The document is handed to the operations that declare they need it.
+    """
+    validated = definition.parameters_model.model_validate(parameters)
+    if definition.uses_document:
+        return definition.compute(structure=structure, parameters=validated, document=document)
+    return definition.compute(structure=structure, parameters=validated)
 
 
 class LineageExpansion(DomainModel):

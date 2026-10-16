@@ -227,14 +227,10 @@ class OperationService:
         none, or gave one the importer refuses, is a failed run: the claim cannot be checked.
         """
         result = ReductionResult.model_validate(outcome.result)
+        # The result may carry more than a reduction's fields (the unfolding's mapping): keep it.
+        raw = outcome.result if isinstance(outcome.result, dict) else {}
         if not result.changed:
-            return outcome.model_copy(
-                update={
-                    "result": result.model_copy(update={"parent_id": parent.net_id}).model_dump(
-                        mode="json"
-                    )
-                }
-            )
+            return outcome.model_copy(update={"result": {**raw, "parent_id": parent.net_id}})
         if report.reduced_pnml is None:
             return outcome.model_copy(
                 update={
@@ -263,10 +259,15 @@ class OperationService:
                 ),
             )
         )
-        stored = result.model_copy(
-            update={"parent_id": parent.net_id, "new_net_id": saved.stored.summary.net_id}
+        return outcome.model_copy(
+            update={
+                "result": {
+                    **raw,
+                    "parent_id": parent.net_id,
+                    "new_net_id": saved.stored.summary.net_id,
+                }
+            }
         )
-        return outcome.model_copy(update={"result": stored.model_dump(mode="json")})
 
     def recover_interrupted(self) -> int:
         """Mark running runs whose owner stopped renewing their lease as interrupted."""
