@@ -33,6 +33,7 @@ from app.application.analysis_tools import AnalysisTools
 from app.application.checks import CheckService
 from app.application.descriptions import DescriptionService
 from app.application.engines import EngineService
+from app.application.experiment import ExperimentRunner
 from app.application.formulas import FormulaService
 from app.application.inspection import InspectionService
 from app.application.models import ModelCatalogService
@@ -153,6 +154,36 @@ def build_operations(
         engines=engines,
         lease_seconds=config.job_lease_seconds,
         wait_seconds=config.operation_wait_seconds,
+    )
+
+
+def build_experiment_runner(*, config: Settings) -> ExperimentRunner:
+    """Wire the judge of the experiments: real engines, the platform's checks and analyses."""
+    store = SqliteStore(path=config.database_path)
+    registry = EngineRegistry(specs=DEFAULT_ENGINES, docker=DockerRunner())
+    selection = SelectionService(
+        nets=store,
+        engines=registry,
+        results=SqliteResults(path=config.database_path),
+        predictor=load_predictor(path=config.predictor_path),
+    )
+    return ExperimentRunner(
+        nets=NetService(
+            nets=store, max_upload_bytes=config.max_upload_bytes, limits=config.document_limits()
+        ),
+        checks=CheckService(
+            nets=store,
+            jobs=store,
+            engines=registry,
+            lease_seconds=config.job_lease_seconds,
+            selection=selection,
+        ),
+        inspection=InspectionService(nets=store),
+        analyses=AnalysisTools(
+            operations=build_operations(config=config, store=store, engines=registry),
+            poll_seconds=config.tool_poll_seconds,
+            summary_max_chars=config.analysis_summary_max_chars,
+        ),
     )
 
 

@@ -97,6 +97,7 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/domain/mutation.py` | domain | Mutants of a P/T net: arc removed or added, weight or initial marking changed, transition removed; chosen from a seed |
 | `app/domain/mutation_score.py` | domain | Judging mutants against a property set: killed, survived or undecided; mutation score (M5), seeded fault finding (M6) |
 | `app/domain/obfuscation.py` | domain | Condition N: deterministic renaming of a P/T net's elements (all names dropped) and the way back for properties |
+| `app/domain/experiment.py` | domain | An experimental run: condition, budget, provenance (seed, commit, tools, model, prompt) and the record of what was measured |
 | `app/domain/predictor.py` | domain | Instance features, decision trees (CART) giving the chance an engine answers, the `Predictor` model |
 | `app/domain/selection_evaluation.py` | domain | Training the predictor from contest runs and scoring it against the single best engine and the oracle, by family |
 | `app/domain/mcc_results.py` | domain | The contest's published runs: tool names normalized, the contest's own outcome classes kept (never a verdict), success rate and median time per family |
@@ -133,6 +134,7 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/application/selection.py` | application | `SelectionService`: capable engines for some formulas on a net, ranked by a trained model, contest history or a fixed order |
 | `app/application/predictor_training.py` | application | `PredictorTrainer`: train the engine predictor on the development families of a split, pick its margin by cross-validation |
 | `app/application/soundness.py` | application | `SoundnessAuditor`: read sessions and the jobs their verdicts cite, and report what does not hold |
+| `app/application/experiment.py` | application | `ExperimentRunner`: the deterministic judge, measuring a property set on a net and its mutants under a budget |
 | `app/application/engines.py` | application | `EngineService`: list engines (with filters), capabilities, equivalence |
 | `app/infrastructure/sqlite_store.py` | infrastructure | SQLite implementation of `NetRepository` and `JobRepository` |
 | `app/infrastructure/sqlite_database.py` | infrastructure | The shared base of the SQLite adapters: the file, its migration, short-lived connections |
@@ -169,6 +171,7 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/main.py` | main | Composition root: `create_app(settings=...)` |
 | `app/train_predictor.py` | main | `python -m app.train_predictor --split NAME --out FILE`: train and validate the engine predictor, write it as JSON |
 | `app/audit_sessions.py` | main | `python -m app.audit_sessions [--session ID]`: prints the soundness report, exits 1 when a verdict is unsupported |
+| `app/run_experiment.py` | main | `python -m app.run_experiment --split NAME`: run a condition on the families of a split, one JSON record per run |
 | `app/seed.py` | main | `python -m app.seed [family...]`: download and store contest models; nothing downloaded is versioned |
 | `app/conformance.py` | main | `python -m app.conformance --cases FILE`: loads cases, runs them, prints the matrix, exits 1 when a row needs triage |
 
