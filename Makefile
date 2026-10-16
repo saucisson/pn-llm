@@ -19,6 +19,7 @@ lock:  ## Re-resolve the locked, hashed dependencies (after changing pyproject.t
 	uv pip compile api/pyproject.toml --python-version 3.14 --generate-hashes -o api/requirements.txt
 	uv pip compile api/pyproject.toml --extra dev --python-version 3.14 --generate-hashes -o api/requirements-dev.txt
 	uv pip compile engines/common/requirements.in --python-version 3.14 --generate-hashes -o engines/common/requirements.txt
+	uv pip compile engines/smpt/requirements.in --python-version 3.14 --generate-hashes -o engines/smpt/requirements.txt
 
 format:  ## Format and autofix (ruff)
 	ruff format $(RUFF_CONFIG) api scripts engines

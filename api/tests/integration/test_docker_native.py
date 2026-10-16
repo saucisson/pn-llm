@@ -3,6 +3,8 @@
 Build the image first:  docker build -f engines/native/Dockerfile -t pn-llm-verif/native:1.8 .
 """
 
+from pathlib import Path
+
 import pytest
 
 from app.domain.engine_contract import EngineRequest
@@ -25,8 +27,13 @@ def _require_image():
         pytest.skip("the native engine image is not built here")
 
 
+GUARDED = (Path(__file__).resolve().parents[1] / "corpus" / "colored" / "guarded.pnml").read_bytes()
+
+
 @pytest.mark.parametrize("operation", sorted(DEFAULT_ENGINES["native"].operations))
 def test_the_container_gives_the_same_answer_as_the_function(operation):
+    # The unfolding takes a colored net; every other operation is run on the mutex net.
+    pnml = GUARDED if operation == "unfold" else MUTEX_PNML
     request = EngineRequest(
         kind="analysis",
         net_id="n1",
@@ -35,17 +42,21 @@ def test_the_container_gives_the_same_answer_as_the_function(operation):
         limits=Limits(memory_mb=512, timeout_s=60),
     )
     report = registry.run_operation(
-        engine="native", pnml=MUTEX_PNML, request=request, job_id=f"it-native-{operation}"
+        engine="native", pnml=pnml, request=request, job_id=f"it-native-{operation}"
     )
     assert report.status == "ok"
     assert (report.tool_name, report.tool_version) == ("native", DEFAULT_ENGINES["native"].version)
     expected = perform(
         operation=operation,
-        document=import_pnml(payload=MUTEX_PNML, limits=DocumentLimits()),
+        document=import_pnml(payload=pnml, limits=DocumentLimits()),
         net_id="n1",
         parameters={},
     )
     assert report.result == expected.result
+    if operation == "unfold":
+        from app.domain.pnml_export import render_pnml
+
+        assert report.reduced_pnml == render_pnml(document=expected.reduced)
 
 
 def test_an_unknown_operation_is_a_failure_with_a_reason_not_a_result():

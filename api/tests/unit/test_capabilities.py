@@ -31,12 +31,16 @@ def formula(text, logic=None):
     [
         ('"p" >= 1', "state", "state-cardinality"),
         ("is_fireable", None, None),
-        ('AG "p" <= 1', "ctl", "ctl-cardinality"),
         ('G "p" <= 1', "ltl", "ltl-cardinality"),
         ('X "p" >= 1', "ltl", "ltl-cardinality+next"),
         ('EX "p" >= 1', "ctl", "ctl-cardinality+next"),
         ("deadlock", "state", "state-none"),
         ('"p" >= 1 & deadlock', "state", "state-cardinality"),
+        ('EF "p" >= 1', "ctl", "state-cardinality"),
+        ('AG "p" <= 1', "ctl", "state-cardinality"),
+        ('AG EF "p" >= 1', "ctl", "ctl-cardinality"),
+        ('EF AG "p" >= 1', "ctl", "ctl-cardinality"),
+        ('AF "p" >= 1', "ctl", "ctl-cardinality"),
     ],
 )
 def test_a_formula_is_classified_by_its_logic_atoms_and_next(text, logic, key):
@@ -111,7 +115,9 @@ def test_the_capability_table_covers_every_class_and_the_colored_subset(engines)
     table = {row.property_class: row for row in engines.capabilities()}
     assert set(table) == {c.key for c in all_classes()}
     assert table["ltl-cardinality"].engines == ("itstools", "tapaal", "ty")
-    assert "smpt" in table["state-cardinality"].colored_engines
+    assert "smpt" in table["state-cardinality"].engines
+    assert "smpt" not in table["state-cardinality"].colored_engines  # no colored front end yet
+    assert "tapaal" in table["state-cardinality"].colored_engines
     assert table["state-mixed"].engines == ("itstools", "smpt", "tapaal", "ty")
 
 

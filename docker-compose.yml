@@ -56,5 +56,12 @@ services:
     image: pn-llm-verif/tapaal:4.4.2
     profiles: ["engines"]
 
+  engine-smpt:
+    build:
+      context: .
+      dockerfile: engines/smpt/Dockerfile
+    image: pn-llm-verif/smpt:5.0-82206dd
+    profiles: ["engines"]
+
 volumes:
   pnverif-data:

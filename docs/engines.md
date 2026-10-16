@@ -8,7 +8,38 @@ How to add one: `docs/adding-an-engine.md` (the path) and `docs/engine-integrati
 | `dummy` | none (answers UNKNOWN) | — | all | no | `pn-llm-verif/dummy` |
 | `native` | the platform's own analyses (`api/app/domain/analyses`), version 1.8 | same as the project | none (analyses, reductions) | P/T | `pn-llm-verif/native:1.8` |
 | `itstools` | ITS-Tools 1.0.0.202609112134 (product built 2026-09-11), archive SHA-256 `faef344a…bae5f` | GPL-3.0 | state, CTL, LTL | yes | `pn-llm-verif/itstools:1.0.0.202609112134` |
+| `smpt` | SMPT 5.0 at commit `82206dd…` (2025-06-25), z3 4.8.12 (Debian), Tina 4.0.0 (SHA-256 `5e1cbd7c…a8ffb4227475`) | GPL-3.0-or-later (Tina: free for non-commercial use, see below) | state (reachability) | no | `pn-llm-verif/smpt:5.0-82206dd` |
 | `tapaal` | verifypn 4.4.2, commit `0f4862d296918434c7cd75adf424d27fecd0bba6` | GPL-3.0-or-later | state, CTL, LTL | yes | `pn-llm-verif/tapaal:4.4.2` |
+
+## smpt
+
+- **What it checks.** Reachability only: a condition on a marking (`state`), `EF φ` and `AG φ` where
+  φ has no temporal operator (the contest's two reachability categories). Anything else is UNKNOWN
+  with the warning `smpt_checks_reachability_not_<logic>`: never a guess. The selector classes
+  `EF φ` and `AG φ` as reachability questions too (`asks_reachability`).
+- **Build.** SMPT is fetched at a pinned commit (the repository's latest tag, v4.0.0, is older than
+  the 5.0 of its `setup.py`). It needs z3 (Debian's, 4.8.12), the Python library `sexpdata`
+  (hash-pinned in `engines/smpt/requirements.txt`) and the Tina toolbox: `ndrio` to read PNML,
+  `reduce` and `walk`. Tina's binary is downloaded at build time and its SHA-256 is checked, so
+  the build breaks if the authors publish another file under the same name. Tina is distributed by
+  LAAS-CNRS under its own licence (free for non-commercial use): the image is built locally and
+  not redistributed by this project. LattE, Octant (OCaml) and MiniZinc are not in the image: the
+  polyhedral reduction runs without them, and the net is not shrunk as much as in the contest.
+- **Options.** The contest's: `--auto-reduce --project --mcc --methods DUMMY` (in `--mcc` mode the
+  tool chooses its methods), `--global-timeout` a little below our own kill. A request with
+  `reduce: false`, and formulas that use the `deadlock` atom (which the `--mcc` simplifier does not
+  know), run without reductions and with an explicit list of methods (state equation, BMC,
+  k-induction, PDR). Formulas run in groups of the same kind (deadlock atom or not, fireability
+  atoms or not), each group within an equal share of the time.
+- **The PNML.** SMPT reads the places' names only when the file declares the PNML namespace; the
+  adapter gives it a copy with the namespace declared (same net, same ids). The ids it prints are
+  `q0`, `q1`, ... (ours are free text) and are mapped back.
+- **Colored nets.** Not supported (no `mcc` unfolder in the image). Given a colored net, the adapter
+  answers UNKNOWN with `colored_nets_not_supported`: the first conformance run showed that SMPT
+  reads a colored net as if it were P/T and answers FALSE where the answer is TRUE.
+- **Traces.** None: SMPT gives a marking (`--show-model`), not a firing sequence.
+- **Conformance.** All 11 reachability answers on `TwoPhaseLocking-PT-nC00004vN` and the 3 by hand
+  equal the references; see `docs/conformance-report.md`.
 
 ## tapaal (verifypn)
 

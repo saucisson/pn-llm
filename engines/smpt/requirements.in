@@ -1,0 +1,2 @@
+# What SMPT itself imports besides the standard library; the adapter kit has its own list.
+sexpdata==1.0.2

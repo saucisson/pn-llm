@@ -13,10 +13,12 @@ from typing import Literal
 from .formula import (
     Compare,
     CtlUnary,
+    CtlUntil,
     Enabled,
     Formula,
     Logic,
     LtlUnary,
+    LtlUntil,
     Tokens,
     subexpressions,
 )
@@ -41,8 +43,25 @@ class PropertyClass(DomainModel):
         return f"{self.logic}-{self.atoms}" + ("+next" if self.uses_next else "")
 
 
+def asks_reachability(*, formula: Formula) -> bool:
+    """Tell whether a formula is a reachability question, however it is written.
+
+    A condition on a marking (the state logic), ``EF`` of one or ``AG`` of one: the contest asks
+    these in its reachability categories, and reachability engines answer them.
+    """
+    if formula.logic == "state":
+        return True
+    ast = formula.ast
+    if formula.logic != "ctl" or not isinstance(ast, CtlUnary) or ast.op not in {"EF", "AG"}:
+        return False
+    return not any(
+        isinstance(part.expression, CtlUnary | CtlUntil | LtlUnary | LtlUntil)
+        for part in subexpressions(expression=ast.arg, path="")
+    )
+
+
 def property_class_of(*, formula: Formula) -> PropertyClass:
-    """Classify a formula by its logic, the atoms it uses and whether it uses neXt."""
+    """Classify a formula by its logic (a reachability question is ``state``), atoms and neXt."""
     parts = tuple(located.expression for located in subexpressions(expression=formula.ast, path=""))
     cardinality = any(isinstance(p, Tokens | Compare) for p in parts)
     fireability = any(isinstance(p, Enabled) for p in parts)
@@ -60,7 +79,8 @@ def property_class_of(*, formula: Formula) -> PropertyClass:
         or (isinstance(p, CtlUnary) and p.op in {"AX", "EX"})
         for p in parts
     )
-    return PropertyClass(logic=formula.logic, atoms=atoms, uses_next=uses_next)
+    logic: Logic = "state" if asks_reachability(formula=formula) else formula.logic
+    return PropertyClass(logic=logic, atoms=atoms, uses_next=uses_next)
 
 
 def examinations_needed(*, property_class: PropertyClass) -> tuple[tuple[str, ...], ...]:
