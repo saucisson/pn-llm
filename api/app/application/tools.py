@@ -17,12 +17,12 @@ from pydantic import ValidationError
 
 from app.domain.contract import MarkingEntry, PageRequest
 from app.domain.errors import DomainError
-from app.domain.formula import Formula
 from app.domain.formula_check import FormulaValidationRequest
 from app.domain.formula_text import parse_expression
 from app.domain.llm import LlmToolCall, ToolSpec
 from app.domain.models import CheckRequest, DomainModel, FormulaResult, JobState, Limits
 from app.domain.net_leak import contains_net
+from app.domain.next_moves import ResultMoves
 from app.domain.replay import ReplayFailure, ReplayRequest
 from app.domain.sessions import (
     CheckSubmitted,
@@ -51,6 +51,7 @@ from app.domain.tool_inputs import (
     ValidateFormulaArguments,
 )
 
+from .advice_tools import AdviceTools
 from .analysis_tools import AnalysisTools, FormulaTriviality
 from .checks import CheckService
 from .formulas import FormulaService
@@ -63,6 +64,7 @@ from .tool_kit import (
     answer,
     define_tool,
     failure,
+    parse_formulas,
 )
 
 MAX_TRACE_STEPS = 200
@@ -87,6 +89,8 @@ class CheckData(DomainModel):
     results: tuple[FormulaResult, ...]
     # Properties the structure of the net already decides: they were checked, but say nothing.
     trivial: tuple[FormulaTriviality, ...] = ()
+    # For each formula that got no answer: what could be tried next (the model decides).
+    next_moves: tuple[ResultMoves, ...] = ()
 
 
 class TraceData(DomainModel):
@@ -111,7 +115,7 @@ class ReplayData(DomainModel):
 class ToolFacade:
     """The tools of the agent, built over the use cases."""
 
-    def __init__(
+    def __init__(  # noqa: PLR0913 - the facade composes one use case per tool family
         self,
         *,
         inspection: InspectionService,
@@ -120,15 +124,22 @@ class ToolFacade:
         analyses: AnalysisTools,
         max_result_chars: int,
         poll_seconds: float,
+        advice: AdviceTools | None = None,
     ) -> None:
         """Create the facade over the use cases it exposes."""
         self._inspection = inspection
         self._formulas = formulas
         self._checks = checks
         self._analyses = analyses
+        self._advice = advice
         self._max_result_chars = max_result_chars
         self._poll_seconds = poll_seconds
-        self._tools = (*self.reading_tools(), *analyses.tools(), *self.acting_tools())
+        self._tools = (
+            *self.reading_tools(),
+            *analyses.tools(),
+            *(() if advice is None else advice.tools()),
+            *self.acting_tools(),
+        )
 
     def reading_tools(self) -> tuple[Tool, ...]:
         """The tools that only look: the net, its description."""
@@ -502,25 +513,13 @@ class ToolFacade:
 
         Verdicts come from the engine results of the job and from nothing else.
         """
-        ids = [item.id for item in arguments.formulas]
-        if len(set(ids)) != len(ids):
-            return failure(message="Formula ids must be unique in one call")
-        parsed: list[Formula] = []
-        for item in arguments.formulas:
-            report = self._formulas.validate(
-                request=FormulaValidationRequest(
-                    net_id=context.session.net_id,
-                    text=item.text,
-                    logic=item.logic,
-                    id=item.id,
-                    gloss=item.gloss,
-                    origin="llm",
-                )
-            )
-            if not report.valid or report.formula is None:
-                issue = report.errors[0]
-                return failure(message=f"Formula {item.id!r}: {issue.message} ({issue.path})")
-            parsed.append(report.formula)
+        parsed_formulas = parse_formulas(
+            formulas=self._formulas, net_id=context.session.net_id, items=arguments.formulas
+        )
+        if parsed_formulas.error is not None:
+            return failure(message=parsed_formulas.error)
+        parsed = parsed_formulas.formulas
+        ids = [formula.id for formula in parsed]
 
         events: list[SessionEvent] = [
             PropertyProposed(formula=formula, rationale=formula.gloss) for formula in parsed
@@ -567,7 +566,14 @@ class ToolFacade:
         trivial = self._analyses.triviality(
             net_id=context.session.net_id, formulas=tuple(parsed), is_cancelled=is_cancelled
         )
-        outcome = answer(data=CheckData(job_id=job_id, results=job.results, trivial=trivial))
+        moves = (
+            ()
+            if self._advice is None
+            else self._advice.moves_after(net_id=context.session.net_id, formulas=parsed, job=job)
+        )
+        outcome = answer(
+            data=CheckData(job_id=job_id, results=job.results, trivial=trivial, next_moves=moves)
+        )
         return outcome.model_copy(update={"events": tuple(events)})
 
     def get_trace(

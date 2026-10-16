@@ -307,3 +307,92 @@ def test_asking_the_user_produces_a_question_event(store, net_id):
     assert question.kind == "question"
     assert question.text == "Which lock?"
     assert question.question_id
+
+
+# ---- advice: selecting engines, and what to try after a non-answer ---------------------------
+
+
+def build_with_advice(*, store, engines):
+    from app.application.advice_tools import AdviceTools
+    from app.application.selection import SelectionService
+    from app.infrastructure.sqlite_results import SqliteResults
+    from tests.support import PortfolioEngines  # noqa: F401 - documents the double used elsewhere
+
+    checks = CheckService(nets=store, jobs=store, engines=engines, lease_seconds=LEASE)
+    formulas = FormulaService(nets=store)
+    selection = SelectionService(
+        nets=store, engines=engines, results=SqliteResults(path=store._path)
+    )
+    return ToolFacade(
+        inspection=InspectionService(nets=store),
+        formulas=formulas,
+        checks=checks,
+        analyses=make_analysis_tools(store=store, path=store._path),
+        max_result_chars=20_000,
+        poll_seconds=0.001,
+        advice=AdviceTools(formulas=formulas, selection=selection),
+    )
+
+
+def test_select_tools_ranks_the_capable_engines_and_runs_none(store, net_id):
+    from tests.support import PortfolioEngines
+
+    engines = PortfolioEngines(
+        answers={"a": ("TRUE", 1, None, False), "b": ("TRUE", 1, None, False)}
+    )
+    facade = build_with_advice(store=store, engines=engines)
+    outcome = call(
+        facade,
+        context_for(net_id=net_id),
+        "select_tools",
+        {"formulas": [{"id": "f", "text": "crit1 >= 1"}]},
+    )
+    assert outcome.ok, outcome.content
+    assert {r["engine"] for r in payload(outcome)["data"]["ranked"]} == {"a", "b"}
+    assert engines.runs == []
+    bad = call(
+        facade,
+        context_for(net_id=net_id),
+        "select_tools",
+        {"formulas": [{"id": "f", "text": "nope >= 1"}]},
+    )
+    assert bad.ok is False
+
+
+def test_after_a_timeout_the_moves_name_the_engine_not_yet_tried_and_never_a_verdict(store, net_id):
+    from tests.support import PortfolioEngines
+
+    engines = PortfolioEngines(
+        answers={"a": ("TIMEOUT", 1, None, False), "b": ("TRUE", 1, None, False)}
+    )
+    facade = build_with_advice(store=store, engines=engines)
+    outcome = call(
+        facade,
+        context_for(net_id=net_id),
+        "check_formulas",
+        {"formulas": [{"id": "f", "text": "crit1 >= 1"}], "engine": "a"},
+    )
+    data = payload(outcome)["data"]
+    (moves,) = data["next_moves"]
+    kinds = [m["kind"] for m in moves["moves"]]
+    assert moves["verdict"] == "TIMEOUT"
+    assert kinds[0] == "other_engine"
+    assert "b" in moves["moves"][0]["detail"]
+    assert {"longer_timeout", "simpler_property", "weaker_property"} <= set(kinds)
+    assert "FALSE" not in outcome.content
+
+
+def test_an_answer_brings_no_moves(store, net_id):
+    from tests.support import PortfolioEngines
+
+    engines = PortfolioEngines(answers={"a": ("TRUE", 1, None, False)})
+    facade = build_with_advice(store=store, engines=engines)
+    outcome = call(
+        facade,
+        context_for(net_id=net_id),
+        "check_formulas",
+        {"formulas": [{"id": "f", "text": "crit1 >= 1"}]},
+    )
+    assert (
+        payload(outcome)["data"]["next_moves"] == [] or "next_moves" not in payload(outcome)["data"]
+    )
