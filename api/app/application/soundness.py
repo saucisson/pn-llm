@@ -4,12 +4,11 @@ from __future__ import annotations
 
 from app.domain.errors import NotFoundError
 from app.domain.models import Job
-from app.domain.sessions import StoredEvent, Verdict
+from app.domain.sessions import Verdict
 from app.domain.soundness import SoundnessReport, audit_session, merge_reports
 
 from .ports import JobRepository, SessionRepository
-
-PAGE = 500
+from .session_log import read_events
 
 
 class SoundnessAuditor:
@@ -25,14 +24,7 @@ class SoundnessAuditor:
         ids = self._sessions.session_ids() if session_ids is None else session_ids
         reports = []
         for session_id in ids:
-            events: list[StoredEvent] = []
-            while True:
-                page = self._sessions.events_after(
-                    session_id=session_id, after=events[-1].number if events else 0, limit=PAGE
-                )
-                events.extend(page)
-                if len(page) < PAGE:
-                    break
+            events = read_events(sessions=self._sessions, session_id=session_id)
             cited = sorted({e.event.job_id for e in events if isinstance(e.event, Verdict)})
             jobs: list[Job] = []
             for job_id in cited:
@@ -40,7 +32,5 @@ class SoundnessAuditor:
                     jobs.append(self._jobs.load_job(job_id=job_id))
                 except NotFoundError:
                     continue  # the audit reports the verdict that cites it
-            reports.append(
-                audit_session(session_id=session_id, events=tuple(events), jobs=tuple(jobs))
-            )
+            reports.append(audit_session(session_id=session_id, events=events, jobs=tuple(jobs)))
         return merge_reports(reports=tuple(reports))
