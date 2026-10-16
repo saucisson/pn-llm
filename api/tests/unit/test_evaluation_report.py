@@ -121,3 +121,13 @@ def test_the_command_prints_the_report(monkeypatch, capsys, tmp_path):
     assert "# Evaluation report" in out
     assert "a deviation" in out
     assert json.loads(analysis.read_text())["primary"]["condition"] == "L3"
+
+
+def test_the_report_gives_the_primary_outcome_of_each_provenance_apart():
+    whole = analysis_with(gain=0.15)
+    empty = analyze_runs(records=(), seed="s")
+    split = whole.model_copy(update={"by_provenance": (("public", whole), ("synthetic", empty))})
+    text = render_report(analysis=split, soundness=None, deviations=(), negative_results="")
+    assert "## Primary outcome by provenance" in text
+    assert "| public | 8 | +0.150 |" in text
+    assert "| synthetic | 0 | - | - |" in text

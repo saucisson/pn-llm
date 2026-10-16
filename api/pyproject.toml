@@ -136,7 +136,7 @@ name = "Onion: dependencies point inward (main > api | infrastructure > applicat
 type = "layers"
 layers = [
     "app.run_experiment",
-    "app.main | app.seed | app.conformance | app.train_predictor | app.audit_sessions | app.analyze_runs | app.rate | app.report_evaluation | app.study",
+    "app.main | app.seed | app.conformance | app.train_predictor | app.audit_sessions | app.analyze_runs | app.rate | app.report_evaluation | app.study | app.freeze",
     "app.api | app.infrastructure",
     "app.application",
     "app.domain",

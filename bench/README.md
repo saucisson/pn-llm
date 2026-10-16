@@ -142,3 +142,26 @@ A claim whose measure was not made is *not measured*, never met. It then lists t
 comparisons with Holm's correction, the families left out of a comparison, the deviations from the
 frozen protocol (one per line in `deviations.txt`, each with its reason) and `results/NEGATIVE.md`.
 C2 (fidelity) and M8 come from the raters (`app.rate`) and are added by hand to the discussion.
+
+## Freezing the dataset
+
+```bash
+python -m app.seed --split v1                      # the contest families, split by seed (frozen once)
+python -m app.freeze --name eval-freeze-1 --split v1 --extra extra.json --out bench/freezes/eval-freeze-1.json
+git add bench/freezes/eval-freeze-1.json && git commit -m "chore: freeze eval-freeze-1"
+git tag -a eval-freeze-1 -m "Frozen evaluation eval-freeze-1"
+```
+
+The manifest records every family with its role (dev or test), its fold and its provenance
+(`public` contest models, `unpublished`, `synthetic`), the selection rule, the thresholds, the git
+commit, a hash of `docs/evaluation.md` and the engine versions. `extra.json` lists the
+unpublished and synthetic families the authors add, each with its role and the ids of its nets:
+
+```json
+[{"family": "MyProtocol", "provenance": "unpublished", "role": "test", "net_ids": ["..."]}]
+```
+
+`python -m app.analyze_runs ... --manifest bench/freezes/eval-freeze-1.json` then also reports the
+primary outcome for each provenance alone, since public models may be in a model's training data.
+The tag is created by a person after reviewing the manifest; the test families are run once per
+tag, and any change afterwards is a deviation listed in the report.

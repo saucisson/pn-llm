@@ -100,3 +100,26 @@ def test_the_study_command_measures_the_sessions_of_the_database(
     assert [m["session_id"] for m in out] == ["s1"]
     run(monkeypatch, study.study_main, "--session", "s1")
     assert json.loads(capsys.readouterr().out)[0]["questions"] == 0
+
+
+def test_the_analysis_command_takes_a_manifest_and_splits_by_provenance(
+    monkeypatch, capsys, records_file, tmp_path
+):
+    from app.domain.freeze import FreezeManifest, FrozenFamily
+
+    manifest = FreezeManifest(
+        name="f",
+        split="v1",
+        split_seed="s",
+        selection_rule="r",
+        thresholds=(),
+        git_commit="c",
+        protocol_sha256="p",
+        engines=(),
+        families=(FrozenFamily(family="Mutex", role="dev", provenance="synthetic"),),
+    )
+    path = tmp_path / "freeze.json"
+    path.write_text(manifest.model_dump_json())
+    run(monkeypatch, analyze_runs.analyze_main, records_file, "--manifest", path)
+    out = json.loads(capsys.readouterr().out)
+    assert [label for label, _ in out["by_provenance"]] == ["synthetic"]
