@@ -109,3 +109,20 @@ minus M6 of B0; the secondary comparisons (L3 against L2, L2 against L1, N again
 against B0 on the other measures) are corrected with Holm's method. A family missing for one of two
 conditions is excluded from that comparison and named in `excluded`. The script is identical on dev
 and test. The decision thresholds are applied when the report is written (`docs/evaluation.md`).
+
+## M8: blind expert rating
+
+```bash
+python -m app.rate sheet b0.jsonl l1.jsonl l2.jsonl l3.jsonl n.jsonl --per-family 10 \
+  --items-out sheet.json --key-out key.json
+# raters fill a list of {item_id, rater, score (1-5), keep (true/false)} each, in their own file
+python -m app.rate analyze --key key.json ratings.json
+```
+
+The sheet shows each property in one canonical text form, without its gloss, with an opaque item id,
+in an order shuffled from the seed; a property written identically by two conditions is rated once
+and the rating counts for each. The key (item to conditions) stays with the analyst. At least two
+raters rate every item; `analyze` prints Cohen's kappa for keep/drop and a linearly weighted kappa
+for the 1 to 5 score, per pair of raters, and the per-condition per-family values (`M8_rating`,
+`M8_keep`) that `app.analyze_runs`' comparison takes. Blinding is limited by the properties
+themselves: the baseline's property shapes are recognizable to an expert, which the report must say.
