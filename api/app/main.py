@@ -103,7 +103,7 @@ def build_agent(
         ),
         max_result_chars=config.tool_result_max_chars,
         poll_seconds=config.tool_poll_seconds,
-        advice=AdviceTools(formulas=formulas, selection=selection),
+        advice=AdviceTools(formulas=formulas, selection=selection, checks=checks),
     )
     return AgentService(
         sessions=store,

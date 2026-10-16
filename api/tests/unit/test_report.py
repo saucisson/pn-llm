@@ -153,3 +153,30 @@ def test_the_description_is_quoted_as_data_with_its_origin():
 )
 def test_code_spans_cannot_be_closed_from_inside(text, expected):
     assert code(text=text) == expected
+
+
+def test_a_reading_of_a_counterexample_is_reported_apart_from_the_verdicts():
+    from app.domain.sessions import CounterexampleClassified
+
+    reading = CounterexampleClassified(
+        job_id="j1",
+        result_index=0,
+        formula_id="f1",
+        classification="property_too_strong",
+        explanation="Both may enter in turn.",
+    )
+    built = build_report(
+        session=SESSION,
+        net=NET,
+        description=None,
+        events=stored(
+            PropertyProposed(formula=FORMULA, rationale="r"), verdict("FALSE", trace=True), reading
+        ),
+    )
+    assert [(r.formula_id, r.classification) for r in built.readings] == [
+        ("f1", "property_too_strong")
+    ]
+    text = render_markdown(report=built)
+    assert "as read by the assistant" in text
+    assert "change no verdict" in text
+    assert "property_too_strong" in text

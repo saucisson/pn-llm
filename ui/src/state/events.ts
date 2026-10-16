@@ -67,6 +67,7 @@ function nextState({
     case "session_error":
     case "description_proposed":
     case "description_accepted":
+    case "counterexample_classified":
       return state;
   }
 }

@@ -148,6 +148,30 @@
       "title": "ReportedExchange",
       "type": "object"
     },
+    "ReportedReading": {
+      "description": "How the language model read a counterexample (its interpretation, not a verdict).",
+      "properties": {
+        "classification": {
+          "title": "Classification",
+          "type": "string"
+        },
+        "explanation": {
+          "title": "Explanation",
+          "type": "string"
+        },
+        "formula_id": {
+          "title": "Formula Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "formula_id",
+        "classification",
+        "explanation"
+      ],
+      "title": "ReportedReading",
+      "type": "object"
+    },
     "ReportedVerdict": {
       "description": "A property and the verdict an engine gave it.",
       "properties": {
@@ -305,6 +329,14 @@
         "type": "string"
       },
       "title": "Problems",
+      "type": "array"
+    },
+    "readings": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/ReportedReading"
+      },
+      "title": "Readings",
       "type": "array"
     },
     "session": {

@@ -11,6 +11,7 @@ from pydantic import Field, JsonValue
 from .formula import Logic
 from .models import DomainModel
 from .patterns import PatternRequest
+from .sessions import CounterexampleClass
 
 TOOL_PAGE_LIMIT = 30
 TOOL_PAGE_MAX = 100
@@ -121,6 +122,21 @@ class TraceArguments(DomainModel):
 
     job_id: str
     result_index: int = Field(ge=0)
+
+
+class ClassifyCounterexampleArguments(DomainModel):
+    """Say how you read the counterexample of a FALSE result."""
+
+    job_id: str
+    result_index: int = Field(ge=0)
+    classification: CounterexampleClass = Field(
+        description=(
+            "model_bug: the net does something its description rules out; "
+            "property_too_strong: the net behaves as intended and the property asks too much; "
+            "expected_behaviour: the counterexample shows behaviour that is meant to be possible"
+        )
+    )
+    explanation: str = Field(min_length=1, description="Why, in a few sentences, citing the trace")
 
 
 class ReplayArguments(DomainModel):

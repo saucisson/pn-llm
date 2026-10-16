@@ -117,7 +117,7 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/application/operations.py` | application | `OperationService`: describe, submit, run and read operations; a finished run is the cache of its key |
 | `app/application/tool_kit.py` | application | What every tool is made of: context, outcome, trimmed JSON answers |
 | `app/application/analysis_runner.py` | application | Submit an analysis from inside a tool and wait for it, working the queue meanwhile |
-| `app/application/advice_tools.py` | application | The tool `select_tools` and the moves proposed after a non-answer (other engine, longer timeout, simpler or weaker property) |
+| `app/application/advice_tools.py` | application | The tools `select_tools` and `classify_counterexample`, and the moves proposed after a non-answer (other engine, longer timeout, simpler or weaker property) |
 | `app/application/analysis_tools.py` | application | The tools `analysis_summary` and `analyze`: the operation runner as the agent's tools |
 | `app/application/traces.py` | application | `TraceService`: counterexamples on the original net or the reduced one they were found on |
 | `app/application/results.py` | application | `ResultsService`: import the published results (all or nothing) and summarize them |
