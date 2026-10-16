@@ -96,6 +96,7 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/domain/non_triviality.py` | domain | Measure M4: share of properties neither vacuous nor decided by the structure, per family then per condition |
 | `app/domain/mutation.py` | domain | Mutants of a P/T net: arc removed or added, weight or initial marking changed, transition removed; chosen from a seed |
 | `app/domain/mutation_score.py` | domain | Judging mutants against a property set: killed, survived or undecided; mutation score (M5), seeded fault finding (M6) |
+| `app/domain/obfuscation.py` | domain | Condition N: deterministic renaming of a P/T net's elements (all names dropped) and the way back for properties |
 | `app/domain/predictor.py` | domain | Instance features, decision trees (CART) giving the chance an engine answers, the `Predictor` model |
 | `app/domain/selection_evaluation.py` | domain | Training the predictor from contest runs and scoring it against the single best engine and the oracle, by family |
 | `app/domain/mcc_results.py` | domain | The contest's published runs: tool names normalized, the contest's own outcome classes kept (never a verdict), success rate and median time per family |
