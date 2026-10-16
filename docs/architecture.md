@@ -103,6 +103,7 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/domain/rating.py` | domain | Blind rating sheets (condition hidden, identical properties rated once), Cohen's kappa between raters, ratings as per-family values (M8) |
 | `app/domain/evaluation_report.py` | domain | The report of an evaluation: each claim with its measure, threshold and outcome, deviations, negative results |
 | `app/domain/study_measures.py` | domain | Interaction measures a session log gives (time to the first definitive verdict, properties, questions, verdicts) |
+| `app/domain/freeze.py` | domain | The manifest of a frozen evaluation: families (dev, test; public, unpublished, synthetic), rule, thresholds, versions |
 | `app/domain/predictor.py` | domain | Instance features, decision trees (CART) giving the chance an engine answers, the `Predictor` model |
 | `app/domain/selection_evaluation.py` | domain | Training the predictor from contest runs and scoring it against the single best engine and the oracle, by family |
 | `app/domain/mcc_results.py` | domain | The contest's published runs: tool names normalized, the contest's own outcome classes kept (never a verdict), success rate and median time per family |
@@ -183,6 +184,7 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/rate.py` | main | `python -m app.rate sheet\|analyze`: draw the blind sheet and its key, then the agreement and values from filled ratings |
 | `app/report_evaluation.py` | main | `python -m app.report_evaluation --analysis FILE`: write the evaluation report as Markdown |
 | `app/study.py` | main | `python -m app.study`: interaction measures of the study sessions as JSON |
+| `app/freeze.py` | main | `python -m app.freeze --name eval-freeze-1 --split NAME --out FILE`: write the manifest and print the tag command |
 | `app/seed.py` | main | `python -m app.seed [family...]`: download and store contest models; nothing downloaded is versioned |
 | `app/conformance.py` | main | `python -m app.conformance --cases FILE`: loads cases, runs them, prints the matrix, exits 1 when a row needs triage |
 

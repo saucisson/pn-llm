@@ -153,12 +153,21 @@ def holm(*, comparisons: tuple[PairedComparison, ...]) -> tuple[PairedComparison
     )
 
 
+class FamilyProvenance(DomainModel):
+    """Where a family comes from: public contest models may be in a model's training data."""
+
+    family: str
+    provenance: str
+
+
 class EvaluationAnalysis(DomainModel):
     """The analysis of a set of runs: the primary outcome, the corrected secondaries, the table."""
 
     primary: PairedComparison
     secondary: tuple[PairedComparison, ...]
     families: tuple[FamilyValue, ...]
+    # The same analysis for each provenance on its own (public, unpublished, synthetic).
+    by_provenance: tuple[tuple[str, EvaluationAnalysis], ...] = ()
 
 
 # C4 of the protocol: L3 against L2 against L1, N against L2; plus the other measures of L3 and B0.
@@ -166,8 +175,13 @@ SECONDARY_PAIRS = (("L3", "L2"), ("L2", "L1"), ("N", "L2"), ("L3", "B0"))
 SECONDARY_MEASURES = ("M3_decided", "M4_non_trivial", "M5_mutation_score", "M6_fault_finding")
 
 
-def analyze_runs(*, records: tuple[RunRecord, ...], seed: str) -> EvaluationAnalysis:
-    """Run the protocol's analysis: primary L3 against B0 on M6, Holm-corrected secondaries."""
+def analyze_runs(
+    *, records: tuple[RunRecord, ...], seed: str, provenance: tuple[FamilyProvenance, ...] = ()
+) -> EvaluationAnalysis:
+    """Run the protocol's analysis: primary L3 against B0 on M6, Holm-corrected secondaries.
+
+    With the provenance of the families, the analysis is also run on each provenance alone.
+    """
     values = family_values(records=records)
     primary = compare(
         values=values, condition="L3", baseline="B0", measure="M6_fault_finding", seed=seed
@@ -180,4 +194,20 @@ def analyze_runs(*, records: tuple[RunRecord, ...], seed: str) -> EvaluationAnal
             if not (a == "L3" and b == "B0" and m == "M6_fault_finding")
         )
     )
-    return EvaluationAnalysis(primary=primary, secondary=secondary, families=values)
+    separate = tuple(
+        (
+            label,
+            analyze_runs(
+                records=tuple(
+                    r
+                    for r in records
+                    if any(p.family == r.spec.family and p.provenance == label for p in provenance)
+                ),
+                seed=seed,
+            ),
+        )
+        for label in sorted({p.provenance for p in provenance})
+    )
+    return EvaluationAnalysis(
+        primary=primary, secondary=secondary, families=values, by_provenance=separate
+    )

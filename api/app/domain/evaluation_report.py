@@ -140,6 +140,18 @@ def render_report(
             f"| {item.condition} | {item.baseline} | {item.measure} | {item.families} | "
             f"{item.mean_difference:+.3f} | [{item.ci_low:.3f}, {item.ci_high:.3f}] | {adjusted} |"
         )
+    if analysis.by_provenance:
+        lines += ["", "## Primary outcome by provenance of the families", ""]
+        lines += ["| Provenance | Families | M6 difference | 95% interval |", "|---|---|---|---|"]
+        for label, part in analysis.by_provenance:
+            main = part.primary
+            if main.mean_difference is None or main.ci_low is None or main.ci_high is None:
+                lines.append(f"| {label} | 0 | - | - |")
+            else:
+                lines.append(
+                    f"| {label} | {main.families} | {main.mean_difference:+.3f} | "
+                    f"[{main.ci_low:.3f}, {main.ci_high:.3f}] |"
+                )
     excluded = sorted({f for c in (analysis.primary, *analysis.secondary) for f in c.excluded})
     lines += ["", "## Families left out of a comparison", ""]
     lines.append(", ".join(excluded) if excluded else "None.")
