@@ -90,3 +90,12 @@ sees it.
 A colored place or transition is read first, so an id that exists in both nets means the colored
 element. Properties per color or per binding (`p[red]`, `fireable(t[x=2])`) are not in the syntax
 yet: cite the unfolded names (`p_red`, `t_2`) for those.
+
+## Engines and colored nets
+
+`GET /v1/engines` says for each engine whether it reads colored nets (`supports_colored`) and which
+examinations it handles. A check of a colored net with an engine that does not is refused with the
+way out: unfold the net (`POST /v1/nets/{id}/reductions/unfold`) and check the unfolding, where the
+properties may cite the colored elements. Every result of a check on an unfolding carries the
+warning `checked_on_unfolding:<colored net id>`, so a verdict about the unfolded net is never read
+as a verdict obtained by an engine on the colored one.
