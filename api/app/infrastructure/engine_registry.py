@@ -111,11 +111,16 @@ DEFAULT_ENGINES: Mapping[str, EngineSpec] = {
         ),
     ),
     "smpt": EngineSpec(
-        image="pn-llm-verif/smpt:latest",
-        version="tbd",
+        image="pn-llm-verif/smpt:5.0-82206dd",
+        version="5.0-82206dd",
         logics=("state",),
-        colored=True,
         examinations=REACHABILITY_EXAMINATIONS,
+        limitations=(
+            "gives no counterexample (a marking, not a firing sequence)",
+            "colored nets are not supported (no mcc unfolder in the image)",
+            "runs without LattE, Octant and MiniZinc",
+            "deadlock formulas run without reductions and without the contest's --mcc mode",
+        ),
     ),
     # tedd covers the StateSpace category; extend its logics once it is integrated.
     "tedd": EngineSpec(

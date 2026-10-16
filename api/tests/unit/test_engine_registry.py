@@ -68,10 +68,11 @@ def test_registry_contains_the_mcc_2026_tools():
     assert {"itstools", "tapaal", "smpt", "tedd", "petrivet", "ty", "dummy"} <= set(DEFAULT_ENGINES)
 
 
-def test_petrivet_is_the_only_p_t_only_real_engine():
+def test_the_engines_that_read_only_p_t_nets_say_so():
     colored = {name for name, spec in DEFAULT_ENGINES.items() if spec.colored}
-    assert "petrivet" not in colored
-    assert {"itstools", "tapaal", "smpt", "tedd", "ty"} <= colored
+    # smpt has no colored front end in its image (no mcc unfolder), petrivet reads P/T only.
+    assert {"petrivet", "smpt"}.isdisjoint(colored)
+    assert {"itstools", "tapaal", "tedd", "ty"} <= colored
 
 
 def test_listing_reports_availability():
@@ -91,7 +92,7 @@ def test_auto_falls_back_to_dummy_when_no_image_is_built():
 
 
 def test_auto_picks_the_first_available_real_engine():
-    docker = FakeDocker(images={"pn-llm-verif/smpt:latest", "pn-llm-verif/ty:latest"})
+    docker = FakeDocker(images={"pn-llm-verif/smpt:5.0-82206dd", "pn-llm-verif/ty:latest"})
     assert registry(docker=docker).choose(requested="auto") == "smpt"
 
 

@@ -8,7 +8,7 @@ Tools that took part in the **Model Checking Contest 2026**, as listed on the co
 | ITS-Tools | Y. Thierry-Mieg, LIP6 | all | yes |
 | Tapaal | J. Srba, Aalborg University | GlobalProperties, UpperBounds, ReachabilityFormulas, CTL, LTL | yes |
 | TY | A. Yates, Ferrite Technology | StateSpace, GlobalProperties, UpperBounds, ReachabilityFormulas, CTL, LTL | yes |
-| smpt | N. Amat, ONERA | ReachabilityCardinality, ReachabilityFireability | yes |
+| smpt | N. Amat, ONERA | ReachabilityCardinality, ReachabilityFireability | yes (not in our image) |
 | tedd | B. Berthomieu, LAAS-CNRS | StateSpace | yes |
 | petrivet | M. Dyer, TU Munich | StateSpace, GlobalProperties | P/T only |
 
