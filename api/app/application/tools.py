@@ -43,6 +43,7 @@ from app.domain.tool_inputs import (
     NeighbourhoodArguments,
     NoArguments,
     PageArguments,
+    PatternArguments,
     ProposeDescriptionArguments,
     ReplayArguments,
     SearchArguments,
@@ -50,7 +51,7 @@ from app.domain.tool_inputs import (
     ValidateFormulaArguments,
 )
 
-from .analysis_tools import AnalysisTools
+from .analysis_tools import AnalysisTools, FormulaTriviality
 from .checks import CheckService
 from .formulas import FormulaService
 from .inspection import InspectionService
@@ -84,6 +85,8 @@ class CheckData(DomainModel):
 
     job_id: str
     results: tuple[FormulaResult, ...]
+    # Properties the structure of the net already decides: they were checked, but say nothing.
+    trivial: tuple[FormulaTriviality, ...] = ()
 
 
 class TraceData(DomainModel):
@@ -218,6 +221,17 @@ class ToolFacade:
                 run=self.validate_formula,
             ),
             define_tool(
+                name="formula_from_pattern",
+                description=(
+                    "Build a property from a specification pattern instead of writing temporal "
+                    "operators yourself: absence, universality, existence, bound, response, "
+                    "precedence, exclusion, recurrence. Give the conditions on markings (P, Q) in "
+                    "the text syntax. Returns the formula in text, checked against the net."
+                ),
+                arguments=PatternArguments,
+                run=self.formula_from_pattern,
+            ),
+            define_tool(
                 name="check_formulas",
                 description=(
                     "Verify properties with a model-checking engine and wait for the verdicts. "
@@ -227,7 +241,8 @@ class ToolFacade:
                     "something failed. The last four are not FALSE and say nothing about the "
                     "property. With a portfolio, a result whose agreement is 'contradiction' means "
                     "engines gave opposite answers: it is unresolved and a sign of a bug, not a "
-                    "verdict."
+                    "verdict. A property listed under 'trivial' holds (or fails) because of the "
+                    "structure of the net alone: a verdict on it says nothing about the behaviour."
                 ),
                 arguments=CheckFormulasArguments,
                 run=self.check_formulas,
@@ -463,6 +478,19 @@ class ToolFacade:
         )
         return answer(data=report)
 
+    def formula_from_pattern(
+        self,
+        *,
+        context: ToolContext,
+        arguments: PatternArguments,
+        is_cancelled: Callable[[], bool],
+    ) -> ToolOutcome:
+        """Build a property from a pattern and report its text, gloss and problems."""
+        report = self._formulas.from_pattern(
+            net_id=context.session.net_id, request=arguments.pattern, formula_id=arguments.id
+        )
+        return answer(data=report)
+
     def check_formulas(
         self,
         *,
@@ -536,7 +564,10 @@ class ToolFacade:
                     has_trace=result.trace_url is not None,
                 )
             )
-        outcome = answer(data=CheckData(job_id=job_id, results=job.results))
+        trivial = self._analyses.triviality(
+            net_id=context.session.net_id, formulas=tuple(parsed), is_cancelled=is_cancelled
+        )
+        outcome = answer(data=CheckData(job_id=job_id, results=job.results, trivial=trivial))
         return outcome.model_copy(update={"events": tuple(events)})
 
     def get_trace(

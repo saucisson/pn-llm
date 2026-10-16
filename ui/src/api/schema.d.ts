@@ -91,6 +91,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/formulas/from-pattern": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Formula From Pattern
+         * @description Build the formula of a pattern (absence, response, bound, ...) and check it on the net.
+         */
+        post: operations["formula_from_pattern_v1_formulas_from_pattern_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/formulas/patterns": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Patterns
+         * @description List the specification patterns and the parameters each takes.
+         */
+        get: operations["list_patterns_v1_formulas_patterns_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/formulas/validate": {
         parameters: {
             query?: never;
@@ -2839,6 +2879,34 @@ export interface components {
              */
             warnings: string[];
         };
+        /** Envelope[tuple[PatternInfo, ...]] */
+        Envelope_tuple_PatternInfo__________: {
+            /** Data */
+            data?: components["schemas"]["PatternInfo"][] | null;
+            /** Elapsed S */
+            elapsed_s: number;
+            error?: components["schemas"]["ErrorInfo"] | null;
+            /** Net Id */
+            net_id?: string | null;
+            /**
+             * Schema Version
+             * @default 1.0
+             * @constant
+             */
+            schema_version: "1.0";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ok" | "partial" | "failed";
+            tool: components["schemas"]["ToolInfo"];
+            truncated?: components["schemas"]["Page"] | null;
+            /**
+             * Warnings
+             * @default []
+             */
+            warnings: string[];
+        };
         /** Envelope[tuple[ResultSetInfo, ...]] */
         Envelope_tuple_ResultSetInfo__________: {
             /** Data */
@@ -3807,6 +3875,67 @@ export interface components {
             limit: number;
         };
         /**
+         * PatternFormulaRequest
+         * @description Body of ``POST /v1/formulas/from-pattern``.
+         */
+        PatternFormulaRequest: {
+            /**
+             * Id
+             * @default f1
+             */
+            id: string;
+            /** Net Id */
+            net_id: string;
+            pattern: components["schemas"]["PatternRequest"];
+        };
+        /**
+         * PatternInfo
+         * @description A pattern, what it means and which parameters it takes.
+         */
+        PatternInfo: {
+            /** Meaning */
+            meaning: string;
+            /**
+             * Name
+             * @enum {string}
+             */
+            name: "absence" | "universality" | "existence" | "bound" | "response" | "precedence" | "exclusion" | "recurrence";
+            /** Parameters */
+            parameters: string[];
+        };
+        /**
+         * PatternRequest
+         * @description What the model gives to build a formula from a pattern.
+         */
+        PatternRequest: {
+            /**
+             * K
+             * @description Token bound (bound)
+             */
+            k?: number | null;
+            /**
+             * Logic
+             * @default ctl
+             * @enum {string}
+             */
+            logic: "ctl" | "ltl";
+            /**
+             * P
+             * @description Condition on a marking, in the text syntax
+             */
+            p: string;
+            /**
+             * Pattern
+             * @enum {string}
+             */
+            pattern: "absence" | "universality" | "existence" | "bound" | "response" | "precedence" | "exclusion" | "recurrence";
+            /**
+             * Q
+             * @description Second condition (response, precedence, exclusion)
+             */
+            q?: string | null;
+        };
+        /**
          * PlaceBound
          * @description The bound of one place.
          */
@@ -4729,6 +4858,59 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Envelope_tuple_EquivalenceClass__________"];
+                };
+            };
+        };
+    };
+    formula_from_pattern_v1_formulas_from_pattern_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PatternFormulaRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_FormulaReport_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_patterns_v1_formulas_patterns_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_tuple_PatternInfo__________"];
                 };
             };
         };

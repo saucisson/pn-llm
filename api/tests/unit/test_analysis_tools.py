@@ -134,3 +134,52 @@ def test_the_colored_summary_tool_reads_a_colored_net_and_refuses_a_p_t_one(stor
     assert "<pnml" not in outcome.content
     refused = call(facade, context_for(net_id=mutex_net), "colored_summary")
     assert (refused.ok, "symmetric" in refused.content) == (False, True)
+
+
+def test_a_property_the_net_structure_decides_is_checked_but_reported_as_trivial(store, mutex_net):
+    facade, _ = build(store=store)
+    outcome = call(
+        facade,
+        context_for(net_id=mutex_net),
+        "check_formulas",
+        {
+            "formulas": [
+                {"id": "empty", "text": 'AG "crit1" <= 1', "logic": "ctl"},
+                {"id": "real", "text": 'EF "crit1" >= 1', "logic": "ctl"},
+            ]
+        },
+    )
+    data = payload(outcome)["data"]
+    assert [r["id"] for r in data["results"]] == ["empty", "real"]  # both were checked
+    assert [t["formula_id"] for t in data["trivial"]] == ["empty"]
+    assert data["trivial"][0]["findings"][0]["kind"] == "holds_in_every_state"
+    assert "structure" in data["trivial"][0]["findings"][0]["explanation"]
+
+
+def test_patterns_are_offered_and_build_checked_formulas(store, mutex_net):
+    facade, _ = build(store=store)
+    built = call(
+        facade,
+        context_for(net_id=mutex_net),
+        "formula_from_pattern",
+        {
+            "id": "excl",
+            "pattern": {
+                "pattern": "exclusion",
+                "logic": "ltl",
+                "p": '"crit1" >= 2',
+                "q": '"lock" >= 2',
+            },
+        },
+    )
+    data = payload(built)["data"]
+    assert data["valid"] is True
+    assert data["formula"]["origin"] == "template"
+    assert data["text"].startswith("G")
+    wrong = call(
+        facade,
+        context_for(net_id=mutex_net),
+        "formula_from_pattern",
+        {"id": "x", "pattern": {"pattern": "absence", "p": '"ghost" >= 1'}},
+    )
+    assert payload(wrong)["data"]["valid"] is False
