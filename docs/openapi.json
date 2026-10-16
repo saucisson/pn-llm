@@ -435,6 +435,36 @@
         "title": "BudgetExhausted",
         "type": "object"
       },
+      "CapabilityRow": {
+        "description": "Which engines can check one class of properties.",
+        "properties": {
+          "colored_engines": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Colored Engines",
+            "type": "array"
+          },
+          "engines": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Engines",
+            "type": "array"
+          },
+          "property_class": {
+            "title": "Property Class",
+            "type": "string"
+          }
+        },
+        "required": [
+          "property_class",
+          "engines",
+          "colored_engines"
+        ],
+        "title": "CapabilityRow",
+        "type": "object"
+      },
       "CheckRequest-Input": {
         "description": "Body of ``POST /v1/nets/{id}/checks``.",
         "properties": {
@@ -1552,6 +1582,30 @@
           "available": {
             "title": "Available",
             "type": "boolean"
+          },
+          "classes": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Classes",
+            "type": "array"
+          },
+          "examinations": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Examinations",
+            "type": "array"
+          },
+          "limitations": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Limitations",
+            "type": "array"
           },
           "logics": {
             "items": {
@@ -3168,6 +3222,89 @@
         "title": "Envelope[RunView]",
         "type": "object"
       },
+      "Envelope_Selection_": {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Selection"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "elapsed_s": {
+            "minimum": 0.0,
+            "title": "Elapsed S",
+            "type": "number"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorInfo"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "net_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Net Id"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "default": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "partial",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "tool": {
+            "$ref": "#/components/schemas/ToolInfo"
+          },
+          "truncated": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Page"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "warnings": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "tool",
+          "status",
+          "elapsed_s"
+        ],
+        "title": "Envelope[Selection]",
+        "type": "object"
+      },
       "Envelope_Session_": {
         "properties": {
           "data": {
@@ -3836,6 +3973,93 @@
         "title": "Envelope[tuple[ArcView, ...]]",
         "type": "object"
       },
+      "Envelope_tuple_CapabilityRow__________": {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/CapabilityRow"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data"
+          },
+          "elapsed_s": {
+            "minimum": 0.0,
+            "title": "Elapsed S",
+            "type": "number"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorInfo"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "net_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Net Id"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "default": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "partial",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "tool": {
+            "$ref": "#/components/schemas/ToolInfo"
+          },
+          "truncated": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Page"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "warnings": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "tool",
+          "status",
+          "elapsed_s"
+        ],
+        "title": "Envelope[tuple[CapabilityRow, ...]]",
+        "type": "object"
+      },
       "Envelope_tuple_Description__________": {
         "properties": {
           "data": {
@@ -4095,6 +4319,93 @@
           "elapsed_s"
         ],
         "title": "Envelope[tuple[EngineInfo, ...]]",
+        "type": "object"
+      },
+      "Envelope_tuple_EquivalenceClass__________": {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/EquivalenceClass"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data"
+          },
+          "elapsed_s": {
+            "minimum": 0.0,
+            "title": "Elapsed S",
+            "type": "number"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorInfo"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "net_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Net Id"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "default": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "partial",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "tool": {
+            "$ref": "#/components/schemas/ToolInfo"
+          },
+          "truncated": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Page"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "warnings": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "tool",
+          "status",
+          "elapsed_s"
+        ],
+        "title": "Envelope[tuple[EquivalenceClass, ...]]",
         "type": "object"
       },
       "Envelope_tuple_MccFamily__________": {
@@ -4704,6 +5015,36 @@
           "elapsed_s"
         ],
         "title": "Envelope[tuple[str, ...]]",
+        "type": "object"
+      },
+      "EquivalenceClass": {
+        "description": "The engines interchangeable for one class of properties, and what to keep in mind.",
+        "properties": {
+          "caveats": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Caveats",
+            "type": "array"
+          },
+          "engines": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Engines",
+            "type": "array"
+          },
+          "property_class": {
+            "title": "Property Class",
+            "type": "string"
+          }
+        },
+        "required": [
+          "property_class",
+          "engines",
+          "caveats"
+        ],
+        "title": "EquivalenceClass",
         "type": "object"
       },
       "ErrorInfo": {
@@ -7705,6 +8046,52 @@
         "title": "Question",
         "type": "object"
       },
+      "RankedEngine": {
+        "description": "An engine proposed for the properties, with the evidence for its rank.",
+        "properties": {
+          "engine": {
+            "title": "Engine",
+            "type": "string"
+          },
+          "expected_time_s": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Time S"
+          },
+          "rationale": {
+            "title": "Rationale",
+            "type": "string"
+          },
+          "success_probability": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Success Probability"
+          },
+          "version": {
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "engine",
+          "version",
+          "rationale"
+        ],
+        "title": "RankedEngine",
+        "type": "object"
+      },
       "ReductionParameters": {
         "description": "Options common to every rule.",
         "properties": {
@@ -8220,6 +8607,66 @@
           "state"
         ],
         "title": "RunView",
+        "type": "object"
+      },
+      "Selection": {
+        "description": "The engines to ask, best first, and what the ranking rests on.",
+        "properties": {
+          "basis": {
+            "enum": [
+              "history",
+              "preference"
+            ],
+            "title": "Basis",
+            "type": "string"
+          },
+          "property_classes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Property Classes",
+            "type": "array"
+          },
+          "ranked": {
+            "items": {
+              "$ref": "#/components/schemas/RankedEngine"
+            },
+            "title": "Ranked",
+            "type": "array"
+          }
+        },
+        "required": [
+          "property_classes",
+          "basis",
+          "ranked"
+        ],
+        "title": "Selection",
+        "type": "object"
+      },
+      "SelectionRequest": {
+        "description": "Body of ``POST /v1/select-tools``.",
+        "properties": {
+          "formulas": {
+            "items": {
+              "$ref": "#/components/schemas/Formula-Input"
+            },
+            "minItems": 1,
+            "title": "Formulas",
+            "type": "array"
+          },
+          "limits": {
+            "$ref": "#/components/schemas/Limits"
+          },
+          "net_id": {
+            "title": "Net Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "net_id",
+          "formulas"
+        ],
+        "title": "SelectionRequest",
         "type": "object"
       },
       "Session": {
@@ -9310,8 +9757,42 @@
     },
     "/v1/engines": {
       "get": {
-        "description": "List the registered engines and whether they are available here.",
+        "description": "List the registered engines and whether they are available here.\n\n``can_check`` keeps the engines that check a class of properties (such as\n``ltl-fireability+next``); ``colored`` keeps those that do, or do not, read colored nets.",
         "operationId": "get_engines_v1_engines_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "can_check",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Can Check"
+            }
+          },
+          {
+            "in": "query",
+            "name": "colored",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Colored"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "content": {
@@ -9322,9 +9803,63 @@
               }
             },
             "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
           }
         },
         "summary": "Get Engines",
+        "tags": [
+          "engines"
+        ]
+      }
+    },
+    "/v1/engines/capabilities": {
+      "get": {
+        "description": "For every class of properties, the engines that declare they can check it.",
+        "operationId": "get_capabilities_v1_engines_capabilities_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_tuple_CapabilityRow__________"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Capabilities",
+        "tags": [
+          "engines"
+        ]
+      }
+    },
+    "/v1/engines/equivalence": {
+      "get": {
+        "description": "For every class of properties, the engines interchangeable for it, with their caveats.",
+        "operationId": "get_equivalence_v1_engines_equivalence_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_tuple_EquivalenceClass__________"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Equivalence",
         "tags": [
           "engines"
         ]
@@ -12248,6 +12783,48 @@
         "summary": "Get Run",
         "tags": [
           "operations"
+        ]
+      }
+    },
+    "/v1/select-tools": {
+      "post": {
+        "description": "Rank the engines that can check the formulas on the net, best first, with the evidence.",
+        "operationId": "select_tools_v1_select_tools_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SelectionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_Selection_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Select Tools",
+        "tags": [
+          "engines"
         ]
       }
     },

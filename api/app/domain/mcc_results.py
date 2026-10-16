@@ -85,6 +85,16 @@ class RunSample(DomainModel):
     out_of_memory: bool
 
 
+class ToolRate(DomainModel):
+    """How a tool did on one examination over every run of the results: counts and median time."""
+
+    tool: str
+    examination: str
+    runs: int
+    computed: int
+    median_time_ms: float | None
+
+
 class RunStatistics(DomainModel):
     """How a tool did on an examination over the instances of a family."""
 

@@ -5,6 +5,30 @@
       "title": "Available",
       "type": "boolean"
     },
+    "classes": {
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "title": "Classes",
+      "type": "array"
+    },
+    "examinations": {
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "title": "Examinations",
+      "type": "array"
+    },
+    "limitations": {
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "title": "Limitations",
+      "type": "array"
+    },
     "logics": {
       "items": {
         "type": "string"

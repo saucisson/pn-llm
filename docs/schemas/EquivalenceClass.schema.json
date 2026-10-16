@@ -1,0 +1,30 @@
+{
+  "description": "The engines interchangeable for one class of properties, and what to keep in mind.",
+  "properties": {
+    "caveats": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Caveats",
+      "type": "array"
+    },
+    "engines": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Engines",
+      "type": "array"
+    },
+    "property_class": {
+      "title": "Property Class",
+      "type": "string"
+    }
+  },
+  "required": [
+    "property_class",
+    "engines",
+    "caveats"
+  ],
+  "title": "EquivalenceClass",
+  "type": "object"
+}

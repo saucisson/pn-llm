@@ -3,9 +3,17 @@
 from __future__ import annotations
 
 import itertools
+import statistics
 from collections.abc import Iterable, Iterator
 
-from app.domain.mcc_results import MccRun, ResultFileInfo, ResultSetInfo, RunOutcome, RunSample
+from app.domain.mcc_results import (
+    MccRun,
+    ResultFileInfo,
+    ResultSetInfo,
+    RunOutcome,
+    RunSample,
+    ToolRate,
+)
 
 from .sqlite_database import SqliteDatabase
 
@@ -85,3 +93,37 @@ class SqliteResults(SqliteDatabase):
         with self._connection() as conn:
             rows = conn.execute("SELECT * FROM mcc_result_sets ORDER BY year").fetchall()
         return tuple(ResultSetInfo.model_validate(dict(row)) for row in rows)
+
+    def tool_rates(self, *, examinations: tuple[str, ...]) -> tuple[ToolRate, ...]:
+        """Return, per engine and examination, the runs and how many computed, with median time.
+
+        The references of the contest (virtual best tools) are not engines and are left out.
+        """
+        marks = ",".join("?" for _ in examinations)
+        with self._connection() as conn:
+            rows = conn.execute(
+                f"SELECT tool, examination, outcome, time_ms FROM mcc_runs"  # noqa: S608 - placeholders only
+                f" WHERE reference=0 AND examination IN ({marks})",
+                examinations,
+            ).fetchall()
+        runs: dict[tuple[str, str], int] = {}
+        times: dict[tuple[str, str], list[float]] = {}
+        for row in rows:
+            key = (row["tool"], row["examination"])
+            runs[key] = runs.get(key, 0) + 1
+            if row["outcome"] == RunOutcome.COMPUTED.value:
+                times.setdefault(key, []).append(row["time_ms"])
+        return tuple(
+            ToolRate(
+                tool=tool,
+                examination=examination,
+                runs=count,
+                computed=len(times.get((tool, examination), ())),
+                median_time_ms=(
+                    statistics.median(times[(tool, examination)])
+                    if (tool, examination) in times
+                    else None
+                ),
+            )
+            for (tool, examination), count in sorted(runs.items())
+        )

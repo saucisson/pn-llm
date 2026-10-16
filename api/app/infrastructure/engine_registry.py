@@ -17,6 +17,7 @@ from collections.abc import Iterator, Mapping
 from pathlib import Path
 from typing import Literal
 
+from app.domain.capabilities import classes_checked_by
 from app.domain.catalog import OPERATIONS
 from app.domain.contract import Envelope
 from app.domain.engine_contract import (
@@ -35,6 +36,16 @@ from app.domain.models import DomainModel, EngineInfo, Verdict
 from .docker_runner import DockerRunner, DockerTimeoutError, DockerUnavailableError
 
 ALL_LOGICS = ("ltl", "ctl", "state")
+BOOLEAN_EXAMINATIONS = (
+    "ReachabilityCardinality",
+    "ReachabilityFireability",
+    "CTLCardinality",
+    "CTLFireability",
+    "LTLCardinality",
+    "LTLFireability",
+)
+REACHABILITY_EXAMINATIONS = BOOLEAN_EXAMINATIONS[:2]
+OTHER_EXAMINATIONS = ("UpperBounds", "GlobalProperties", "StateSpace")
 # Mode of the output directory: the container user is not the API user.
 OUTPUT_DIR_MODE = 0o777
 # An engine cannot make the API read an arbitrarily large file.
@@ -50,6 +61,9 @@ class EngineSpec(DomainModel):
     colored: bool = False
     # The operations (analyses, reductions) this engine performs, by name (ADR 0014).
     operations: tuple[str, ...] = ()
+    # The contest examinations it takes part in (docs/mcc-tools.md) and what is known about it.
+    examinations: tuple[str, ...] = ()
+    limitations: tuple[str, ...] = ()
 
 
 class ContainerRun(DomainModel):
@@ -77,20 +91,52 @@ DEFAULT_ENGINES: Mapping[str, EngineSpec] = {
         version="1.0.0.202609112134",
         logics=ALL_LOGICS,
         colored=True,
+        examinations=(*BOOLEAN_EXAMINATIONS, *OTHER_EXAMINATIONS),
+        limitations=(
+            "gives no counterexample",
+            "cannot switch its reductions off",
+            "the deadlock atom is rewritten as no transition fireable",
+            "starts a JVM for each examination (a few seconds)",
+        ),
     ),
     "tapaal": EngineSpec(
-        image="pn-llm-verif/tapaal:4.4.2", version="4.4.2", logics=ALL_LOGICS, colored=True
+        image="pn-llm-verif/tapaal:4.4.2",
+        version="4.4.2",
+        logics=ALL_LOGICS,
+        colored=True,
+        examinations=(*BOOLEAN_EXAMINATIONS, "UpperBounds", "GlobalProperties"),
+        limitations=(
+            "gives no counterexample on colored nets (it unfolds them)",
+            "one process per formula",
+        ),
     ),
     "smpt": EngineSpec(
-        image="pn-llm-verif/smpt:latest", version="tbd", logics=("state",), colored=True
+        image="pn-llm-verif/smpt:latest",
+        version="tbd",
+        logics=("state",),
+        colored=True,
+        examinations=REACHABILITY_EXAMINATIONS,
     ),
     # tedd covers the StateSpace category; extend its logics once it is integrated.
     "tedd": EngineSpec(
-        image="pn-llm-verif/tedd:latest", version="tbd", logics=("state",), colored=True
+        image="pn-llm-verif/tedd:latest",
+        version="tbd",
+        logics=("state",),
+        colored=True,
+        examinations=("StateSpace",),
     ),
-    "petrivet": EngineSpec(image="pn-llm-verif/petrivet:latest", version="tbd", logics=("state",)),
+    "petrivet": EngineSpec(
+        image="pn-llm-verif/petrivet:latest",
+        version="tbd",
+        logics=("state",),
+        examinations=("StateSpace", "GlobalProperties"),
+    ),
     "ty": EngineSpec(
-        image="pn-llm-verif/ty:latest", version="tbd", logics=ALL_LOGICS, colored=True
+        image="pn-llm-verif/ty:latest",
+        version="tbd",
+        logics=ALL_LOGICS,
+        colored=True,
+        examinations=(*BOOLEAN_EXAMINATIONS, *OTHER_EXAMINATIONS),
     ),
 }
 
@@ -215,6 +261,9 @@ class EngineRegistry:
                 logics=spec.logics,
                 supports_colored=spec.colored,
                 operations=spec.operations,
+                examinations=spec.examinations,
+                classes=classes_checked_by(examinations=spec.examinations),
+                limitations=spec.limitations,
                 available=spec.image is None or self._docker.image_present(image=spec.image),
             )
             for name, spec in self._specs.items()
