@@ -554,6 +554,36 @@ def test_a_check_on_the_unfolding_may_cite_the_colored_places_and_transitions(se
         "pick_1_3",
         "pick_2_3",
     }
+    app.state.checks.drain()
+    done = app.state.checks.get(job_id=submitted.json()["data"]["job_id"])
+    assert all(f"checked_on_unfolding:{colored}" in r.warnings for r in done.results)
     # On the colored net itself nothing is translated: its engines read colored properties.
     on_colored = client.post(f"/v1/nets/{colored}/checks", json=body)
     assert on_colored.status_code == 202
+    app.state.checks.drain()
+    plain = app.state.checks.get(job_id=on_colored.json()["data"]["job_id"])
+    assert all(not r.warnings for r in plain.results)
+
+
+def test_an_engine_without_colored_support_is_refused_a_colored_net_with_the_way_out(settings):
+    from tests.support import PortfolioEngines
+
+    app = create_app(
+        settings=settings.model_copy(update={"operation_wait_seconds": 0}),
+        engine_gateway=PortfolioEngines(answers={"flat": ("TRUE", 1, None, False)}),
+    )
+    client = TestClient(app)
+    colored = client.post("/v1/nets", content=GUARDED, headers=XML).json()["net_id"]
+    body = {
+        "formulas": [
+            {
+                "id": "f",
+                "logic": "state",
+                "ast": {"op": "tokens", "place": "pairs", "cmp": ">=", "value": 1},
+            }
+        ],
+        "engine": "flat",
+    }
+    refused = client.post(f"/v1/nets/{colored}/checks", json=body)
+    assert refused.status_code == 422
+    assert "unfold" in refused.text

@@ -93,6 +93,12 @@ class CheckService:
         self._jobs.recover_interrupted()
         if request.engine != "auto" and not self._engines.is_known(name=request.engine):
             raise InvalidRequestError(f"Unknown engine: {request.engine}")
+        info = next((e for e in self._engines.list_engines() if e.name == request.engine), None)
+        if structure.kind != "pt" and info is not None and not info.supports_colored:
+            raise InvalidRequestError(
+                f"{request.engine} does not check colored nets: unfold the net "
+                "(POST /v1/nets/{id}/reductions/unfold) and check the unfolding"
+            )
         job = Job(
             job_id=uuid.uuid4().hex[:JOB_ID_LENGTH],
             net_id=net_id,
@@ -234,15 +240,24 @@ class CheckService:
                 outcome = self.run_portfolio(
                     job=job, engines=engines, pnml=pnml, structure=structure
                 )
+        # A property checked on the unfolding says so: the net the verdict is about is the colored
+        # one, through the mapping.
+        links = () if self._lineage is None else self._lineage.lineage_of(net_id=job.net_id)
+        unfolding = next((link for link in links if link.rule == "unfold"), None)
         # A counterexample is served at a stable address, built from the position of its result.
         results = tuple(
             result.model_copy(
                 update={
+                    "warnings": (
+                        result.warnings
+                        if unfolding is None
+                        else (*result.warnings, f"checked_on_unfolding:{unfolding.parent_id}")
+                    ),
                     "trace_url": (
                         f"/v1/jobs/{job_id}/results/{index}/trace"
                         if any(trace.formula_id == result.id for trace in outcome.traces)
                         else None
-                    )
+                    ),
                 }
             )
             for index, result in enumerate(outcome.results)
