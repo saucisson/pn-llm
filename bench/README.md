@@ -65,3 +65,21 @@ and drops every name, graphic and tool-specific datum, including the names of th
 The model sees only this net; `restore_formula` writes the properties it proposes back with the
 original ids before the engines judge them, so results are comparable with the other conditions.
 Colored nets are refused (their declarations would need renaming).
+
+## Runner
+
+`ExperimentRunner` (`app/application/experiment.py`) is the judge every condition goes through:
+the properties (cut to the budget, in the order proposed) are checked by the engines on the net,
+filtered for triviality, then checked on the mutants chosen from the seed and judged (M3 to M6).
+A property a mutant cannot express (it lost an element the property cites) is an ERROR for it, so
+the mutant stays undecided. Each `RunRecord` holds the condition, family, repetition, seed,
+budget, git commit, the engines and versions that answered, and, for a model, its id and prompt
+hash.
+
+```bash
+python -m app.run_experiment --split v1 --role dev --repetitions 5      # B0 on the dev families
+```
+
+The net of a family is its first stored P/T instance by name. The test families are refused unless
+`--frozen TAG` names the frozen version. Only B0 runs from this command today; the model
+conditions L1 to L3 and N need the session driver (next).
