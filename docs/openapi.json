@@ -228,6 +228,25 @@
         "title": "AnswerRequest",
         "type": "object"
       },
+      "ArcFunctionCount": {
+        "description": "How many arc inscriptions use one kind of color function.",
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "function": {
+            "title": "Function",
+            "type": "string"
+          }
+        },
+        "required": [
+          "function",
+          "count"
+        ],
+        "title": "ArcFunctionCount",
+        "type": "object"
+      },
       "ArcView": {
         "description": "An arc with both ends cited by reference.",
         "properties": {
@@ -504,6 +523,56 @@
           "formula_ids"
         ],
         "title": "CheckSubmitted",
+        "type": "object"
+      },
+      "ColoredSummary": {
+        "description": "The colored net at a glance.",
+        "properties": {
+          "arc_functions": {
+            "items": {
+              "$ref": "#/components/schemas/ArcFunctionCount"
+            },
+            "title": "Arc Functions",
+            "type": "array"
+          },
+          "note": {
+            "default": "Sizes are exact for places and an upper bound for transitions; the arc figure is an estimate (an `all` inscription counts the whole domain).",
+            "title": "Note",
+            "type": "string"
+          },
+          "place_groups": {
+            "items": {
+              "$ref": "#/components/schemas/PlaceGroup"
+            },
+            "title": "Place Groups",
+            "type": "array"
+          },
+          "sorts": {
+            "items": {
+              "$ref": "#/components/schemas/SortSummary"
+            },
+            "title": "Sorts",
+            "type": "array"
+          },
+          "transition_groups": {
+            "items": {
+              "$ref": "#/components/schemas/TransitionGroup"
+            },
+            "title": "Transition Groups",
+            "type": "array"
+          },
+          "unfolded": {
+            "$ref": "#/components/schemas/UnfoldedEstimate"
+          }
+        },
+        "required": [
+          "sorts",
+          "place_groups",
+          "transition_groups",
+          "arc_functions",
+          "unfolded"
+        ],
+        "title": "ColoredSummary",
         "type": "object"
       },
       "Compare": {
@@ -1520,6 +1589,89 @@
           "available"
         ],
         "title": "EngineInfo",
+        "type": "object"
+      },
+      "Envelope_ColoredSummary_": {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ColoredSummary"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "elapsed_s": {
+            "minimum": 0.0,
+            "title": "Elapsed S",
+            "type": "number"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorInfo"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "net_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Net Id"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "default": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "partial",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "tool": {
+            "$ref": "#/components/schemas/ToolInfo"
+          },
+          "truncated": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Page"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "warnings": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "tool",
+          "status",
+          "elapsed_s"
+        ],
+        "title": "Envelope[ColoredSummary]",
         "type": "object"
       },
       "Envelope_ConflictSetsResult_": {
@@ -7449,6 +7601,38 @@
         "title": "PlaceBoundsResult",
         "type": "object"
       },
+      "PlaceGroup": {
+        "description": "Places with the same domain.",
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "domain_size": {
+            "title": "Domain Size",
+            "type": "integer"
+          },
+          "examples": {
+            "items": {
+              "$ref": "#/components/schemas/ElementRef"
+            },
+            "title": "Examples",
+            "type": "array"
+          },
+          "sort": {
+            "title": "Sort",
+            "type": "string"
+          }
+        },
+        "required": [
+          "sort",
+          "domain_size",
+          "count",
+          "examples"
+        ],
+        "title": "PlaceGroup",
+        "type": "object"
+      },
       "PlaceSet": {
         "description": "A set of places, and whether it holds a token in the initial marking.",
         "properties": {
@@ -8212,6 +8396,40 @@
         "title": "SiphonsResult",
         "type": "object"
       },
+      "SortSummary": {
+        "description": "A sort, its size, and how it is built.",
+        "properties": {
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "size": {
+            "title": "Size",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "kind",
+          "size",
+          "detail"
+        ],
+        "title": "SortSummary",
+        "type": "object"
+      },
       "Split": {
         "description": "A frozen assignment of families. Once stored under a name it is never changed.",
         "properties": {
@@ -8681,6 +8899,46 @@
         "title": "TransitionExpansion",
         "type": "object"
       },
+      "TransitionGroup": {
+        "description": "Transitions that use the same variables.",
+        "properties": {
+          "bindings_upper_bound": {
+            "title": "Bindings Upper Bound",
+            "type": "integer"
+          },
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "examples": {
+            "items": {
+              "$ref": "#/components/schemas/ElementRef"
+            },
+            "title": "Examples",
+            "type": "array"
+          },
+          "variables": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Variables",
+            "type": "array"
+          },
+          "with_guard": {
+            "title": "With Guard",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "variables",
+          "bindings_upper_bound",
+          "count",
+          "with_guard",
+          "examples"
+        ],
+        "title": "TransitionGroup",
+        "type": "object"
+      },
       "TrapsResult": {
         "description": "The minimal traps found.",
         "properties": {
@@ -8739,6 +8997,30 @@
           }
         },
         "title": "UnboundedBound",
+        "type": "object"
+      },
+      "UnfoldedEstimate": {
+        "description": "How big the unfolded P/T net would be, at most (guards can only make it smaller).",
+        "properties": {
+          "arcs_estimate": {
+            "title": "Arcs Estimate",
+            "type": "integer"
+          },
+          "places": {
+            "title": "Places",
+            "type": "integer"
+          },
+          "transitions_upper_bound": {
+            "title": "Transitions Upper Bound",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "places",
+          "transitions_upper_bound",
+          "arcs_estimate"
+        ],
+        "title": "UnfoldedEstimate",
         "type": "object"
       },
       "UnknownBound": {
@@ -10483,6 +10765,61 @@
         "summary": "Start Check",
         "tags": [
           "checks"
+        ]
+      }
+    },
+    "/v1/nets/{net_id}/colored": {
+      "get": {
+        "description": "Summarize a colored net: sorts, groups of places and transitions, size of the unfolding.",
+        "operationId": "get_colored_summary_v1_nets__net_id__colored_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "net_id",
+            "required": true,
+            "schema": {
+              "title": "Net Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "examples",
+            "required": false,
+            "schema": {
+              "default": 3,
+              "maximum": 20,
+              "minimum": 0,
+              "title": "Examples",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_ColoredSummary_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Colored Summary",
+        "tags": [
+          "inspection"
         ]
       }
     },

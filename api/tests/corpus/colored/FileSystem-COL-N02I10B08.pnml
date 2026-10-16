@@ -1,0 +1,1298 @@
+<?xml version="1.0"?>
+<pnml xmlns="http://www.pnml.org/version-2009/grammar/pnml">
+    <net id="FileSystem-COL-N02I10B08"
+        type="http://www.pnml.org/version-2009/grammar/symmetricnet">
+        <name>
+            <text>FileSystem-COL-N02I10B08</text>
+        </name>
+        <page id="page">
+
+            <!-- %%%%%%%%%%%%%%%%%%%%%%%%%     PLACES     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+            <place id="idle">
+                <name>
+                    <text>idle</text>
+                </name>
+                <type>
+                    <text>Dot</text>
+                    <structure>
+                        <usersort declaration="dot" />
+                    </structure>
+                </type>
+                <hlinitialMarking>
+                    <text>N'(dot)</text>
+                    <structure>
+                        <numberof>
+                            <subterm>
+                                <numberconstant value="2">
+                                    <positive />
+                                </numberconstant>
+                            </subterm>
+                            <subterm>
+                                <dotconstant />
+                            </subterm>
+                        </numberof>
+                    </structure>
+                </hlinitialMarking>
+            </place>
+
+            <place id="inodelist">
+                <name>
+                    <text>inodelist</text>
+                </name>
+                <type>
+                    <text>INODE</text>
+                    <structure>
+                        <usersort declaration="INODE" />
+                    </structure>
+                </type>
+                <hlinitialMarking>
+                    <text>1'(INODE.all)</text>
+                    <structure>
+                        <numberof>
+                            <subterm>
+                                <numberconstant value="1">
+                                    <positive />
+                                </numberconstant>
+                            </subterm>
+                            <subterm>
+                                <all>
+                                    <usersort declaration="INODE" />
+                                </all>
+                            </subterm>
+                        </numberof>
+                    </structure>
+                </hlinitialMarking>
+            </place>
+
+            <place id="initblock">
+                <name>
+                    <text>initblock</text>
+                </name>
+                <type>
+                    <text>INODE</text>
+                    <structure>
+                        <usersort declaration="INODE" />
+                    </structure>
+                </type>
+            </place>
+
+            <place id="inode">
+                <name>
+                    <text>inode</text>
+                </name>
+                <type>
+                    <text>PAIR</text>
+                    <structure>
+                        <usersort declaration="PAIR" />
+                    </structure>
+                </type>
+            </place>
+
+            <place id="blockassoc">
+                <name>
+                    <text>blockassoc</text>
+                </name>
+                <type>
+                    <text>PAIR</text>
+                    <structure>
+                        <usersort declaration="PAIR" />
+                    </structure>
+                </type>
+                <hlinitialMarking>
+                    <text>1'(i, 2*i % B) | i in 1..I</text>
+                    <structure>
+                        <add>  <subterm>
+                                <numberof>
+                                    <subterm>
+                                        <numberconstant value="1">
+                                            <positive />
+                                        </numberconstant>
+                                    </subterm>
+                                    <subterm>
+                                        <tuple>
+                                            <subterm>
+                                                <useroperator declaration="i0" />
+                                            </subterm>
+                                            <subterm>
+                                                <useroperator declaration="b0" />
+                                            </subterm>
+                                        </tuple>
+                                    </subterm>
+                                </numberof>
+                            </subterm>
+                             <subterm>
+                                <numberof>
+                                    <subterm>
+                                        <numberconstant value="1">
+                                            <positive />
+                                        </numberconstant>
+                                    </subterm>
+                                    <subterm>
+                                        <tuple>
+                                            <subterm>
+                                                <useroperator declaration="i1" />
+                                            </subterm>
+                                            <subterm>
+                                                <useroperator declaration="b2" />
+                                            </subterm>
+                                        </tuple>
+                                    </subterm>
+                                </numberof>
+                            </subterm>
+                             <subterm>
+                                <numberof>
+                                    <subterm>
+                                        <numberconstant value="1">
+                                            <positive />
+                                        </numberconstant>
+                                    </subterm>
+                                    <subterm>
+                                        <tuple>
+                                            <subterm>
+                                                <useroperator declaration="i2" />
+                                            </subterm>
+                                            <subterm>
+                                                <useroperator declaration="b4" />
+                                            </subterm>
+                                        </tuple>
+                                    </subterm>
+                                </numberof>
+                            </subterm>
+                             <subterm>
+                                <numberof>
+                                    <subterm>
+                                        <numberconstant value="1">
+                                            <positive />
+                                        </numberconstant>
+                                    </subterm>
+                                    <subterm>
+                                        <tuple>
+                                            <subterm>
+                                                <useroperator declaration="i3" />
+                                            </subterm>
+                                            <subterm>
+                                                <useroperator declaration="b6" />
+                                            </subterm>
+                                        </tuple>
+                                    </subterm>
+                                </numberof>
+                            </subterm>
+                             <subterm>
+                                <numberof>
+                                    <subterm>
+                                        <numberconstant value="1">
+                                            <positive />
+                                        </numberconstant>
+                                    </subterm>
+                                    <subterm>
+                                        <tuple>
+                                            <subterm>
+                                                <useroperator declaration="i4" />
+                                            </subterm>
+                                            <subterm>
+                                                <useroperator declaration="b0" />
+                                            </subterm>
+                                        </tuple>
+                                    </subterm>
+                                </numberof>
+                            </subterm>
+                             <subterm>
+                                <numberof>
+                                    <subterm>
+                                        <numberconstant value="1">
+                                            <positive />
+                                        </numberconstant>
+                                    </subterm>
+                                    <subterm>
+                                        <tuple>
+                                            <subterm>
+                                                <useroperator declaration="i5" />
+                                            </subterm>
+                                            <subterm>
+                                                <useroperator declaration="b2" />
+                                            </subterm>
+                                        </tuple>
+                                    </subterm>
+                                </numberof>
+                            </subterm>
+                             <subterm>
+                                <numberof>
+                                    <subterm>
+                                        <numberconstant value="1">
+                                            <positive />
+                                        </numberconstant>
+                                    </subterm>
+                                    <subterm>
+                                        <tuple>
+                                            <subterm>
+                                                <useroperator declaration="i6" />
+                                            </subterm>
+                                            <subterm>
+                                                <useroperator declaration="b4" />
+                                            </subterm>
+                                        </tuple>
+                                    </subterm>
+                                </numberof>
+                            </subterm>
+                             <subterm>
+                                <numberof>
+                                    <subterm>
+                                        <numberconstant value="1">
+                                            <positive />
+                                        </numberconstant>
+                                    </subterm>
+                                    <subterm>
+                                        <tuple>
+                                            <subterm>
+                                                <useroperator declaration="i7" />
+                                            </subterm>
+                                            <subterm>
+                                                <useroperator declaration="b6" />
+                                            </subterm>
+                                        </tuple>
+                                    </subterm>
+                                </numberof>
+                            </subterm>
+                             <subterm>
+                                <numberof>
+                                    <subterm>
+                                        <numberconstant value="1">
+                                            <positive />
+                                        </numberconstant>
+                                    </subterm>
+                                    <subterm>
+                                        <tuple>
+                                            <subterm>
+                                                <useroperator declaration="i8" />
+                                            </subterm>
+                                            <subterm>
+                                                <useroperator declaration="b0" />
+                                            </subterm>
+                                        </tuple>
+                                    </subterm>
+                                </numberof>
+                            </subterm>
+                             <subterm>
+                                <numberof>
+                                    <subterm>
+                                        <numberconstant value="1">
+                                            <positive />
+                                        </numberconstant>
+                                    </subterm>
+                                    <subterm>
+                                        <tuple>
+                                            <subterm>
+                                                <useroperator declaration="i9" />
+                                            </subterm>
+                                            <subterm>
+                                                <useroperator declaration="b2" />
+                                            </subterm>
+                                        </tuple>
+                                    </subterm>
+                                </numberof>
+                            </subterm>
+                             </add>
+                    </structure>
+                </hlinitialMarking>
+            </place>
+
+            <place id="beginloop">
+                <name>
+                    <text>beginloop</text>
+                </name>
+                <type>
+                    <text>PAIR</text>
+                    <structure>
+                        <usersort declaration="PAIR" />
+                    </structure>
+                </type>
+            </place>
+
+            <place id="lockb">
+                <name>
+                    <text>lockb</text>
+                </name>
+                <type>
+                    <text>BLOCK</text>
+                    <structure>
+                        <usersort declaration="BLOCK" />
+                    </structure>
+                </type>
+                <hlinitialMarking>
+                    <text>1'(BLOCK.all)</text>
+                    <structure>
+                        <numberof>
+                            <subterm>
+                                <numberconstant value="1">
+                                    <positive />
+                                </numberconstant>
+                            </subterm>
+                            <subterm>
+                                <all>
+                                    <usersort declaration="BLOCK" />
+                                </all>
+                            </subterm>
+                        </numberof>
+                    </structure>
+                </hlinitialMarking>
+            </place>
+
+            <place id="testbusy">
+                <name>
+                    <text>testbusy</text>
+                </name>
+                <type>
+                    <text>PAIR</text>
+                    <structure>
+                        <usersort declaration="PAIR" />
+                    </structure>
+                </type>
+            </place>
+
+            <place id="loop">
+                <name>
+                    <text>loop</text>
+                </name>
+                <type>
+                    <text>PAIR</text>
+                    <structure>
+                        <usersort declaration="PAIR" />
+                    </structure>
+                </type>
+            </place>
+
+            <place id="busy">
+                <name>
+                    <text>busy</text>
+                </name>
+                <type>
+                    <text>BUSY</text>
+                    <structure>
+                        <usersort declaration="BUSY" />
+                    </structure>
+                </type>
+                <hlinitialMarking>
+                    <text>1'(b1,F) + 1'(b2,F) + ... + 1'(bB,F)</text>
+                    <structure>
+                        <add>  <subterm>
+                                <numberof>
+                                    <subterm>
+                                        <numberconstant value="1">
+                                            <positive />
+                                        </numberconstant>
+                                    </subterm>
+                                    <subterm>
+                                        <tuple>
+                                            <subterm>
+                                                <useroperator declaration="b0" />
+                                            </subterm>
+                                            <subterm>
+                                                <useroperator declaration="F" />
+                                            </subterm>
+                                        </tuple>
+                                    </subterm>
+                                </numberof>
+                            </subterm>
+                             <subterm>
+                                <numberof>
+                                    <subterm>
+                                        <numberconstant value="1">
+                                            <positive />
+                                        </numberconstant>
+                                    </subterm>
+                                    <subterm>
+                                        <tuple>
+                                            <subterm>
+                                                <useroperator declaration="b1" />
+                                            </subterm>
+                                            <subterm>
+                                                <useroperator declaration="F" />
+                                            </subterm>
+                                        </tuple>
+                                    </subterm>
+                                </numberof>
+                            </subterm>
+                             <subterm>
+                                <numberof>
+                                    <subterm>
+                                        <numberconstant value="1">
+                                            <positive />
+                                        </numberconstant>
+                                    </subterm>
+                                    <subterm>
+                                        <tuple>
+                                            <subterm>
+                                                <useroperator declaration="b2" />
+                                            </subterm>
+                                            <subterm>
+                                                <useroperator declaration="F" />
+                                            </subterm>
+                                        </tuple>
+                                    </subterm>
+                                </numberof>
+                            </subterm>
+                             <subterm>
+                                <numberof>
+                                    <subterm>
+                                        <numberconstant value="1">
+                                            <positive />
+                                        </numberconstant>
+                                    </subterm>
+                                    <subterm>
+                                        <tuple>
+                                            <subterm>
+                                                <useroperator declaration="b3" />
+                                            </subterm>
+                                            <subterm>
+                                                <useroperator declaration="F" />
+                                            </subterm>
+                                        </tuple>
+                                    </subterm>
+                                </numberof>
+                            </subterm>
+                             <subterm>
+                                <numberof>
+                                    <subterm>
+                                        <numberconstant value="1">
+                                            <positive />
+                                        </numberconstant>
+                                    </subterm>
+                                    <subterm>
+                                        <tuple>
+                                            <subterm>
+                                                <useroperator declaration="b4" />
+                                            </subterm>
+                                            <subterm>
+                                                <useroperator declaration="F" />
+                                            </subterm>
+                                        </tuple>
+                                    </subterm>
+                                </numberof>
+                            </subterm>
+                             <subterm>
+                                <numberof>
+                                    <subterm>
+                                        <numberconstant value="1">
+                                            <positive />
+                                        </numberconstant>
+                                    </subterm>
+                                    <subterm>
+                                        <tuple>
+                                            <subterm>
+                                                <useroperator declaration="b5" />
+                                            </subterm>
+                                            <subterm>
+                                                <useroperator declaration="F" />
+                                            </subterm>
+                                        </tuple>
+                                    </subterm>
+                                </numberof>
+                            </subterm>
+                             <subterm>
+                                <numberof>
+                                    <subterm>
+                                        <numberconstant value="1">
+                                            <positive />
+                                        </numberconstant>
+                                    </subterm>
+                                    <subterm>
+                                        <tuple>
+                                            <subterm>
+                                                <useroperator declaration="b6" />
+                                            </subterm>
+                                            <subterm>
+                                                <useroperator declaration="F" />
+                                            </subterm>
+                                        </tuple>
+                                    </subterm>
+                                </numberof>
+                            </subterm>
+                             <subterm>
+                                <numberof>
+                                    <subterm>
+                                        <numberconstant value="1">
+                                            <positive />
+                                        </numberconstant>
+                                    </subterm>
+                                    <subterm>
+                                        <tuple>
+                                            <subterm>
+                                                <useroperator declaration="b7" />
+                                            </subterm>
+                                            <subterm>
+                                                <useroperator declaration="F" />
+                                            </subterm>
+                                        </tuple>
+                                    </subterm>
+                                </numberof>
+                            </subterm>
+                             </add>
+                    </structure>
+                </hlinitialMarking>
+            </place>
+
+            <place id="endloop">
+                <name>
+                    <text>endloop</text>
+                </name>
+                <type>
+                    <text>PAIR</text>
+                    <structure>
+                        <usersort declaration="PAIR" />
+                    </structure>
+                </type>
+            </place>
+
+            <!-- %%%%%%%%%%%%%%%%%%%%%%%%%   TRANSITION choosei %%%%%%%%%%%%%%%%%%%%%%% -->
+
+            <transition id="choosei">
+                <name>
+                    <text>choosei</text>
+                </name>
+            </transition>
+
+            <arc id="idle2choosei" source="idle" target="choosei">
+                <name>
+                    <text>idle2choosei</text>
+                </name>
+                <hlinscription>
+                    <text>1'(t)</text>
+                    <structure>
+                        <numberof>
+                            <subterm>
+                                <numberconstant value="1">
+                                    <positive />
+                                </numberconstant>
+                            </subterm>
+                            <subterm>
+                                <dotconstant />
+                            </subterm>
+                        </numberof>
+                    </structure>
+                </hlinscription>
+            </arc>
+
+            <arc id="inodelist2choosei" source="inodelist" target="choosei">
+                <name>
+                    <text>inodelist2choosei</text>
+                </name>
+                <hlinscription>
+                    <text>1'(i)</text>
+                    <structure>
+                        <numberof>
+                            <subterm>
+                                <numberconstant value="1">
+                                    <positive />
+                                </numberconstant>
+                            </subterm>
+                            <subterm>
+                                <variable refvariable="i" />
+                            </subterm>
+                        </numberof>
+                    </structure>
+                </hlinscription>
+            </arc>
+
+            <arc id="choosei2initblock" source="choosei" target="initblock">
+                <name>
+                    <text>choosei2initblock</text>
+                </name>
+                <hlinscription>
+                    <text>1'(i)</text>
+                    <structure>
+                        <numberof>
+                            <subterm>
+                                <numberconstant value="1">
+                                    <positive />
+                                </numberconstant>
+                            </subterm>
+                            <subterm>
+                                <variable refvariable="i" />
+                            </subterm>
+                        </numberof>
+                    </structure>
+                </hlinscription>
+            </arc>
+
+
+            <!-- %%%%%%%%%%%%%%%%%%%%%%%%%   TRANSITION assignblock %%%%%%%%%%%%%%%%%%%%%%% -->
+
+            <transition id="assignblock">
+                <name>
+                    <text>assignblock</text>
+                </name>
+            </transition>
+
+            <arc id="initblock2assignblock" source="initblock" target="assignblock">
+                <name>
+                    <text>initblock2assignblock</text>
+                </name>
+                <hlinscription>
+                    <text>1'(i)</text>
+                    <structure>
+                        <numberof>
+                            <subterm>
+                                <numberconstant value="1">
+                                    <positive />
+                                </numberconstant>
+                            </subterm>
+                            <subterm>
+                                <variable refvariable="i" />
+                            </subterm>
+                        </numberof>
+                    </structure>
+                </hlinscription>
+            </arc>
+
+            <arc id="blockassoc2assignblock" source="blockassoc" target="assignblock">
+                <name>
+                    <text>blockassoc2assignblock</text>
+                </name>
+                <hlinscription>
+                    <text>1'(i,b)</text>
+                    <structure>
+                        <numberof>
+                            <subterm>
+                                <numberconstant value="1">
+                                    <positive />
+                                </numberconstant>
+                            </subterm>
+                            <subterm>
+                                <tuple>
+                                    <subterm>
+                                        <variable refvariable="i" />
+                                    </subterm>
+                                    <subterm>
+                                        <variable refvariable="b" />
+                                    </subterm>
+                                </tuple>
+                            </subterm>
+                        </numberof>
+                    </structure>
+                </hlinscription>
+            </arc>
+
+            <arc id="assignblock2blockassoc" source="assignblock" target="blockassoc">
+                <name>
+                    <text>assignblock2blockassoc</text>
+                </name>
+                <hlinscription>
+                    <text>1'(i,b)</text>
+                    <structure>
+                        <numberof>
+                            <subterm>
+                                <numberconstant value="1">
+                                    <positive />
+                                </numberconstant>
+                            </subterm>
+                            <subterm>
+                                <tuple>
+                                    <subterm>
+                                        <variable refvariable="i" />
+                                    </subterm>
+                                    <subterm>
+                                        <variable refvariable="b" />
+                                    </subterm>
+                                </tuple>
+                            </subterm>
+                        </numberof>
+                    </structure>
+                </hlinscription>
+            </arc>
+
+            <arc id="assignblock2beginloop" source="assignblock" target="beginloop">
+                <name>
+                    <text>assignblock2beginloop</text>
+                </name>
+                <hlinscription>
+                    <text>1'(i,b)</text>
+                    <structure>
+                        <numberof>
+                            <subterm>
+                                <numberconstant value="1">
+                                    <positive />
+                                </numberconstant>
+                            </subterm>
+                            <subterm>
+                                <tuple>
+                                    <subterm>
+                                        <variable refvariable="i" />
+                                    </subterm>
+                                    <subterm>
+                                        <variable refvariable="b" />
+                                    </subterm>
+                                </tuple>
+                            </subterm>
+                        </numberof>
+                    </structure>
+                </hlinscription>
+            </arc>
+
+            <!-- %%%%%%%%%%%%%%%%%%%%%%%%%   TRANSITION acquirelock %%%%%%%%%%%%%%%%%%%%%%% -->
+
+            <transition id="acquirelock">
+                <name>
+                    <text>acquirelock</text>
+                </name>
+            </transition>
+
+            <arc id="beginloop2acquirelock" source="beginloop" target="acquirelock">
+                <name>
+                    <text>beginloop2acquirelock</text>
+                </name>
+                <hlinscription>
+                    <text>1'(i,b)</text>
+                    <structure>
+                        <numberof>
+                            <subterm>
+                                <numberconstant value="1">
+                                    <positive />
+                                </numberconstant>
+                            </subterm>
+                            <subterm>
+                                <tuple>
+                                    <subterm>
+                                        <variable refvariable="i" />
+                                    </subterm>
+                                    <subterm>
+                                        <variable refvariable="b" />
+                                    </subterm>
+                                </tuple>
+                            </subterm>
+                        </numberof>
+                    </structure>
+                </hlinscription>
+            </arc>
+
+            <arc id="lockb2acquirelock" source="lockb" target="acquirelock">
+                <name>
+                    <text>lockb2acquirelock</text>
+                </name>
+                <hlinscription>
+                    <text>1'(b)</text>
+                    <structure>
+                        <numberof>
+                            <subterm>
+                                <numberconstant value="1">
+                                    <positive />
+                                </numberconstant>
+                            </subterm>
+                            <subterm>
+                                <variable refvariable="b" />
+                            </subterm>
+                        </numberof>
+                    </structure>
+                </hlinscription>
+            </arc>
+
+            <arc id="testbusy2initblock" source="acquirelock" target="testbusy">
+                <name>
+                    <text>testbusy2initblock</text>
+                </name>
+                <hlinscription>
+                    <text>1'(i,b)</text>
+                    <structure>
+                        <numberof>
+                            <subterm>
+                                <numberconstant value="1">
+                                    <positive />
+                                </numberconstant>
+                            </subterm>
+                            <subterm>
+                                <tuple>
+                                    <subterm>
+                                        <variable refvariable="i" />
+                                    </subterm>
+                                    <subterm>
+                                        <variable refvariable="b" />
+                                    </subterm>
+                                </tuple>
+                            </subterm>
+                        </numberof>
+                    </structure>
+                </hlinscription>
+            </arc>
+
+            <!-- %%%%%%%%%%%%%%%%%%%%%%%%%   TRANSITION ifnotbusy %%%%%%%%%%%%%%%%%%%%%%% -->
+
+            <transition id="ifnotbusy">
+                <name>
+                    <text>ifnotbusy</text>
+                </name>
+            </transition>
+
+            <arc id="testbusy2ifnotbusy" source="testbusy" target="ifnotbusy">
+                <name>
+                    <text>testbusy2ifnotbusy</text>
+                </name>
+                <hlinscription>
+                    <text>1'(i,b)</text>
+                    <structure>
+                        <numberof>
+                            <subterm>
+                                <numberconstant value="1">
+                                    <positive />
+                                </numberconstant>
+                            </subterm>
+                            <subterm>
+                                <tuple>
+                                    <subterm>
+                                        <variable refvariable="i" />
+                                    </subterm>
+                                    <subterm>
+                                        <variable refvariable="b" />
+                                    </subterm>
+                                </tuple>
+                            </subterm>
+                        </numberof>
+                    </structure>
+                </hlinscription>
+            </arc>
+
+            <arc id="busy2ifnotbusy" source="busy" target="ifnotbusy">
+                <name>
+                    <text>busy2ifnotbusy</text>
+                </name>
+                <hlinscription>
+                    <text>1'(b,F)</text>
+                    <structure>
+                        <numberof>
+                            <subterm>
+                                <numberconstant value="1">
+                                    <positive />
+                                </numberconstant>
+                            </subterm>
+                            <subterm>
+                                <tuple>
+                                    <subterm>
+                                        <variable refvariable="b" />
+                                    </subterm>
+                                    <subterm>
+                                        <useroperator declaration="F" />
+                                    </subterm>
+                                </tuple>
+                            </subterm>
+                        </numberof>
+                    </structure>
+                </hlinscription>
+            </arc>
+
+            <arc id="ifnotbusy2busy" source="ifnotbusy" target="busy">
+                <name>
+                    <text>ifnotbusy2busy</text>
+                </name>
+                <hlinscription>
+                    <text>1'(b,T)</text>
+                    <structure>
+                        <numberof>
+                            <subterm>
+                                <numberconstant value="1">
+                                    <positive />
+                                </numberconstant>
+                            </subterm>
+                            <subterm>
+                                <tuple>
+                                    <subterm>
+                                        <variable refvariable="b" />
+                                    </subterm>
+                                    <subterm>
+                                        <useroperator declaration="T" />
+                                    </subterm>
+                                </tuple>
+                            </subterm>
+                        </numberof>
+                    </structure>
+                </hlinscription>
+            </arc>
+
+            <arc id="ifnotbusy2endloop" source="ifnotbusy" target="endloop">
+                <name>
+                    <text>ifnotbusy2endloop</text>
+                </name>
+                <hlinscription>
+                    <text>1'(i,b)</text>
+                    <structure>
+                        <numberof>
+                            <subterm>
+                                <numberconstant value="1">
+                                    <positive />
+                                </numberconstant>
+                            </subterm>
+                            <subterm>
+                                <tuple>
+                                    <subterm>
+                                        <variable refvariable="i" />
+                                    </subterm>
+                                    <subterm>
+                                        <variable refvariable="b" />
+                                    </subterm>
+                                </tuple>
+                            </subterm>
+                        </numberof>
+                    </structure>
+                </hlinscription>
+            </arc>
+
+            <!-- %%%%%%%%%%%%%%%%%%%%%%%%%   TRANSITION ifbusy %%%%%%%%%%%%%%%%%%%%%%% -->
+
+            <transition id="ifbusy">
+                <name>
+                    <text>ifbusy</text>
+                </name>
+            </transition>
+
+            <arc id="testbusy2ifbusy" source="testbusy" target="ifbusy">
+                <name>
+                    <text>testbusy2ifbusy</text>
+                </name>
+                <hlinscription>
+                    <text>1'(i,b)</text>
+                    <structure>
+                        <numberof>
+                            <subterm>
+                                <numberconstant value="1">
+                                    <positive />
+                                </numberconstant>
+                            </subterm>
+                            <subterm>
+                                <tuple>
+                                    <subterm>
+                                        <variable refvariable="i" />
+                                    </subterm>
+                                    <subterm>
+                                        <variable refvariable="b" />
+                                    </subterm>
+                                </tuple>
+                            </subterm>
+                        </numberof>
+                    </structure>
+                </hlinscription>
+            </arc>
+
+            <arc id="busy2ifbusy" source="busy" target="ifbusy">
+                <name>
+                    <text>busy2ifbusy</text>
+                </name>
+                <hlinscription>
+                    <text>1'(b,T)</text>
+                    <structure>
+                        <numberof>
+                            <subterm>
+                                <numberconstant value="1">
+                                    <positive />
+                                </numberconstant>
+                            </subterm>
+                            <subterm>
+                                <tuple>
+                                    <subterm>
+                                        <variable refvariable="b" />
+                                    </subterm>
+                                    <subterm>
+                                        <useroperator declaration="T" />
+                                    </subterm>
+                                </tuple>
+                            </subterm>
+                        </numberof>
+                    </structure>
+                </hlinscription>
+            </arc>
+
+            <arc id="ifbusy2busy" source="ifbusy" target="busy">
+                <name>
+                    <text>ifbusy2busy</text>
+                </name>
+                <hlinscription>
+                    <text>1'(b,T)</text>
+                    <structure>
+                        <numberof>
+                            <subterm>
+                                <numberconstant value="1">
+                                    <positive />
+                                </numberconstant>
+                            </subterm>
+                            <subterm>
+                                <tuple>
+                                    <subterm>
+                                        <variable refvariable="b" />
+                                    </subterm>
+                                    <subterm>
+                                        <useroperator declaration="T" />
+                                    </subterm>
+                                </tuple>
+                            </subterm>
+                        </numberof>
+                    </structure>
+                </hlinscription>
+            </arc>
+
+            <arc id="ifbusy2loop" source="ifbusy" target="loop">
+                <name>
+                    <text>ifbusy2loop</text>
+                </name>
+                <hlinscription>
+                    <text>1'(i,b)</text>
+                    <structure>
+                        <numberof>
+                            <subterm>
+                                <numberconstant value="1">
+                                    <positive />
+                                </numberconstant>
+                            </subterm>
+                            <subterm>
+                                <tuple>
+                                    <subterm>
+                                        <variable refvariable="i" />
+                                    </subterm>
+                                    <subterm>
+                                        <variable refvariable="b" />
+                                    </subterm>
+                                </tuple>
+                            </subterm>
+                        </numberof>
+                    </structure>
+                </hlinscription>
+            </arc>
+
+            <!-- %%%%%%%%%%%%%%%%%%%%%%%%%   TRANSITION incrementb %%%%%%%%%%%%%%%%%%%%%%% -->
+
+            <transition id="incrementb">
+                <name>
+                    <text>incrementb</text>
+                </name>
+            </transition>
+
+            <arc id="incrementb2beginloop" source="incrementb" target="beginloop">
+                <name>
+                    <text>incrementb2beginloop</text>
+                </name>
+                <hlinscription>
+                    <text>1'(i,b++)</text>
+                    <structure>
+                        <numberof>
+                            <subterm>
+                                <numberconstant value="1">
+                                    <positive />
+                                </numberconstant>
+                            </subterm>
+                            <subterm>
+                                <tuple>
+                                    <subterm>
+                                        <variable refvariable="i" />
+                                    </subterm>
+                                    <subterm>
+                                        <successor>
+                                            <subterm>
+                                                <variable refvariable="b" />
+                                            </subterm>
+                                        </successor>
+                                    </subterm>
+                                </tuple>
+                            </subterm>
+                        </numberof>
+                    </structure>
+                </hlinscription>
+            </arc>
+
+            <arc id="loop2incrementb" source="loop" target="incrementb">
+                <name>
+                    <text>loop2</text>
+                </name>
+                <hlinscription>
+                    <text>1'(i,b)</text>
+                    <structure>
+                        <numberof>
+                            <subterm>
+                                <numberconstant value="1">
+                                    <positive />
+                                </numberconstant>
+                            </subterm>
+                            <subterm>
+                                <tuple>
+                                    <subterm>
+                                        <variable refvariable="i" />
+                                    </subterm>
+                                    <subterm>
+                                        <variable refvariable="b" />
+                                    </subterm>
+                                </tuple>
+                            </subterm>
+                        </numberof>
+                    </structure>
+                </hlinscription>
+            </arc>
+
+            <arc id="incrementb2lockb" source="incrementb" target="lockb">
+                <name>
+                    <text>incrementb2lockb</text>
+                </name>
+                <hlinscription>
+                    <text>1'(b)</text>
+                    <structure>
+                        <numberof>
+                            <subterm>
+                                <numberconstant value="1">
+                                    <positive />
+                                </numberconstant>
+                            </subterm>
+                            <subterm>
+                                <subterm>
+                                    <variable refvariable="b" />
+                                </subterm>
+                            </subterm>
+                        </numberof>
+                    </structure>
+                </hlinscription>
+            </arc>
+
+            <!-- %%%%%%%%%%%%%%%%%%%%%%%%%   TRANSITION setinode %%%%%%%%%%%%%%%%%%%%%%% -->
+
+            <transition id="setinode">
+                <name>
+                    <text>setinode</text>
+                </name>
+            </transition>
+
+            <arc id="endloop2setinode" source="endloop" target="setinode">
+                <name>
+                    <text>endloop2setinode</text>
+                </name>
+                <hlinscription>
+                    <text>1'(i,b)</text>
+                    <structure>
+                        <numberof>
+                            <subterm>
+                                <numberconstant value="1">
+                                    <positive />
+                                </numberconstant>
+                            </subterm>
+                            <subterm>
+                                <tuple>
+                                    <subterm>
+                                        <variable refvariable="i" />
+                                    </subterm>
+                                    <subterm>
+                                        <variable refvariable="b" />
+                                    </subterm>
+                                </tuple>
+                            </subterm>
+                        </numberof>
+                    </structure>
+                </hlinscription>
+            </arc>
+
+            <arc id="setinode2lockb" source="setinode" target="lockb">
+                <name>
+                    <text>setinode2lockb</text>
+                </name>
+                <hlinscription>
+                    <text>1'(b)</text>
+                    <structure>
+                        <numberof>
+                            <subterm>
+                                <numberconstant value="1">
+                                    <positive />
+                                </numberconstant>
+                            </subterm>
+                            <subterm>
+                                <variable refvariable="b" />
+                            </subterm>
+                        </numberof>
+                    </structure>
+                </hlinscription>
+            </arc>
+
+            <arc id="setinode2inode" source="setinode" target="inode">
+                <name>
+                    <text>setinode2inode</text>
+                </name>
+                <hlinscription>
+                    <text>1'(i,b)</text>
+                    <structure>
+                        <numberof>
+                            <subterm>
+                                <numberconstant value="1">
+                                    <positive />
+                                </numberconstant>
+                            </subterm>
+                            <subterm>
+                                <tuple>
+                                    <subterm>
+                                        <variable refvariable="i" />
+                                    </subterm>
+                                    <subterm>
+                                        <variable refvariable="b" />
+                                    </subterm>
+                                </tuple>
+                            </subterm>
+                        </numberof>
+                    </structure>
+                </hlinscription>
+            </arc>
+
+            <arc id="setinode2idle" source="setinode" target="idle">
+                <name>
+                    <text>setinode2idle</text>
+                </name>
+                <hlinscription>
+                    <text>1'(dot)</text>
+                    <structure>
+                        <numberof>
+                            <subterm>
+                                <numberconstant value="1">
+                                    <positive />
+                                </numberconstant>
+                            </subterm>
+                            <subterm>
+                                <dotconstant />
+                            </subterm>
+                        </numberof>
+                    </structure>
+                </hlinscription>
+            </arc>
+
+            <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%% DECLARATIONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+        </page>
+
+        <declaration>
+            <structure>
+                <declarations>
+                    <namedsort id="dot" name="Dot">
+                        <dot />
+                    </namedsort>
+                    <namedsort id="INODE" name="INODE">
+                        <cyclicenumeration> <feconstant id="i0" name="i0" /> <feconstant id="i1" name="i1" /> <feconstant id="i2" name="i2" /> <feconstant id="i3" name="i3" /> <feconstant id="i4" name="i4" /> <feconstant id="i5" name="i5" /> <feconstant id="i6" name="i6" /> <feconstant id="i7" name="i7" /> <feconstant id="i8" name="i8" /> <feconstant id="i9" name="i9" /> </cyclicenumeration>
+                    </namedsort>
+                    <namedsort id="BLOCK" name="BLOCK">
+                        <cyclicenumeration> <feconstant id="b0" name="b0" /> <feconstant id="b1" name="b1" /> <feconstant id="b2" name="b2" /> <feconstant id="b3" name="b3" /> <feconstant id="b4" name="b4" /> <feconstant id="b5" name="b5" /> <feconstant id="b6" name="b6" /> <feconstant id="b7" name="b7" /> </cyclicenumeration>
+                    </namedsort>
+                    <namedsort id="Bool" name="Bool">
+                        <cyclicenumeration>
+                            <feconstant id="T" name="T" />
+                            <feconstant id="F" name="F" />
+                        </cyclicenumeration>
+                    </namedsort>
+                    <namedsort id="BUSY" name="BUSY">
+                        <productsort>
+                            <usersort declaration="BLOCK" />
+                            <usersort declaration="Bool" />
+                        </productsort>
+                    </namedsort>
+                    <namedsort id="PAIR" name="PAIR">
+                        <productsort>
+                            <usersort declaration="INODE" />
+                            <usersort declaration="BLOCK" />
+                        </productsort>
+                    </namedsort>
+                    <variabledecl id="i" name="i">
+                        <usersort declaration="INODE" />
+                    </variabledecl>
+                    <variabledecl id="b" name="b">
+                        <usersort declaration="BLOCK" />
+                    </variabledecl>
+                </declarations>
+            </structure>
+        </declaration>
+    </net>
+</pnml>

@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<pnml xmlns="http://www.pnml.org/version-2009/grammar/pnml">
+  <net id="guarded" type="http://www.pnml.org/version-2009/grammar/symmetricnet">
+    <name><text>guarded</text></name>
+    <declaration>
+      <structure>
+        <declarations>
+          <namedsort id="C" name="C">
+            <cyclicenumeration><feconstant id="c1" name="1"/><feconstant id="c2" name="2"/><feconstant id="c3" name="3"/></cyclicenumeration>
+          </namedsort>
+          <variabledecl id="x" name="x"><usersort declaration="C"/></variabledecl>
+          <variabledecl id="y" name="y"><usersort declaration="C"/></variabledecl>
+        </declarations>
+      </structure>
+    </declaration>
+    <page id="page">
+      <place id="pool">
+        <name><text>pool</text></name>
+        <type><text>C</text><structure><usersort declaration="C"/></structure></type>
+        <hlinitialMarking>
+          <text>1'C.all</text>
+          <structure><numberof><subterm><numberconstant value="1"><positive/></numberconstant></subterm><subterm><all><usersort declaration="C"/></all></subterm></numberof></structure>
+        </hlinitialMarking>
+      </place>
+      <place id="pairs">
+        <name><text>pairs</text></name>
+        <type><text>C</text><structure><usersort declaration="C"/></structure></type>
+      </place>
+      <transition id="pick">
+        <name><text>pick</text></name>
+        <condition>
+          <text>(x != y)</text>
+          <structure>
+            <and>
+              <subterm><inequality><subterm><variable refvariable="x"/></subterm><subterm><variable refvariable="y"/></subterm></inequality></subterm>
+              <subterm><not><subterm><lessthan><subterm><variable refvariable="x"/></subterm><subterm><successor><subterm><variable refvariable="y"/></subterm></successor></subterm></lessthan></subterm></not></subterm>
+            </and>
+          </structure>
+        </condition>
+      </transition>
+      <arc id="a1" source="pool" target="pick">
+        <hlinscription>
+          <text>1'x + 1'y</text>
+          <structure>
+            <add>
+              <subterm><numberof><subterm><numberconstant value="1"><positive/></numberconstant></subterm><subterm><variable refvariable="x"/></subterm></numberof></subterm>
+              <subterm><numberof><subterm><numberconstant value="1"><positive/></numberconstant></subterm><subterm><variable refvariable="y"/></subterm></numberof></subterm>
+            </add>
+          </structure>
+        </hlinscription>
+      </arc>
+      <arc id="a2" source="pick" target="pairs">
+        <hlinscription>
+          <text>2'x</text>
+          <structure><numberof><subterm><numberconstant value="2"><positive/></numberconstant></subterm><subterm><variable refvariable="x"/></subterm></numberof></structure>
+        </hlinscription>
+      </arc>
+    </page>
+  </net>
+</pnml>

@@ -7,6 +7,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query
 
+from app.domain.colored_summary import ColoredSummary
 from app.domain.contract import (
     DEFAULT_PAGE_LIMIT,
     MAX_PAGE_LIMIT,
@@ -55,6 +56,16 @@ def get_summary(*, net_id: str, inspection: InspectionDep) -> Envelope[NetOvervi
         started=started,
         data=inspection.overview(net_id=net_id),
     )
+
+
+@router.get("/colored")
+def get_colored_summary(
+    *, net_id: str, inspection: InspectionDep, examples: Annotated[int, Query(ge=0, le=20)] = 3
+) -> Envelope[ColoredSummary]:
+    """Summarize a colored net: sorts, groups of places and transitions, size of the unfolding."""
+    started = time.perf_counter()
+    summary = inspection.colored(net_id=net_id, examples=examples)
+    return wrap(tool="inspect.colored", net_id=net_id, started=started, data=summary)
 
 
 @router.get("/places")

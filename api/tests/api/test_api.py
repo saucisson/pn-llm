@@ -1,4 +1,5 @@
 import time
+from pathlib import Path
 
 from fastapi.testclient import TestClient
 
@@ -286,3 +287,31 @@ def test_the_built_ui_is_served_under_ui_when_a_directory_is_given(tmp_path):
 
 def test_there_is_no_ui_route_without_a_directory(client):
     assert client.get("/ui/").status_code == 404
+
+
+# ---- colored nets ---------------------------------------------------------------------------
+
+COLORED_FIXTURE = (
+    Path(__file__).resolve().parents[1] / "corpus" / "colored" / "Philosophers-COL-000100.pnml"
+)
+
+
+def test_a_colored_net_is_summarized_at_the_colored_level(client):
+    net_id = client.post("/v1/nets", content=COLORED_FIXTURE.read_bytes(), headers=XML).json()[
+        "net_id"
+    ]
+    envelope = client.get(f"/v1/nets/{net_id}/colored", params={"examples": 2}).json()
+    data = envelope["data"]
+    assert envelope["status"] == "ok"
+    assert data["unfolded"]["places"] == 500
+    assert [(g["sort"], g["count"]) for g in data["place_groups"]] == [("Philo", 5)]
+    assert len(data["place_groups"][0]["examples"]) == 2
+    assert "<pnml" not in str(envelope)
+
+
+def test_the_colored_summary_of_a_p_t_net_is_a_422_problem(client):
+    net_id = upload(client)["net_id"]
+    response = client.get(f"/v1/nets/{net_id}/colored")
+    assert response.status_code == 422
+    assert "symmetric" in response.json()["detail"]
+    assert client.get("/v1/nets/nope/colored").status_code == 404
