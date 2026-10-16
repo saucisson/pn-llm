@@ -93,6 +93,7 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/domain/next_moves.py` | domain | What to try after a timeout, out-of-memory, UNKNOWN or error: suggestions that never become a verdict |
 | `app/domain/baseline.py` | domain | Baseline B0: standard properties written from the structure of a net, no language model (`bench/README.md`) |
 | `app/domain/soundness.py` | domain | Audit of a session log against the jobs it cites: findings for unsupported verdicts, contradictions listed (measure M1) |
+| `app/domain/non_triviality.py` | domain | Measure M4: share of properties neither vacuous nor decided by the structure, per family then per condition |
 | `app/domain/predictor.py` | domain | Instance features, decision trees (CART) giving the chance an engine answers, the `Predictor` model |
 | `app/domain/selection_evaluation.py` | domain | Training the predictor from contest runs and scoring it against the single best engine and the oracle, by family |
 | `app/domain/mcc_results.py` | domain | The contest's published runs: tool names normalized, the contest's own outcome classes kept (never a verdict), success rate and median time per family |
