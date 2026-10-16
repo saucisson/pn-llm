@@ -126,3 +126,19 @@ raters rate every item; `analyze` prints Cohen's kappa for keep/drop and a linea
 for the 1 to 5 score, per pair of raters, and the per-condition per-family values (`M8_rating`,
 `M8_keep`) that `app.analyze_runs`' comparison takes. Blinding is limited by the properties
 themselves: the baseline's property shapes are recognizable to an expert, which the report must say.
+
+## Report
+
+```bash
+python -m app.analyze_runs b0.jsonl l1.jsonl l2.jsonl l3.jsonl n.jsonl > analysis.json
+python -m app.audit_sessions > soundness.json
+python -m app.report_evaluation --analysis analysis.json --soundness soundness.json \
+  --deviations deviations.txt > report.md
+```
+
+The report is written from the numbers: C1 (no unsupported verdict) from the audit, C3 (M6 of L3
+minus B0: at least +0.10 with the 95% interval above 0) from the analysis, M4 (at least 80% non-trivial).
+A claim whose measure was not made is *not measured*, never met. It then lists the secondary
+comparisons with Holm's correction, the families left out of a comparison, the deviations from the
+frozen protocol (one per line in `deviations.txt`, each with its reason) and `results/NEGATIVE.md`.
+C2 (fidelity) and M8 come from the raters (`app.rate`) and are added by hand to the discussion.
