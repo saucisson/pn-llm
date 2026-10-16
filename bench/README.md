@@ -32,3 +32,12 @@ result behind it, or differs from the engine's verdict, formula, engine or versi
 the counterexample; an UNKNOWN, TIMEOUT, OOM or ERROR in the job cannot appear as another verdict.
 Contradictions between engines found in the jobs are listed, never resolved. Run it on every set of
 sessions before reporting a result: any finding is a defect to fix, not a number to optimise.
+
+## M4: non-triviality
+
+`non_triviality_by_condition` (`app/domain/non_triviality.py`) counts, per condition, the properties
+whose premise is impossible (`vacuous_antecedent`) and those the structure decides
+(`holds_in_every_state`, `holds_in_no_state`: bounds, invariants, dead transitions). The findings
+come from `triviality_of`, the filter the assistant sees in `check_formulas`; it is not redone
+here. Counts are pooled per family, the condition is the mean over families, and a family without
+any property is listed without a share instead of counting as 0 or 1.
