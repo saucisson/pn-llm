@@ -186,6 +186,7 @@ def build_experiments(*, config: Settings) -> Experiments:
         engines=registry,
         lease_seconds=config.job_lease_seconds,
         selection=selection,
+        lineage=SqliteOperations(path=config.database_path),
     )
     operations = build_operations(config=config, store=store, engines=registry)
     nets = NetService(
@@ -300,6 +301,7 @@ def create_app(
         engines=registry,
         lease_seconds=config.job_lease_seconds,
         selection=selection,
+        lineage=SqliteOperations(path=config.database_path),
     )
     operations_service = build_operations(config=config, store=store, engines=registry)
     agent = build_agent(
@@ -415,6 +417,7 @@ def worker_main() -> None:
         engines=registry,
         lease_seconds=config.job_lease_seconds,
         selection=selection,
+        lineage=SqliteOperations(path=config.database_path),
     )
     operations_service = build_operations(config=config, store=store, engines=registry)
     agent = build_agent(

@@ -105,6 +105,7 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/domain/study_measures.py` | domain | Interaction measures a session log gives (time to the first definitive verdict, properties, questions, verdicts) |
 | `app/domain/freeze.py` | domain | The manifest of a frozen evaluation: families (dev, test; public, unpublished, synthetic), rule, thresholds, versions |
 | `app/domain/unfold_operation.py` | domain | The operation `unfold` (registered with the reductions): a symmetric net becomes a stored P/T net linked to its parent, with the mapping in the result |
+| `app/domain/colored_formulas.py` | domain | Translate a property about a colored net into one about its unfolding, using the lineage |
 | `app/domain/unfolding.py` | domain | Unfold a symmetric net into a P/T net, with the mapping (colored place and color, transition and binding) and size limits |
 | `app/domain/predictor.py` | domain | Instance features, decision trees (CART) giving the chance an engine answers, the `Predictor` model |
 | `app/domain/selection_evaluation.py` | domain | Training the predictor from contest runs and scoring it against the single best engine and the oracle, by family |

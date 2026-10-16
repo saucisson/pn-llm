@@ -512,3 +512,48 @@ def test_a_counterexample_found_on_the_unfolding_is_given_on_the_colored_net_wit
     unfolded = client.get(url, params={"net": "reduced"}).json()
     assert [s["transition"]["id"] for s in unfolded["data"]["steps"]] == ["pick_2_1", "pick_3_2"]
     assert all("binding" not in s for s in unfolded["data"]["steps"])
+
+
+def test_a_check_on_the_unfolding_may_cite_the_colored_places_and_transitions(settings):
+    app = create_app(
+        settings=settings.model_copy(update={"operation_wait_seconds": 0}),
+        engine_gateway=ChecksAndOperations(trace_steps=()),
+    )
+    client = TestClient(app)
+    colored = client.post("/v1/nets", content=GUARDED, headers=XML).json()["net_id"]
+    ask(client, colored, "unfold")
+    app.state.operations.drain()
+    child = ask(client, colored, "unfold").json()["data"]["new_net_id"]
+    body = {
+        "formulas": [
+            {
+                "id": "f1",
+                "logic": "ctl",
+                "ast": {
+                    "op": "AG",
+                    "arg": {"op": "tokens", "place": "pairs", "cmp": "<=", "value": 4},
+                },
+            },
+            {
+                "id": "f2",
+                "logic": "ctl",
+                "ast": {"op": "EF", "arg": {"op": "enabled", "transition": "pick"}},
+            },
+        ],
+        "engine": "scripted",
+    }
+    submitted = client.post(f"/v1/nets/{child}/checks", json=body)
+    assert submitted.status_code == 202, submitted.text
+    job = app.state.checks.get(job_id=submitted.json()["data"]["job_id"])
+    first, second = (f.ast for f in job.request.formulas)
+    assert first.arg.left.places == ("pairs_1", "pairs_2", "pairs_3")  # the sum over the colors
+    assert {a.transition for a in second.arg.args} == {
+        "pick_2_1",
+        "pick_3_1",
+        "pick_3_2",
+        "pick_1_3",
+        "pick_2_3",
+    }
+    # On the colored net itself nothing is translated: its engines read colored properties.
+    on_colored = client.post(f"/v1/nets/{colored}/checks", json=body)
+    assert on_colored.status_code == 202

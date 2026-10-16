@@ -153,6 +153,13 @@ class LineageExpansion(DomainModel):
     binding: tuple[Assignment, ...] = ()
 
 
+class LineagePlace(DomainModel):
+    """A place of a derived net and the place of the parent it stands for (an unfolding)."""
+
+    unfolded: str
+    original: str
+
+
 class Lineage(DomainModel):
     """How a net was derived from another: the rule and what its transitions stand for there."""
 
@@ -160,3 +167,5 @@ class Lineage(DomainModel):
     parent_id: str
     rule: str
     expansions: tuple[LineageExpansion, ...] = ()
+    # For an unfolding: which colored place each place stands for.
+    places: tuple[LineagePlace, ...] = ()
