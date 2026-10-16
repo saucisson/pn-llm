@@ -93,6 +93,12 @@ class CheckFormulasArguments(DomainModel):
     formulas: tuple[FormulaText, ...] = Field(min_length=1, max_length=10)
     engine: str = "auto"
     timeout_s: int = Field(default=60, ge=1, le=600)
+    portfolio: int = Field(
+        default=1, ge=1, le=4, description="With engine auto: ask this many engines at once"
+    )
+    cross_check: bool = Field(
+        default=False, description="Wait for every engine of the portfolio and compare them"
+    )
 
 
 class TraceArguments(DomainModel):

@@ -233,6 +233,85 @@ class InProcessNative:
         return self.tamper(report) if self.tamper else report
 
 
+class PortfolioEngines:
+    """Engines that answer from a table, can be held, and know when they are stopped.
+
+    ``answers`` maps an engine name to (verdict, time, trace steps or None, hold). An engine with
+    ``hold`` true does not answer until it is stopped, as a slow tool would.
+    """
+
+    def __init__(self, *, answers, classes=("state-cardinality", "ctl-cardinality")):
+        import threading
+
+        self.answers = answers
+        self.classes = classes
+        self.stopped = []
+        self.runs = []
+        self._released = {name: threading.Event() for name in answers}
+
+    def list_engines(self):
+        from app.domain.models import EngineInfo
+
+        return tuple(
+            EngineInfo(
+                name=name,
+                version="1",
+                logics=("state", "ctl"),
+                classes=self.classes,
+                examinations=("ReachabilityCardinality",),
+                available=True,
+            )
+            for name in self.answers
+        )
+
+    def is_known(self, *, name):
+        return name in self.answers
+
+    def choose(self, *, requested):
+        return next(iter(self.answers)) if requested == "auto" else requested
+
+    def stop(self, *, job_id):
+        self.stopped.append(job_id)
+        for name, event in self._released.items():
+            if job_id.endswith(f".{name}"):
+                event.set()
+
+    def run(self, *, engine, pnml, request, job_id):
+        from app.domain.engine_contract import (
+            EngineFormulaResult,
+            EngineReport,
+            EngineTrace,
+            EngineTraceStep,
+            ReportedResult,
+        )
+        from app.domain.models import Verdict
+
+        self.runs.append((engine, job_id, request.reduce))
+        verdict, seconds, steps, hold = self.answers[engine]
+        if hold:
+            self._released[engine].wait(timeout=10)
+            verdict = "ERROR"
+        return EngineReport(
+            tool_name=engine,
+            tool_version="1",
+            status="ok",
+            results=tuple(
+                ReportedResult(
+                    result=EngineFormulaResult(
+                        id=f.id,
+                        verdict=Verdict(verdict),
+                        time_s=seconds,
+                        rendered=f"{engine} syntax",
+                    ),
+                    trace=None
+                    if steps is None
+                    else EngineTrace(steps=tuple(EngineTraceStep(transition=t) for t in steps)),
+                )
+                for f in request.formulas
+            ),
+        )
+
+
 def make_analysis_tools(*, store, path, engines=None):
     """The analysis tools of the agent over a store, with the native engine as a function call."""
     from app.application.analysis_tools import AnalysisTools

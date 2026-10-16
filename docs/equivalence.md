@@ -34,3 +34,17 @@ the contest's reference rows are not engines and do not count. Without imported 
 fixed and no probability is invented (`basis: preference`). The ranking never overrides a
 capability. A learned predictor (milestone M5) replaces the history by features of the net and the
 formula; the endpoint does not change.
+
+## Portfolios and contradictions
+`engine: auto` with `portfolio: k` (at most 4) runs the `k` best equivalent engines at the same time.
+Unless `cross_check` is set, the engines still running are stopped as soon as every formula has a
+definitive verdict from one of them; with `cross_check` the platform waits for all of them and
+compares. Every engine's answer is kept in `alternatives` (engine, version, verdict, time, warnings,
+whether it gave a trace).
+
+If definitive verdicts disagree the result is `UNKNOWN` with `agreement: contradiction`, the
+warning `engines_contradict` and all the evidence: the platform does not choose a side (CLAUDE.md,
+domain rule 8). The one exception is a counterexample the platform can replay itself: a FALSE for an
+invariant (`AG phi`, `G phi`, with `phi` free of temporal operators) whose trace, replayed on the
+net, really ends in a marking that breaks `phi` is settled by the net (`arbitration:
+counterexample_replayed`); the contradiction stays reported, because one engine was wrong.

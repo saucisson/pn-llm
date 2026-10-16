@@ -10,6 +10,7 @@ request text.
 from __future__ import annotations
 
 import contextlib
+import re
 from pathlib import Path
 from typing import Any
 
@@ -180,10 +181,15 @@ class DockerRunner:
                 leftover.remove(force=True)
 
     def containers_of(self, *, job_id: str) -> list[Any]:
-        """Return the containers labelled with a job id (none if the daemon is unreachable)."""
+        """Return the containers of a job and of its portfolio (``<job>.<engine>``).
+
+        None are returned if the daemon is unreachable.
+        """
         try:
-            return list(
-                self.client().containers.list(all=True, filters={"label": f"{JOB_LABEL}={job_id}"})
-            )
+            client = self.client()
+            labelled = client.containers.list(all=True, filters={"label": f"{JOB_LABEL}={job_id}"})
+            pattern = f"^/{NAME_PREFIX}{re.escape(job_id)}\\.[A-Za-z0-9_-]+$"
+            portfolio = client.containers.list(all=True, filters={"name": pattern})
+            return list({c.id: c for c in (*labelled, *portfolio)}.values())
         except DockerUnavailableError:
             return []  # nothing can be running if the daemon is gone

@@ -243,7 +243,9 @@ Asynchronous verification of structured formulas (batch semantics, ADR 0014 poin
 of the `k`-th result, steps citing transitions, on the original net). For a check run on a net
 obtained by reductions the trace is lifted through each reduction to the original net (each
 firing replaced by what it stands for, `expansions` of the reduction); `?net=reduced` gives the
-trace on the net the check ran on. `reduce` (default `true`) lets the engine reduce the net
+trace on the net the check ran on. `portfolio` (1 to 4, with `engine: auto`) runs the best equivalent engines at once and `cross_check`
+waits for all of them (`docs/equivalence.md`: results carry `agreement` and `alternatives`, and a
+contradiction is reported, never resolved). `reduce` (default `true`) lets the engine reduce the net
 internally; `false` asks it not to, for comparison, and an engine that cannot say so in a warning. A result carries the engine,
 its pinned version, the formula in the engine's syntax (`rendered`) and `trace_url` when there is a
 counterexample.

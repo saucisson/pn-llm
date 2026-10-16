@@ -5,8 +5,9 @@ from __future__ import annotations
 import logging
 import time
 import uuid
+from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 
-from app.domain.engine_check import all_error, interpret_report
+from app.domain.engine_check import CheckOutcome, all_error, interpret_report
 from app.domain.engine_contract import EngineRequest, Trace
 from app.domain.errors import InvalidFormulaError, InvalidRequestError, NotFoundError
 from app.domain.formula_check import check_formula
@@ -16,11 +17,13 @@ from app.domain.models import (
     JobState,
     JobSubmission,
 )
-from app.domain.net_structure import build_structure
+from app.domain.net_structure import NetStructure, build_structure
 from app.domain.pnml_export import render_pnml
+from app.domain.portfolio import DEFINITIVE, EngineRun, merge_outcomes
 
 from .leases import LeaseKeeper
 from .ports import EngineGateway, JobRepository, NetRepository
+from .selection import SelectionRequest, SelectionService
 
 JOB_ID_LENGTH = 12
 
@@ -37,12 +40,14 @@ class CheckService:
         jobs: JobRepository,
         engines: EngineGateway,
         lease_seconds: float,
+        selection: SelectionService | None = None,
     ) -> None:
-        """Create the service with the ports it needs and the job lease duration."""
+        """Create the service with its ports, the job lease and, to rank engines, a selector."""
         self._nets = nets
         self._jobs = jobs
         self._engines = engines
         self._lease_seconds = lease_seconds
+        self._selection = selection
 
     def submit(self, *, net_id: str, request: CheckRequest) -> JobSubmission:
         """Register a check. The same net and request give the same job, also across restarts.
@@ -76,6 +81,108 @@ class CheckService:
         )
         return self._jobs.create_or_get_job(job=job)
 
+    def plan(self, *, job: Job) -> tuple[str, ...]:
+        """Choose the engines of a job: the one asked for, or the best ones for "auto".
+
+        With a selector, "auto" means the ``portfolio`` best engines for the formulas on the net;
+        without one, or when none qualifies, the placeholder choice of the gateway.
+        """
+        request = job.request
+        if request.engine != "auto":
+            return (request.engine,)
+        if self._selection is not None:
+            try:
+                ranked = self._selection.select(
+                    request=SelectionRequest(
+                        net_id=job.net_id, formulas=request.formulas, limits=request.limits
+                    )
+                ).ranked
+            except InvalidRequestError:
+                ranked = ()
+            if ranked:
+                return tuple(item.engine for item in ranked[: request.portfolio])
+        return (self._engines.choose(requested="auto"),)
+
+    def run_on_engine(
+        self,
+        *,
+        job: Job,
+        engine: str,
+        container_id: str,
+        pnml: bytes,
+        structure: NetStructure,
+    ) -> CheckOutcome:
+        """Run one engine on a job and check what it says; a crash is ERROR, never a verdict."""
+        try:
+            report = self._engines.run(
+                engine=engine,
+                pnml=pnml,
+                request=EngineRequest(
+                    net_id=job.net_id,
+                    formulas=job.request.formulas,
+                    limits=job.request.limits,
+                    reduce=job.request.reduce,
+                ),
+                job_id=container_id,
+            )
+            return interpret_report(
+                report=report,
+                request=job.request,
+                engine=engine,
+                net_id=job.net_id,
+                structure=structure,
+            )
+        except Exception as exc:  # noqa: BLE001  (adapter bugs are reported, not propagated)
+            return all_error(
+                request=job.request,
+                engine=engine,
+                warning=f"runner_exception: {type(exc).__name__}",
+            )
+
+    def run_portfolio(
+        self,
+        *,
+        job: Job,
+        engines: tuple[str, ...],
+        pnml: bytes,
+        structure: NetStructure,
+    ) -> CheckOutcome:
+        """Run several engines at the same time and merge what they say.
+
+        Unless the request wants a cross-check, the engines still running are stopped as soon as
+        every formula has a definitive verdict from some engine.
+        """
+        runs: list[EngineRun] = []
+        with ThreadPoolExecutor(max_workers=len(engines)) as pool:
+            futures = {
+                pool.submit(
+                    self.run_on_engine,
+                    job=job,
+                    engine=engine,
+                    container_id=f"{job.job_id}.{engine}",
+                    pnml=pnml,
+                    structure=structure,
+                ): engine
+                for engine in engines
+            }
+            pending = set(futures)
+            while pending:
+                done, pending = wait(pending, return_when=FIRST_COMPLETED)
+                runs.extend(EngineRun(engine=futures[f], outcome=f.result()) for f in done)
+                merged = merge_outcomes(
+                    formulas=job.request.formulas, runs=tuple(runs), structure=structure
+                )
+                settled = all(item.verdict in DEFINITIVE for item in merged.results)
+                if pending and settled and not job.request.cross_check:
+                    for future in pending:
+                        self._engines.stop(job_id=f"{job.job_id}.{futures[future]}")
+                    break
+        return merge_outcomes(
+            formulas=job.request.formulas,
+            runs=tuple(sorted(runs, key=lambda run: engines.index(run.engine))),
+            structure=structure,
+        )
+
     def run_next(self) -> bool:
         """Claim the oldest queued job and run it to completion; False if the queue was empty.
 
@@ -90,40 +197,23 @@ class CheckService:
         began = time.monotonic()
         net = self._nets.load_net(net_id=job.net_id)
         structure = build_structure(document=net.document, net_id=job.net_id)
-        engine = self._engines.choose(requested=job.request.engine)
+        engines = self.plan(job=job)
+        engine = "+".join(engines)
         logger.info("job_started", extra={"job_id": job_id, "net_id": job.net_id, "engine": engine})
-        try:
-            with LeaseKeeper(
-                renew=lambda: self._jobs.renew_lease(
-                    job_id=job_id, lease_seconds=self._lease_seconds
-                ),
-                lease_seconds=self._lease_seconds,
-                on_lost=lambda: self._engines.stop(job_id=job_id),
-            ):
-                report = self._engines.run(
-                    engine=engine,
-                    pnml=render_pnml(document=net.document),
-                    request=EngineRequest(
-                        net_id=job.net_id,
-                        formulas=job.request.formulas,
-                        limits=job.request.limits,
-                        reduce=job.request.reduce,
-                    ),
-                    job_id=job_id,
+        pnml = render_pnml(document=net.document)
+        with LeaseKeeper(
+            renew=lambda: self._jobs.renew_lease(job_id=job_id, lease_seconds=self._lease_seconds),
+            lease_seconds=self._lease_seconds,
+            on_lost=lambda: self._engines.stop(job_id=job_id),
+        ):
+            if len(engines) == 1:
+                outcome = self.run_on_engine(
+                    job=job, engine=engines[0], container_id=job_id, pnml=pnml, structure=structure
                 )
-            outcome = interpret_report(
-                report=report,
-                request=job.request,
-                engine=engine,
-                net_id=job.net_id,
-                structure=structure,
-            )
-        except Exception as exc:  # noqa: BLE001  (adapter bugs are reported, not propagated)
-            outcome = all_error(
-                request=job.request,
-                engine=engine,
-                warning=f"runner_exception: {type(exc).__name__}",
-            )
+            else:
+                outcome = self.run_portfolio(
+                    job=job, engines=engines, pnml=pnml, structure=structure
+                )
         # A counterexample is served at a stable address, built from the position of its result.
         results = tuple(
             result.model_copy(

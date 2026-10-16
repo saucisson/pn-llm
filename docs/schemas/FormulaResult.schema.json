@@ -1,5 +1,46 @@
 {
   "$defs": {
+    "EngineAnswer": {
+      "description": "What one engine answered for a formula, kept as evidence when several engines were asked.",
+      "properties": {
+        "engine": {
+          "title": "Engine",
+          "type": "string"
+        },
+        "engine_version": {
+          "default": "unknown",
+          "title": "Engine Version",
+          "type": "string"
+        },
+        "has_trace": {
+          "default": false,
+          "title": "Has Trace",
+          "type": "boolean"
+        },
+        "time_s": {
+          "default": 0.0,
+          "title": "Time S",
+          "type": "number"
+        },
+        "verdict": {
+          "$ref": "#/$defs/Verdict"
+        },
+        "warnings": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Warnings",
+          "type": "array"
+        }
+      },
+      "required": [
+        "engine",
+        "verdict"
+      ],
+      "title": "EngineAnswer",
+      "type": "object"
+    },
     "Verdict": {
       "description": "Outcome of one verification. UNKNOWN must never be confused with FALSE.",
       "enum": [
@@ -16,6 +57,36 @@
   },
   "description": "Verdict of one formula, with the engine that produced it.",
   "properties": {
+    "agreement": {
+      "default": "single",
+      "enum": [
+        "single",
+        "agree",
+        "contradiction"
+      ],
+      "title": "Agreement",
+      "type": "string"
+    },
+    "alternatives": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/EngineAnswer"
+      },
+      "title": "Alternatives",
+      "type": "array"
+    },
+    "arbitration": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Arbitration"
+    },
     "engine": {
       "title": "Engine",
       "type": "string"

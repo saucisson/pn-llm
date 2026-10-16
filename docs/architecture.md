@@ -54,6 +54,7 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/domain/mcc_xml.py` | domain | Formula trees written as the contest's property XML (the inverse of `parse_property_set`), which verifypn and others read natively |
 | `app/domain/capabilities.py` | domain | Classes of properties, the contest examinations a class needs, the capability table |
 | `app/domain/equivalence.py` | domain | When engines are interchangeable for a class: known differences, caveats and breaks |
+| `app/domain/portfolio.py` | domain | Merging the answers of several engines: shared verdicts, contradictions kept as evidence, settled only by a counterexample replayed on the net |
 | `app/domain/conformance.py` | domain | Conformance cases, the engine-by-case matrix, wrong answers and contradictions flagged for triage |
 | `app/domain/operations.py` | domain | The operations (analyses, reductions): `OperationDefinition`, the request, the run and its outcome |
 | `app/domain/operation_check.py` | domain | Checks what an engine says an operation found: the shape, and only elements the net has, with their names |
