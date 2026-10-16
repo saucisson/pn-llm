@@ -41,3 +41,18 @@ whose premise is impossible (`vacuous_antecedent`) and those the structure decid
 come from `triviality_of`, the filter the assistant sees in `check_formulas`; it is not redone
 here. Counts are pooled per family, the condition is the mean over families, and a family without
 any property is listed without a share instead of counting as 0 or 1.
+
+## M5 and M6: mutants
+
+`app/domain/mutation.py` injects one fault per mutant (arc removed or added, weight or initial
+marking changed, transition removed) into a P/T net, chosen from a seed so every condition is judged
+on the same mutants. `app/domain/mutation_score.py` judges them: a property kills a mutant when its
+verdict on the mutant differs from its verdict on the original, both being TRUE or FALSE. A
+timeout, out-of-memory, UNKNOWN or error never kills and never clears: such a mutant is
+*undecided* and counted apart; a mutant every property decided without a change *survived*, and is
+not called equivalent. M5 is killed over killed plus survived; M6 counts a fault as found when a
+property true on the original fails on the mutant with a counterexample that replays there.
+Families are aggregated first, then conditions are averaged over families.
+
+Status: operators and judging are in place; running the properties on the mutants through the
+engines (same budget as every condition) belongs to the runner.
