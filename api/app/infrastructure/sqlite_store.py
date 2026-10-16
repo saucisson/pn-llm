@@ -194,6 +194,12 @@ class SqliteStore(SqliteDatabase):
         )
         return StartedSession(session=session, first_event=first)
 
+    def session_ids(self) -> tuple[str, ...]:
+        """Return the id of every session, oldest first."""
+        with self._connection() as conn:
+            rows = conn.execute("SELECT session_id FROM sessions ORDER BY created_at").fetchall()
+        return tuple(row["session_id"] for row in rows)
+
     def load_session(self, *, session_id: str) -> Session:
         """Return a session, or raise NotFoundError."""
         with self._connection() as conn:
