@@ -14,6 +14,7 @@ from app.domain.mcc_results import (
     RunSample,
     ToolRate,
 )
+from app.domain.selection_evaluation import InstanceRun
 
 from .sqlite_database import SqliteDatabase
 
@@ -127,3 +128,37 @@ class SqliteResults(SqliteDatabase):
             )
             for (tool, examination), count in sorted(runs.items())
         )
+
+    def instance_runs(self) -> Iterator[InstanceRun]:
+        """Yield each engine's run on each instance and examination, references left out.
+
+        When the file repeats a run (a re-run), the one that answered is kept, else the last.
+        """
+        with self._connection() as conn:
+            rows = conn.execute(
+                "SELECT instance, family, tool, examination, outcome, time_ms FROM mcc_runs"
+                " WHERE reference=0 ORDER BY instance, examination, tool, rowid"
+            )
+            pending: InstanceRun | None = None
+            for row in rows:
+                run = InstanceRun(
+                    instance=row["instance"],
+                    family=row["family"],
+                    tool=row["tool"],
+                    examination=row["examination"],
+                    answered=row["outcome"] == RunOutcome.COMPUTED.value,
+                    time_ms=row["time_ms"],
+                )
+                if pending is None:
+                    pending = run
+                elif (pending.instance, pending.examination, pending.tool) != (
+                    run.instance,
+                    run.examination,
+                    run.tool,
+                ):
+                    yield pending
+                    pending = run
+                elif run.answered or not pending.answered:
+                    pending = run  # a re-run: keep the one that answered, else the later
+            if pending is not None:
+                yield pending

@@ -8920,6 +8920,7 @@
         "properties": {
           "basis": {
             "enum": [
+              "predictor",
               "history",
               "preference"
             ],

@@ -148,3 +148,15 @@ def test_the_cap_applies_to_inputs_too(service):
         with_properties=True,
     )
     assert report.property_sets_stored == 1
+
+
+def test_a_cap_of_zero_stores_the_catalog_and_reads_no_archive(service):
+    class Unreadable(FakeContest):
+        def nets(self, *, family):
+            raise AssertionError("an archive was read")
+
+    report = service.seed(
+        source=Unreadable(), only_families=(), max_nets_per_family=0, with_properties=False
+    )
+    assert (report.families, report.nets_stored) == (3, 0)
+    assert [f.name for f in service.families()] == ["Big", "Col", "Fs"]

@@ -135,7 +135,7 @@ include_external_packages = true
 name = "Onion: dependencies point inward (main > api | infrastructure > application > domain)"
 type = "layers"
 layers = [
-    "app.main | app.seed | app.conformance",
+    "app.main | app.seed | app.conformance | app.train_predictor",
     "app.api | app.infrastructure",
     "app.application",
     "app.domain",

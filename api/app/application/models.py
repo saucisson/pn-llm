@@ -57,6 +57,10 @@ class ModelCatalogService:
         }
         for family in families.values():
             self._catalog.save_family(family=family)
+        if max_nets_per_family == 0:  # only the catalog was asked for: read no archive
+            return SeedReport(
+                families=len(families), nets_stored=0, nets_already_known=0, failures=()
+            )
         if with_properties:
             candidates = (
                 SeedCandidate(

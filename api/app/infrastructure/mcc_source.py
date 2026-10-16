@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import io
+import re
 import tarfile
 import urllib.request
 from collections.abc import Iterator
@@ -21,8 +22,12 @@ from app.domain.mcc import (
 )
 from app.domain.mcc_properties import EXAMINATIONS
 from app.domain.mcc_results import ResultFileInfo
+from app.domain.predictor import InstanceSize
 
 RESULTS_ARCHIVE = "archives/GlobalSummary.csv.tar.gz"
+PLACE = re.compile(rb"<place[ >]")
+TRANSITION = re.compile(rb"<transition[ >]")
+ARC = re.compile(rb"<arc[ >]")
 CHUNK = 1 << 20
 TIMEOUT_S = 60
 
@@ -102,6 +107,32 @@ class MccDirectory:
                         if f"{examination}.xml" in files
                     ),
                 )
+
+    def instance_sizes(self) -> Iterator[InstanceSize]:
+        """Yield the size of every instance of the inputs, counted on its model, not parsed."""
+        outer = self._fetch(path="archives/INPUTS-2026.tar.gz")
+        with tarfile.open(outer, mode="r:gz") as tar:
+            for member in tar:
+                name = Path(member.name).name.removesuffix(".tgz")
+                parts = split_input_name(name=name)
+                content = tar.extractfile(member) if member.isfile() else None
+                if parts is None or content is None:
+                    continue
+                with tarfile.open(fileobj=content, mode="r:gz") as inner:
+                    for entry in inner:
+                        if Path(entry.name).name == "model.pnml" and (
+                            model := inner.extractfile(entry)
+                        ):
+                            text = model.read()
+                            yield InstanceSize(
+                                instance=name,
+                                family=parts[0],
+                                net_type=parts[1],
+                                places=len(PLACE.findall(text)),
+                                transitions=len(TRANSITION.findall(text)),
+                                arcs=len(ARC.findall(text)),
+                            )
+                            break
 
     def _fetch(self, *, path: str) -> Path:
         """Return the local copy of ``path``, resuming a partial download and checking the hash.
