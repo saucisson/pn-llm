@@ -76,6 +76,10 @@ class SessionRepository(Protocol):
         """Store a new session and its first event together."""
         ...
 
+    def session_ids(self) -> tuple[str, ...]:
+        """Return the id of every session, oldest first."""
+        ...
+
     def load_session(self, *, session_id: str) -> Session:
         """Return a session, or raise NotFoundError."""
         ...
