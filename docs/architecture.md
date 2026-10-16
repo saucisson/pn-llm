@@ -91,6 +91,7 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/domain/analyses/semiflows.py` | domain | Minimal-support semiflows of an integer matrix (Farkas), shared by P- and T-invariants |
 | `app/domain/analyses/graph.py` | domain | Arc adjacency and reachability shared by the analyses |
 | `app/domain/next_moves.py` | domain | What to try after a timeout, out-of-memory, UNKNOWN or error: suggestions that never become a verdict |
+| `app/domain/baseline.py` | domain | Baseline B0: standard properties written from the structure of a net, no language model (`bench/README.md`) |
 | `app/domain/predictor.py` | domain | Instance features, decision trees (CART) giving the chance an engine answers, the `Predictor` model |
 | `app/domain/selection_evaluation.py` | domain | Training the predictor from contest runs and scoring it against the single best engine and the oracle, by family |
 | `app/domain/mcc_results.py` | domain | The contest's published runs: tool names normalized, the contest's own outcome classes kept (never a verdict), success rate and median time per family |
