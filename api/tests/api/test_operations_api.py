@@ -1,4 +1,5 @@
 import threading
+from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
@@ -63,6 +64,7 @@ BUFFER = pnml_of(
     arcs=[("s", "t"), ("t", "p"), ("p", "u"), ("u", "r")],
     marking={"s": 1},
 )
+GUARDED = (Path(__file__).resolve().parents[1] / "corpus" / "colored" / "guarded.pnml").read_bytes()
 # operation -> (net, parameters, what its answer must say)
 KNOWN_ANSWERS = {
     "net-class": (
@@ -110,6 +112,15 @@ KNOWN_ANSWERS = {
     "pre-agglomeration": (BUFFER, {}, lambda d: [r["id"] for r in d["removed"]] == ["p", "u"]),
     "post-agglomeration": (BUFFER, {}, lambda d: [r["id"] for r in d["removed"]] == ["p", "u"]),
     "remove-implicit-places": (SINKS, {}, lambda d: [r["id"] for r in d["removed"]] == ["q", "s"]),
+    "unfold": (
+        GUARDED,
+        {},
+        lambda d: (
+            d["changed"] is True
+            and len(d["mapping"]["transitions"]) == 5
+            and len(d["mapping"]["places"]) == 6
+        ),
+    ),
 }
 
 
@@ -430,3 +441,36 @@ def test_the_trace_of_a_check_on_a_reduced_net_is_given_on_the_original_unless_a
     assert reduced["net_id"] == child
     assert [s["transition"]["id"] for s in reduced["data"]["steps"]] == ["x", "y"]
     assert client.get(url, params={"net": "nowhere"}).status_code == 422
+
+
+def test_unfolding_stores_the_p_t_net_linked_to_the_colored_one_and_keeps_the_mapping(client):
+    colored = client.post("/v1/nets", content=GUARDED, headers=XML).json()["net_id"]
+    answered, _ = reduce_through_the_api(client, colored, "unfold")
+    data = answered.json()["data"]
+    child = data["new_net_id"]
+    assert (data["parent_id"], data["rule"]) == (colored, "unfold")
+    # The mapping survives the storing of the net: it is how results come back to the colored net.
+    assert {p["original"] for p in data["mapping"]["places"]} == {"pool", "pairs"}
+    assert {t["original"] for t in data["mapping"]["transitions"]} == {"pick"}
+    assert data["mapping"]["transitions"][0]["binding"][0]["variable"] == "x"
+    stored = client.app.state.nets.get(net_id=child)
+    assert (stored.summary.kind, stored.summary.parent_id) == ("pt", colored)
+    assert (stored.summary.places, stored.summary.transitions) == (6, 5)
+    again, _ = reduce_through_the_api(client, colored, "unfold")
+    assert again.json()["data"]["new_net_id"] == child  # same request, same net
+
+
+def test_a_p_t_net_cannot_be_unfolded_and_a_net_too_large_is_refused_with_a_clear_error(client):
+    def failure_of(net_id, body=None):
+        handle = ask(client, net_id, "unfold", body).json()["data"]
+        client.app.state.operations.drain()
+        return client.get(f"/v1/runs/{handle['run_id']}").json()["data"]
+
+    pt = client.post("/v1/nets", content=MUTEX_PNML, headers=XML).json()["net_id"]
+    not_symmetric = failure_of(pt)
+    assert not_symmetric["state"] == "failed"
+    assert "symmetric" in not_symmetric["error"]["message"]
+    colored = client.post("/v1/nets", content=GUARDED, headers=XML).json()["net_id"]
+    too_large = failure_of(colored, {"parameters": {"max_arcs": 2}})
+    assert too_large["state"] == "failed"
+    assert "arcs" in too_large["error"]["message"]

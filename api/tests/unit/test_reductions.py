@@ -8,7 +8,8 @@ from app.domain.operations import compute_on
 from app.domain.reductions.result import ReductionParameters
 from tests.reduction_oracle import explore, project, random_net, structure_of
 
-REDUCTIONS = [op for op in OPERATIONS if op.kind == "reduction"]
+# The unfolding is tested on colored nets (test_unfolding): these rules rewrite P/T structures.
+REDUCTIONS = [op for op in OPERATIONS if op.kind == "reduction" and not op.uses_document]
 
 
 def reduce_net(*, rule, structure, protected=(), **parameters):

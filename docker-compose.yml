@@ -39,7 +39,7 @@ services:
     build:
       context: .
       dockerfile: engines/native/Dockerfile
-    image: pn-llm-verif/native:1.5
+    image: pn-llm-verif/native:1.6
     profiles: ["engines"]
 
   engine-itstools:
