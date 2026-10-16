@@ -19,7 +19,7 @@ from app.domain.reductions.document import structure_to_document
 from app.domain.reductions.result import ReductionParameters
 from app.infrastructure.sqlite_operations import SqliteOperations
 from tests.reduction_oracle import structure_of
-from tests.support import LEASE, InProcessNative, ScriptedEngines
+from tests.support import LEASE, MUTEX_DOCUMENT, InProcessNative, ScriptedEngines
 
 LOOP = structure_of(
     places=["a", "mid", "q"],
@@ -173,3 +173,46 @@ def test_a_trace_on_an_uploaded_net_is_given_as_it_is(services):
     ).job
     checks.drain()
     assert traces.get(job_id=job.job_id, result_index=0, view="original").net_id == net_id
+
+
+def test_a_lifted_step_carries_the_binding_of_the_colored_transition_it_stands_for():
+    from app.domain.contract import Assignment
+    from app.domain.operations import Lineage, LineageExpansion
+
+    structure = build_structure(document=MUTEX_DOCUMENT, net_id="root")
+    chain = (
+        Lineage(
+            net_id="child",
+            parent_id="root",
+            rule="unfold",
+            expansions=(
+                LineageExpansion(
+                    transition="enter1_x",
+                    original=("enter1",),
+                    binding=(Assignment(variable="x", color="1"),),
+                ),
+                LineageExpansion(transition="both", original=("enter1", "leave1")),
+            ),
+        ),
+    )
+    base = Trace(
+        formula_id="f",
+        net_id="child",
+        initial_marking=Marking(entries=()),
+        steps=(
+            TraceStep(transition=ElementRef(id="enter1_x", kind="transition")),
+            TraceStep(transition=ElementRef(id="both", kind="transition")),
+            TraceStep(transition=ElementRef(id="leave1", kind="transition")),
+        ),
+        loop_start=1,
+    )
+    lifted = lift_trace(trace=base, chain=chain, root=structure)
+    assert [
+        (s.transition.id, [(a.variable, a.color) for a in s.binding or ()]) for s in lifted.steps
+    ] == [
+        ("enter1", [("x", "1")]),
+        ("enter1", []),  # a sequence of transitions has no single binding
+        ("leave1", []),
+        ("leave1", []),
+    ]
+    assert lifted.loop_start == 1

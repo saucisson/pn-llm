@@ -26,6 +26,13 @@ class ElementRef(DomainModel):
     kind: Literal["place", "transition"]
 
 
+class Assignment(DomainModel):
+    """The color a variable takes in a binding of a colored transition."""
+
+    variable: str
+    color: str
+
+
 class MarkingEntry(DomainModel):
     """A place holding at least one token."""
 

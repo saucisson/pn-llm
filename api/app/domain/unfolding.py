@@ -48,6 +48,7 @@ from .colored_terms import (
     variables_of_guard,
     variables_of_term,
 )
+from .contract import Assignment
 from .errors import InvalidRequestError
 from .models import DomainModel
 from .net_document import Arc, NetDocument, Place, Transition
@@ -75,13 +76,6 @@ class UnfoldedPlace(DomainModel):
     original: str
     color: str
     unfolded: str
-
-
-class Assignment(DomainModel):
-    """The color a variable takes in a binding."""
-
-    variable: str
-    color: str
 
 
 class UnfoldedTransition(DomainModel):

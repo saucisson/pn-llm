@@ -1,6 +1,6 @@
 """The native engine image, for real. Skipped unless Docker and the image are available.
 
-Build the image first:  docker build -f engines/native/Dockerfile -t pn-llm-verif/native:1.6 .
+Build the image first:  docker build -f engines/native/Dockerfile -t pn-llm-verif/native:1.7 .
 """
 
 import pytest
