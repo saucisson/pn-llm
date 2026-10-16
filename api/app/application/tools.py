@@ -137,6 +137,16 @@ class ToolFacade:
                 run=self.net_summary,
             ),
             define_tool(
+                name="colored_summary",
+                description=(
+                    "For a colored net: its sorts and their sizes, groups of places by domain and "
+                    "of transitions by the variables they use, the color functions on arcs, and "
+                    "how big the unfolded net would be. Never lists the unfolded net."
+                ),
+                arguments=NoArguments,
+                run=self.colored_summary,
+            ),
+            define_tool(
                 name="list_places",
                 description="Places sorted by id, filtered by name glob or initial marking.",
                 arguments=ListPlacesArguments,
@@ -297,6 +307,12 @@ class ToolFacade:
     ) -> ToolOutcome:
         """Counts, kind and structural flags."""
         return answer(data=self._inspection.overview(net_id=context.session.net_id))
+
+    def colored_summary(
+        self, *, context: ToolContext, arguments: NoArguments, is_cancelled: Callable[[], bool]
+    ) -> ToolOutcome:
+        """Sorts, domains and the size of the unfolding of a colored net."""
+        return answer(data=self._inspection.colored(net_id=context.session.net_id, examples=3))
 
     def list_places(
         self,

@@ -512,6 +512,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/nets/{net_id}/colored": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Colored Summary
+         * @description Summarize a colored net: sorts, groups of places and transitions, size of the unfolding.
+         */
+        get: operations["get_colored_summary_v1_nets__net_id__colored_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/nets/{net_id}/descriptions": {
         parameters: {
             query?: never;
@@ -1179,6 +1199,16 @@ export interface components {
             text: string;
         };
         /**
+         * ArcFunctionCount
+         * @description How many arc inscriptions use one kind of color function.
+         */
+        ArcFunctionCount: {
+            /** Count */
+            count: number;
+            /** Function */
+            function: string;
+        };
+        /**
          * ArcView
          * @description An arc with both ends cited by reference.
          */
@@ -1327,6 +1357,26 @@ export interface components {
              * @enum {string}
              */
             kind: "check_submitted";
+        };
+        /**
+         * ColoredSummary
+         * @description The colored net at a glance.
+         */
+        ColoredSummary: {
+            /** Arc Functions */
+            arc_functions: components["schemas"]["ArcFunctionCount"][];
+            /**
+             * Note
+             * @default Sizes are exact for places and an upper bound for transitions; the arc figure is an estimate (an `all` inscription counts the whole domain).
+             */
+            note: string;
+            /** Place Groups */
+            place_groups: components["schemas"]["PlaceGroup"][];
+            /** Sorts */
+            sorts: components["schemas"]["SortSummary"][];
+            /** Transition Groups */
+            transition_groups: components["schemas"]["TransitionGroup"][];
+            unfolded: components["schemas"]["UnfoldedEstimate"];
         };
         /**
          * Compare
@@ -1640,6 +1690,33 @@ export interface components {
             supports_colored: boolean;
             /** Version */
             version: string;
+        };
+        /** Envelope[ColoredSummary] */
+        Envelope_ColoredSummary_: {
+            data?: components["schemas"]["ColoredSummary"] | null;
+            /** Elapsed S */
+            elapsed_s: number;
+            error?: components["schemas"]["ErrorInfo"] | null;
+            /** Net Id */
+            net_id?: string | null;
+            /**
+             * Schema Version
+             * @default 1.0
+             * @constant
+             */
+            schema_version: "1.0";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ok" | "partial" | "failed";
+            tool: components["schemas"]["ToolInfo"];
+            truncated?: components["schemas"]["Page"] | null;
+            /**
+             * Warnings
+             * @default []
+             */
+            warnings: string[];
         };
         /** Envelope[ConflictSetsResult] */
         Envelope_ConflictSetsResult_: {
@@ -3528,6 +3605,20 @@ export interface components {
             unknown: number;
         };
         /**
+         * PlaceGroup
+         * @description Places with the same domain.
+         */
+        PlaceGroup: {
+            /** Count */
+            count: number;
+            /** Domain Size */
+            domain_size: number;
+            /** Examples */
+            examples: components["schemas"]["ElementRef"][];
+            /** Sort */
+            sort: string;
+        };
+        /**
          * PlaceSet
          * @description A set of places, and whether it holds a token in the initial marking.
          */
@@ -3844,6 +3935,22 @@ export interface components {
             total: number;
         };
         /**
+         * SortSummary
+         * @description A sort, its size, and how it is built.
+         */
+        SortSummary: {
+            /** Detail */
+            detail: string;
+            /** Id */
+            id: string;
+            /** Kind */
+            kind: string;
+            /** Name */
+            name: string;
+            /** Size */
+            size: number;
+        };
+        /**
          * Split
          * @description A frozen assignment of families. Once stored under a name it is never changed.
          */
@@ -4037,6 +4144,22 @@ export interface components {
             transition: components["schemas"]["ElementRef"];
         };
         /**
+         * TransitionGroup
+         * @description Transitions that use the same variables.
+         */
+        TransitionGroup: {
+            /** Bindings Upper Bound */
+            bindings_upper_bound: number;
+            /** Count */
+            count: number;
+            /** Examples */
+            examples: components["schemas"]["ElementRef"][];
+            /** Variables */
+            variables: string[];
+            /** With Guard */
+            with_guard: number;
+        };
+        /**
          * TrapsResult
          * @description The minimal traps found.
          */
@@ -4071,6 +4194,18 @@ export interface components {
              * @enum {string}
              */
             kind: "unbounded";
+        };
+        /**
+         * UnfoldedEstimate
+         * @description How big the unfolded P/T net would be, at most (guards can only make it smaller).
+         */
+        UnfoldedEstimate: {
+            /** Arcs Estimate */
+            arcs_estimate: number;
+            /** Places */
+            places: number;
+            /** Transitions Upper Bound */
+            transitions_upper_bound: number;
         };
         /**
          * UnknownBound
@@ -5146,6 +5281,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Envelope_Job_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_colored_summary_v1_nets__net_id__colored_get: {
+        parameters: {
+            query?: {
+                examples?: number;
+            };
+            header?: never;
+            path: {
+                net_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_ColoredSummary_"];
                 };
             };
             /** @description Validation Error */

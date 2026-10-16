@@ -59,6 +59,9 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/domain/perform.py` | domain | Perform a named operation on a document: its result, and for a reduction the net it produced |
 | `app/domain/lifting.py` | domain | A counterexample of a reduced net expressed on the original, through the expansions of each reduction |
 | `app/domain/analysis_summary.py` | domain | The size-bounded digest of the analyses given to the LLM: exact counts, a few named examples, and what could not be computed |
+| `app/domain/colored.py` | domain | Colored nets, typed: sorts, variables and their sizes, read from the declarations; unsupported constructs refused by name |
+| `app/domain/colored_terms.py` | domain | Arc inscriptions, markings and guards of colored nets as typed trees |
+| `app/domain/colored_summary.py` | domain | The colored net at a glance: sorts, groups of places and transitions, color functions, size of the unfolding |
 | the package `app/domain/analyses` | domain | The analyses, one module each; its `__init__` is the catalog `ANALYSES` and `find_operation` |
 | `app/domain/reductions/result.py` | domain | The request and answer of every reduction rule: protected ids, removed, merged, expansions, preserved properties |
 | `app/domain/reductions/driver.py` | domain | The loop every rule shares: apply until it no longer applies, and report what changed |

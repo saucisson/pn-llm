@@ -79,9 +79,12 @@ default fields are omitted.
 
 ## Colored nets
 Declarations (sorts, variables, operators) and terms (markings, inscriptions, guards) are kept as
-`XmlNode` trees: nothing is lost, and the same document round-trips. Milestone M3 adds a typed
-vocabulary of sorts and terms on top, used by summaries, unfolding and engines, without changing
-stored documents or ids.
+`XmlNode` trees: nothing is lost, and the same document round-trips. A typed vocabulary reads them
+(`app/domain/colored*.py`) without changing stored documents or ids: enumerations (cyclic or not),
+integer ranges, products, dot and aliases; variables; terms (variable, constant, dot, number, all,
+tuple, successor, predecessor, `n'x`, sum, difference) and guards (comparisons, and, or, not).
+What is outside it is refused by name. `GET /v1/nets/{id}/colored` summarizes a symmetric net at
+the colored level and estimates the size of its unfolding.
 
 ## What is kept and what is not
 Kept: everything above, names and ids exactly, tool-specific and unknown content in order.

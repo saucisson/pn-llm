@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import fnmatch
 
+from app.domain.colored_summary import ColoredSummary, summarize_colored
 from app.domain.contract import ElementRef, MarkingEntry, PageRequest
 from app.domain.errors import InvalidRequestError
 from app.domain.inspection import (
@@ -58,6 +59,17 @@ class InspectionService:
         stored = self._nets.load_net(net_id=net_id)
         structure = build_structure(document=stored.document, net_id=net_id)
         return overview(summary=stored.summary, structure=structure)
+
+    def colored(self, *, net_id: str, examples: int) -> ColoredSummary:
+        """Summarize a colored net at the colored level (sorts, groups, unfolded size).
+
+        Raises:
+            NotFoundError: if the net is unknown.
+            InvalidRequestError: if it is not a colored net this vocabulary covers.
+        """
+        return summarize_colored(
+            document=self._nets.load_net(net_id=net_id).document, examples=examples
+        )
 
     def places(
         self, *, net_id: str, name: str | None, marked: bool | None, page: PageRequest

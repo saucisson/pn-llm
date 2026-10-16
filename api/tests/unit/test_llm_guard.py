@@ -28,6 +28,8 @@ PATH_VALUES = {
     "name": "v1",
 }
 QUERY_VALUES = {"ids": "enter1", "q": "e"}
+# The tools are called on a P/T net, which has no colored summary: a clear refusal is the answer.
+EXPECTED_STATUS = {"/v1/nets/{net_id}/colored": 422}
 
 
 def llm_operations(*, app):
@@ -129,9 +131,10 @@ def test_no_tool_returns_a_net_when_called(scripted_client, settings):
             if parameter["in"] == "query" and parameter.get("required")
         }
         response = client.get(url, params=params)
-        assert response.status_code == 200, (url, response.text)
+        assert response.status_code == EXPECTED_STATUS.get(path, 200), (url, response.text)
         assert not contains_net(text=response.text), url
-        validate(instance=response.json(), schema=envelope)
+        if response.status_code == 200:
+            validate(instance=response.json(), schema=envelope)
         called += 1
     assert called >= 8
 

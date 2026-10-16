@@ -111,3 +111,26 @@ def test_the_digest_never_contains_the_net(store, mutex_net):
     outcome = call(facade, context_for(net_id=mutex_net), "analysis_summary")
     assert "<pnml" not in outcome.content
     assert json.loads(outcome.content)["status"] == "ok"
+
+
+def test_the_colored_summary_tool_reads_a_colored_net_and_refuses_a_p_t_one(store, mutex_net):
+    from pathlib import Path
+
+    from app.application.nets import NetService
+    from app.domain.net_validation import DocumentLimits
+    from app.domain.nets import NetFormat
+
+    fixture = (
+        Path(__file__).resolve().parents[1] / "corpus" / "colored" / "Philosophers-COL-000100.pnml"
+    )
+    nets = NetService(nets=store, max_upload_bytes=1_000_000, limits=DocumentLimits())
+    colored = nets.register(
+        payload=fixture.read_bytes(), format=NetFormat.PNML
+    ).stored.summary.net_id
+    facade, _ = build(store=store)
+    outcome = call(facade, context_for(net_id=colored), "colored_summary")
+    data = payload(outcome)["data"]
+    assert data["unfolded"]["places"] == 500
+    assert "<pnml" not in outcome.content
+    refused = call(facade, context_for(net_id=mutex_net), "colored_summary")
+    assert (refused.ok, "symmetric" in refused.content) == (False, True)
