@@ -103,4 +103,9 @@ class EngineInfo(DomainModel):
     supports_colored: bool = False
     # The analyses and reductions the engine performs, by name (ADR 0014).
     operations: tuple[str, ...] = ()
+    # The contest examinations the engine takes part in, and the classes of properties it checks.
+    examinations: tuple[str, ...] = ()
+    classes: tuple[str, ...] = ()
+    # What is known to be different or missing, as the adapter and the tool behave.
+    limitations: tuple[str, ...] = ()
     available: bool

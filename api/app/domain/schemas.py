@@ -6,6 +6,7 @@ import json
 
 from pydantic import BaseModel
 
+from .capabilities import CapabilityRow
 from .contract import ElementRef, Envelope, Marking, Page, PageRequest
 from .descriptions import Description
 from .engine_contract import (
@@ -15,6 +16,7 @@ from .engine_contract import (
     EngineTrace,
     Trace,
 )
+from .equivalence import EquivalenceClass
 from .formula import Formula
 from .formula_check import FormulaReport, FormulaValidationRequest
 from .inspection import ArcView, ElementDetail, NameGroup, Neighbourhood, NetOverview
@@ -28,6 +30,7 @@ from .sessions import Session, StoredEvent
 
 EXPORTED_MODELS: tuple[type[BaseModel], ...] = (
     ArcView,
+    CapabilityRow,
     CheckRequest,
     Description,
     ElementDetail,
@@ -38,6 +41,7 @@ EXPORTED_MODELS: tuple[type[BaseModel], ...] = (
     EngineRequest,
     EngineTrace,
     Envelope,
+    EquivalenceClass,
     Formula,
     FormulaReport,
     FormulaResult,

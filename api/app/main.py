@@ -39,6 +39,7 @@ from app.application.operations import OperationService
 from app.application.ports import EngineGateway, LlmGateway
 from app.application.results import ResultsService
 from app.application.retention import RetentionService
+from app.application.selection import SelectionService
 from app.application.splits import SplitService
 from app.application.tools import ToolFacade
 from app.application.traces import TraceService
@@ -250,6 +251,9 @@ def create_app(
     app.state.results = ResultsService(results=SqliteResults(path=config.database_path))
     app.state.checks = checks
     app.state.operations = operations_service
+    app.state.selection = SelectionService(
+        nets=store, engines=registry, results=SqliteResults(path=config.database_path)
+    )
     app.state.traces = TraceService(
         checks=checks, nets=store, lineage=SqliteOperations(path=config.database_path)
     )

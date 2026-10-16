@@ -13,7 +13,7 @@ from app.domain.engine_contract import EngineOperationReport, EngineReport, Engi
 from app.domain.llm import LlmMessage, LlmStep, ToolSpec
 from app.domain.mcc import MccFamily, MccInputNet, MccNetFile, MccNetType, ModelEntry
 from app.domain.mcc_properties import Examination, MccProperties
-from app.domain.mcc_results import MccRun, ResultFileInfo, ResultSetInfo, RunSample
+from app.domain.mcc_results import MccRun, ResultFileInfo, ResultSetInfo, RunSample, ToolRate
 from app.domain.models import (
     EngineInfo,
     FormulaResult,
@@ -319,6 +319,10 @@ class ResultsRepository(Protocol):
 
     def result_sets(self) -> tuple[ResultSetInfo, ...]:
         """Return the stored result sets, by year."""
+        ...
+
+    def tool_rates(self, *, examinations: tuple[str, ...]) -> tuple[ToolRate, ...]:
+        """Return, per engine and examination, how many runs there are and how many computed."""
         ...
 
 

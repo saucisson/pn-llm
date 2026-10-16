@@ -38,8 +38,51 @@ export interface paths {
         /**
          * Get Engines
          * @description List the registered engines and whether they are available here.
+         *
+         *     ``can_check`` keeps the engines that check a class of properties (such as
+         *     ``ltl-fireability+next``); ``colored`` keeps those that do, or do not, read colored nets.
          */
         get: operations["get_engines_v1_engines_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/engines/capabilities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Capabilities
+         * @description For every class of properties, the engines that declare they can check it.
+         */
+        get: operations["get_capabilities_v1_engines_capabilities_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/engines/equivalence": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Equivalence
+         * @description For every class of properties, the engines interchangeable for it, with their caveats.
+         */
+        get: operations["get_equivalence_v1_engines_equivalence_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -933,6 +976,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/select-tools": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Select Tools
+         * @description Rank the engines that can check the formulas on the net, best first, with the evidence.
+         */
+        post: operations["select_tools_v1_select_tools_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/sessions": {
         parameters: {
             query?: never;
@@ -1306,6 +1369,18 @@ export interface components {
             kind: "budget_exhausted";
         };
         /**
+         * CapabilityRow
+         * @description Which engines can check one class of properties.
+         */
+        CapabilityRow: {
+            /** Colored Engines */
+            colored_engines: string[];
+            /** Engines */
+            engines: string[];
+            /** Property Class */
+            property_class: string;
+        };
+        /**
          * CheckRequest
          * @description Body of ``POST /v1/nets/{id}/checks``.
          */
@@ -1674,6 +1749,21 @@ export interface components {
         EngineInfo: {
             /** Available */
             available: boolean;
+            /**
+             * Classes
+             * @default []
+             */
+            classes: string[];
+            /**
+             * Examinations
+             * @default []
+             */
+            examinations: string[];
+            /**
+             * Limitations
+             * @default []
+             */
+            limitations: string[];
             /** Logics */
             logics: string[];
             /** Name */
@@ -2204,6 +2294,33 @@ export interface components {
              */
             warnings: string[];
         };
+        /** Envelope[Selection] */
+        Envelope_Selection_: {
+            data?: components["schemas"]["Selection"] | null;
+            /** Elapsed S */
+            elapsed_s: number;
+            error?: components["schemas"]["ErrorInfo"] | null;
+            /** Net Id */
+            net_id?: string | null;
+            /**
+             * Schema Version
+             * @default 1.0
+             * @constant
+             */
+            schema_version: "1.0";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ok" | "partial" | "failed";
+            tool: components["schemas"]["ToolInfo"];
+            truncated?: components["schemas"]["Page"] | null;
+            /**
+             * Warnings
+             * @default []
+             */
+            warnings: string[];
+        };
         /** Envelope[Session] */
         Envelope_Session_: {
             data?: components["schemas"]["Session"] | null;
@@ -2421,6 +2538,34 @@ export interface components {
              */
             warnings: string[];
         };
+        /** Envelope[tuple[CapabilityRow, ...]] */
+        Envelope_tuple_CapabilityRow__________: {
+            /** Data */
+            data?: components["schemas"]["CapabilityRow"][] | null;
+            /** Elapsed S */
+            elapsed_s: number;
+            error?: components["schemas"]["ErrorInfo"] | null;
+            /** Net Id */
+            net_id?: string | null;
+            /**
+             * Schema Version
+             * @default 1.0
+             * @constant
+             */
+            schema_version: "1.0";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ok" | "partial" | "failed";
+            tool: components["schemas"]["ToolInfo"];
+            truncated?: components["schemas"]["Page"] | null;
+            /**
+             * Warnings
+             * @default []
+             */
+            warnings: string[];
+        };
         /** Envelope[tuple[Description, ...]] */
         Envelope_tuple_Description__________: {
             /** Data */
@@ -2481,6 +2626,34 @@ export interface components {
         Envelope_tuple_EngineInfo__________: {
             /** Data */
             data?: components["schemas"]["EngineInfo"][] | null;
+            /** Elapsed S */
+            elapsed_s: number;
+            error?: components["schemas"]["ErrorInfo"] | null;
+            /** Net Id */
+            net_id?: string | null;
+            /**
+             * Schema Version
+             * @default 1.0
+             * @constant
+             */
+            schema_version: "1.0";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ok" | "partial" | "failed";
+            tool: components["schemas"]["ToolInfo"];
+            truncated?: components["schemas"]["Page"] | null;
+            /**
+             * Warnings
+             * @default []
+             */
+            warnings: string[];
+        };
+        /** Envelope[tuple[EquivalenceClass, ...]] */
+        Envelope_tuple_EquivalenceClass__________: {
+            /** Data */
+            data?: components["schemas"]["EquivalenceClass"][] | null;
             /** Elapsed S */
             elapsed_s: number;
             error?: components["schemas"]["ErrorInfo"] | null;
@@ -2700,6 +2873,18 @@ export interface components {
              * @default []
              */
             warnings: string[];
+        };
+        /**
+         * EquivalenceClass
+         * @description The engines interchangeable for one class of properties, and what to keep in mind.
+         */
+        EquivalenceClass: {
+            /** Caveats */
+            caveats: string[];
+            /** Engines */
+            engines: string[];
+            /** Property Class */
+            property_class: string;
         };
         /**
          * ErrorInfo
@@ -3661,6 +3846,22 @@ export interface components {
             text: string;
         };
         /**
+         * RankedEngine
+         * @description An engine proposed for the properties, with the evidence for its rank.
+         */
+        RankedEngine: {
+            /** Engine */
+            engine: string;
+            /** Expected Time S */
+            expected_time_s?: number | null;
+            /** Rationale */
+            rationale: string;
+            /** Success Probability */
+            success_probability?: number | null;
+            /** Version */
+            version: string;
+        };
+        /**
          * ReductionParameters
          * @description Options common to every rule.
          */
@@ -3853,6 +4054,32 @@ export interface components {
             /** Run Id */
             run_id: string;
             state: components["schemas"]["RunState"];
+        };
+        /**
+         * Selection
+         * @description The engines to ask, best first, and what the ranking rests on.
+         */
+        Selection: {
+            /**
+             * Basis
+             * @enum {string}
+             */
+            basis: "history" | "preference";
+            /** Property Classes */
+            property_classes: string[];
+            /** Ranked */
+            ranked: components["schemas"]["RankedEngine"][];
+        };
+        /**
+         * SelectionRequest
+         * @description Body of ``POST /v1/select-tools``.
+         */
+        SelectionRequest: {
+            /** Formulas */
+            formulas: components["schemas"]["Formula-Input"][];
+            limits?: components["schemas"]["Limits"];
+            /** Net Id */
+            net_id: string;
         };
         /**
          * Session
@@ -4374,7 +4601,10 @@ export interface operations {
     };
     get_engines_v1_engines_get: {
         parameters: {
-            query?: never;
+            query?: {
+                can_check?: string | null;
+                colored?: boolean | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -4388,6 +4618,55 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Envelope_tuple_EngineInfo__________"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_capabilities_v1_engines_capabilities_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_tuple_CapabilityRow__________"];
+                };
+            };
+        };
+    };
+    get_equivalence_v1_engines_equivalence_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_tuple_EquivalenceClass__________"];
                 };
             };
         };
@@ -6171,6 +6450,39 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    select_tools_v1_select_tools_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SelectionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_Selection_"];
+                };
             };
             /** @description Validation Error */
             422: {

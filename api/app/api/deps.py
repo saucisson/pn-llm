@@ -17,6 +17,7 @@ from app.application.nets import NetService
 from app.application.operations import OperationService
 from app.application.results import ResultsService
 from app.application.retention import RetentionService
+from app.application.selection import SelectionService
 from app.application.splits import SplitService
 from app.application.traces import TraceService
 
@@ -86,6 +87,11 @@ def get_traces(*, request: Request) -> TraceService:
     return cast("TraceService", request.app.state.traces)
 
 
+def get_selection(*, request: Request) -> SelectionService:
+    """Return the tool-selection service of the running application."""
+    return cast("SelectionService", request.app.state.selection)
+
+
 NetsDep = Annotated[NetService, Depends(get_nets)]
 ChecksDep = Annotated[CheckService, Depends(get_checks)]
 EnginesDep = Annotated[EngineService, Depends(get_engines)]
@@ -99,3 +105,4 @@ ResultsDep = Annotated[ResultsService, Depends(get_results)]
 SplitsDep = Annotated[SplitService, Depends(get_splits)]
 OperationsDep = Annotated[OperationService, Depends(get_operations)]
 TracesDep = Annotated[TraceService, Depends(get_traces)]
+SelectionDep = Annotated[SelectionService, Depends(get_selection)]

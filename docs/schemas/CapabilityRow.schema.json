@@ -1,0 +1,30 @@
+{
+  "description": "Which engines can check one class of properties.",
+  "properties": {
+    "colored_engines": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Colored Engines",
+      "type": "array"
+    },
+    "engines": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Engines",
+      "type": "array"
+    },
+    "property_class": {
+      "title": "Property Class",
+      "type": "string"
+    }
+  },
+  "required": [
+    "property_class",
+    "engines",
+    "colored_engines"
+  ],
+  "title": "CapabilityRow",
+  "type": "object"
+}
