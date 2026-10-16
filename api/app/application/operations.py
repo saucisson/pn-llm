@@ -26,6 +26,7 @@ from app.domain.operation_check import interpret_operation_report
 from app.domain.operations import (
     Lineage,
     LineageExpansion,
+    LineagePlace,
     OperationDefinition,
     OperationDescription,
     OperationOutcome,
@@ -273,6 +274,10 @@ class OperationService:
                         )
                         for item in unfolding.transitions
                     ),
+                ),
+                places=tuple(
+                    LineagePlace(unfolded=item.unfolded, original=item.original)
+                    for item in unfolding.places
                 ),
             )
         )

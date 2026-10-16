@@ -74,3 +74,19 @@ trace is served on the colored net like a trace of a reduced net is served on th
 (`[{"variable": "x", "color": "2"}, ...]`). `?net=reduced` gives the unfolded trace as found.
 The colored trace is not replayed (the replay is for P/T nets): its validity rests on the replay of
 the unfolded trace, done when the check was interpreted.
+
+## Properties on the unfolding
+
+A check on the unfolded net may cite the places and transitions of the colored net: the platform
+translates the property with the lineage of the unfolding (`translate_formula`) before the engine
+sees it.
+
+| In the property | On the unfolded net |
+|---|---|
+| a colored place `p` (`p >= 1`, `p + q <= 3`) | the sum of the tokens of the unfolded places of `p` |
+| `fireable(t)` for a colored transition | `fireable(t_1) \|\| fireable(t_2) \|\| ...`, one per binding; `false` if no binding exists |
+| any other id | unchanged: the unfolded net accepts it or rejects it with its usual error |
+
+A colored place or transition is read first, so an id that exists in both nets means the colored
+element. Properties per color or per binding (`p[red]`, `fireable(t[x=2])`) are not in the syntax
+yet: cite the unfolded names (`p_red`, `t_2`) for those.

@@ -7,6 +7,7 @@ import time
 import uuid
 from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 
+from app.domain.colored_formulas import translate_formula
 from app.domain.engine_check import CheckOutcome, all_error, interpret_report
 from app.domain.engine_contract import EngineRequest, Trace
 from app.domain.errors import InvalidFormulaError, InvalidRequestError, NotFoundError
@@ -22,7 +23,7 @@ from app.domain.pnml_export import render_pnml
 from app.domain.portfolio import DEFINITIVE, EngineRun, merge_outcomes
 
 from .leases import LeaseKeeper
-from .ports import EngineGateway, JobRepository, NetRepository
+from .ports import EngineGateway, JobRepository, NetRepository, OperationRepository
 from .selection import SelectionRequest, SelectionService
 
 JOB_ID_LENGTH = 12
@@ -41,6 +42,7 @@ class CheckService:
         engines: EngineGateway,
         lease_seconds: float,
         selection: SelectionService | None = None,
+        lineage: OperationRepository | None = None,
     ) -> None:
         """Create the service with its ports, the job lease and, to rank engines, a selector."""
         self._nets = nets
@@ -48,6 +50,7 @@ class CheckService:
         self._engines = engines
         self._lease_seconds = lease_seconds
         self._selection = selection
+        self._lineage = lineage
 
     def submit(self, *, net_id: str, request: CheckRequest) -> JobSubmission:
         """Register a check. The same net and request give the same job, also across restarts.
@@ -61,6 +64,23 @@ class CheckService:
         """
         stored = self._nets.load_net(net_id=net_id)  # raises NotFoundError
         structure = build_structure(document=stored.document, net_id=net_id)
+        # On the unfolding of a colored net, a property may cite the colored elements.
+        unfoldings = (
+            ()
+            if self._lineage is None
+            else tuple(
+                link for link in self._lineage.lineage_of(net_id=net_id) if link.rule == "unfold"
+            )
+        )
+        if unfoldings:
+            request = request.model_copy(
+                update={
+                    "formulas": tuple(
+                        translate_formula(formula=f, lineage=unfoldings[0])
+                        for f in request.formulas
+                    )
+                }
+            )
         for index, formula in enumerate(request.formulas):
             report = check_formula(formula=formula, structure=structure)
             if not report.valid:

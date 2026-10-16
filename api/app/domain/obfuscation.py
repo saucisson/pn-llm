@@ -13,20 +13,13 @@ from typing import Literal
 
 from .errors import InvalidRequestError
 from .formula import (
-    And,
     Compare,
-    CtlUnary,
-    CtlUntil,
     Enabled,
     Expression,
     Formula,
-    Implies,
-    LtlUnary,
-    LtlUntil,
-    Not,
-    Or,
     TokenCount,
     Tokens,
+    rewrite_atoms,
 )
 from .models import DomainModel
 from .net_document import (
@@ -161,32 +154,22 @@ def restore_expression(*, expression: Expression, renamings: tuple[Renaming, ...
     places = {r.obfuscated: r.original for r in renamings if r.kind == "place"}
     transitions = {r.obfuscated: r.original for r in renamings if r.kind == "transition"}
 
-    def back(*, node: Expression) -> Expression:  # noqa: PLR0911 - one branch per kind of node
-        if isinstance(node, Tokens):
-            return node.model_copy(update={"place": places[node.place]})
-        if isinstance(node, Compare):
-            sides = {
-                side: (
-                    value.model_copy(update={"places": tuple(places[p] for p in value.places)})
-                    if isinstance(value, TokenCount)
-                    else value
-                )
-                for side, value in (("left", node.left), ("right", node.right))
-            }
-            return node.model_copy(update=sides)
-        if isinstance(node, Enabled):
-            return node.model_copy(update={"transition": transitions[node.transition]})
-        if isinstance(node, And | Or):
-            return node.model_copy(update={"args": tuple(back(node=a) for a in node.args)})
-        if isinstance(node, Not | LtlUnary | CtlUnary):
-            return node.model_copy(update={"arg": back(node=node.arg)})
-        if isinstance(node, Implies | LtlUntil | CtlUntil):
-            return node.model_copy(
-                update={"left": back(node=node.left), "right": back(node=node.right)}
+    def back(*, atom: Tokens | Compare | Enabled) -> Expression:
+        if isinstance(atom, Tokens):
+            return atom.model_copy(update={"place": places[atom.place]})
+        if isinstance(atom, Enabled):
+            return atom.model_copy(update={"transition": transitions[atom.transition]})
+        sides = {
+            side: (
+                value.model_copy(update={"places": tuple(places[p] for p in value.places)})
+                if isinstance(value, TokenCount)
+                else value
             )
-        return node  # deadlock and truth cite no element
+            for side, value in (("left", atom.left), ("right", atom.right))
+        }
+        return atom.model_copy(update=sides)
 
-    return back(node=expression)
+    return rewrite_atoms(expression=expression, rewrite=back)
 
 
 def restore_formula(*, formula: Formula, renamings: tuple[Renaming, ...]) -> Formula:

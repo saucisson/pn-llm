@@ -6,6 +6,7 @@ an engine. Each engine adapter renders its own syntax from the tree. See docs/js
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from typing import Annotated, Literal
 
 from pydantic import Field
@@ -195,3 +196,30 @@ def subexpressions(*, expression: Expression, path: str) -> tuple[Located, ...]:
             pending.append(Located(path=f"{current.path}/left", expression=node.left))
             pending.append(Located(path=f"{current.path}/right", expression=node.right))
     return tuple(found)
+
+
+def rewrite_atoms(*, expression: Expression, rewrite: Callable[..., Expression]) -> Expression:
+    """Rebuild a formula with each atom that cites an element replaced by ``rewrite(atom=...)``.
+
+    The operators are kept as they are; deadlock and the constants cite nothing and stay.
+    """
+    if isinstance(expression, Tokens | Compare | Enabled):
+        return rewrite(atom=expression)
+    if isinstance(expression, And | Or):
+        return expression.model_copy(
+            update={
+                "args": tuple(rewrite_atoms(expression=a, rewrite=rewrite) for a in expression.args)
+            }
+        )
+    if isinstance(expression, Not | LtlUnary | CtlUnary):
+        return expression.model_copy(
+            update={"arg": rewrite_atoms(expression=expression.arg, rewrite=rewrite)}
+        )
+    if isinstance(expression, Implies | LtlUntil | CtlUntil):
+        return expression.model_copy(
+            update={
+                "left": rewrite_atoms(expression=expression.left, rewrite=rewrite),
+                "right": rewrite_atoms(expression=expression.right, rewrite=rewrite),
+            }
+        )
+    return expression
