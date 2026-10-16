@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import zlib
+from collections.abc import Iterable
 
 from app.domain.errors import NotFoundError
 from app.domain.mcc import MccFamily, MccNetType, ModelEntry
 from app.domain.mcc_properties import Examination, MccProperties
+from app.domain.predictor import InstanceSize
 
 from .sqlite_database import SqliteDatabase
 
@@ -67,3 +69,28 @@ class SqliteCatalog(SqliteDatabase):
         if row is None:
             raise NotFoundError(f"No {examination} properties for net {net_id}")
         return MccProperties.model_validate_json(zlib.decompress(row["body"]))
+
+    def save_sizes(self, *, sizes: Iterable[InstanceSize]) -> int:
+        """Store the sizes of contest instances, replacing earlier ones; return how many."""
+        count = 0
+        with self._connection() as conn:
+            for size in sizes:
+                conn.execute(
+                    "INSERT OR REPLACE INTO mcc_instance_sizes VALUES (?,?,?,?,?,?)",
+                    (
+                        size.instance,
+                        size.family,
+                        size.net_type.value,
+                        size.places,
+                        size.transitions,
+                        size.arcs,
+                    ),
+                )
+                count += 1
+        return count
+
+    def sizes(self) -> tuple[InstanceSize, ...]:
+        """Return the stored instance sizes, by instance."""
+        with self._connection() as conn:
+            rows = conn.execute("SELECT * FROM mcc_instance_sizes ORDER BY instance").fetchall()
+        return tuple(InstanceSize.model_validate(dict(row)) for row in rows)

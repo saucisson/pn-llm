@@ -90,6 +90,8 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/domain/analyses/p_invariants.py` | domain | Analysis `p-invariants`: minimal-support place invariants with their constants |
 | `app/domain/analyses/semiflows.py` | domain | Minimal-support semiflows of an integer matrix (Farkas), shared by P- and T-invariants |
 | `app/domain/analyses/graph.py` | domain | Arc adjacency and reachability shared by the analyses |
+| `app/domain/predictor.py` | domain | Instance features, decision trees (CART) giving the chance an engine answers, the `Predictor` model |
+| `app/domain/selection_evaluation.py` | domain | Training the predictor from contest runs and scoring it against the single best engine and the oracle, by family |
 | `app/domain/mcc_results.py` | domain | The contest's published runs: tool names normalized, the contest's own outcome classes kept (never a verdict), success rate and median time per family |
 | `app/domain/splits.py` | domain | Frozen, seeded split of families into balanced development folds and a held-out test set (the family is the unit) |
 | `app/domain/sessions.py` | domain | `Session`, the frozen event vocabulary (`SessionEvent`) and `StoredEvent`; a verdict cannot be built without an engine result |
@@ -120,7 +122,8 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/application/splits.py` | application | `SplitService`: freeze a split of the catalog's families and read it back |
 | `app/application/leases.py` | application | `LeaseKeeper`: renews a running job's lease so other processes know its owner is alive |
 | `app/application/checks.py` | application | `CheckService`: submit, execute, read and cancel checks |
-| `app/application/selection.py` | application | `SelectionService`: capable engines for some formulas on a net, ranked by contest history or a fixed order |
+| `app/application/selection.py` | application | `SelectionService`: capable engines for some formulas on a net, ranked by a trained model, contest history or a fixed order |
+| `app/application/predictor_training.py` | application | `PredictorTrainer`: train the engine predictor on the development families of a split, pick its margin by cross-validation |
 | `app/application/engines.py` | application | `EngineService`: list engines (with filters), capabilities, equivalence |
 | `app/infrastructure/sqlite_store.py` | infrastructure | SQLite implementation of `NetRepository` and `JobRepository` |
 | `app/infrastructure/sqlite_database.py` | infrastructure | The shared base of the SQLite adapters: the file, its migration, short-lived connections |
@@ -155,6 +158,7 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/api/llm_tools.py` | api | Which routes may be offered to the LLM (all but the net itself) |
 | `app/settings.py` | (config) | Pydantic settings from `PNVERIF_*` environment variables |
 | `app/main.py` | main | Composition root: `create_app(settings=...)` |
+| `app/train_predictor.py` | main | `python -m app.train_predictor --split NAME --out FILE`: train and validate the engine predictor, write it as JSON |
 | `app/seed.py` | main | `python -m app.seed [family...]`: download and store contest models; nothing downloaded is versioned |
 | `app/conformance.py` | main | `python -m app.conformance --cases FILE`: loads cases, runs them, prints the matrix, exits 1 when a row needs triage |
 

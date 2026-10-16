@@ -23,6 +23,8 @@ from app.domain.models import (
 from app.domain.net_document import NetDocument
 from app.domain.nets import NetReferences, NetSummary, SavedNet, StoredNet
 from app.domain.operations import Lineage, OperationOutcome, OperationRun, RunSubmission
+from app.domain.predictor import InstanceSize
+from app.domain.selection_evaluation import InstanceRun
 from app.domain.sessions import (
     Session,
     SessionEvent,
@@ -269,6 +271,10 @@ class MccSource(Protocol):
         """Yield the instances of the contest inputs with their property files, one at a time."""
         ...
 
+    def instance_sizes(self) -> Iterator[InstanceSize]:
+        """Yield the size of every instance of the contest inputs, counted on its PNML."""
+        ...
+
 
 class ModelCatalogRepository(Protocol):
     """Persistent storage of the contest families and of which stored net is which instance."""
@@ -283,6 +289,14 @@ class ModelCatalogRepository(Protocol):
 
     def families(self) -> tuple[MccFamily, ...]:
         """Return the stored families, by name."""
+        ...
+
+    def save_sizes(self, *, sizes: Iterable[InstanceSize]) -> int:
+        """Store the sizes of contest instances (replacing earlier ones); return how many."""
+        ...
+
+    def sizes(self) -> tuple[InstanceSize, ...]:
+        """Return the stored instance sizes, by instance."""
         ...
 
     def entries(self, *, family: str | None, net_type: MccNetType | None) -> tuple[ModelEntry, ...]:
@@ -319,6 +333,10 @@ class ResultsRepository(Protocol):
 
     def result_sets(self) -> tuple[ResultSetInfo, ...]:
         """Return the stored result sets, by year."""
+        ...
+
+    def instance_runs(self) -> Iterator[InstanceRun]:
+        """Yield the run of each engine on each instance and examination (references left out)."""
         ...
 
     def tool_rates(self, *, examinations: tuple[str, ...]) -> tuple[ToolRate, ...]:

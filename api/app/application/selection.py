@@ -13,10 +13,11 @@ from typing import Literal
 
 from pydantic import Field
 
-from app.domain.capabilities import property_class_of
+from app.domain.capabilities import examinations_needed, property_class_of
 from app.domain.errors import InvalidRequestError
 from app.domain.formula import Formula
 from app.domain.models import DomainModel, EngineInfo, Limits
+from app.domain.predictor import Predictor, expected_time_s, features_of, probability_of
 
 from .ports import EngineGateway, NetRepository, ResultsRepository
 
@@ -47,8 +48,15 @@ class Selection(DomainModel):
     """The engines to ask, best first, and what the ranking rests on."""
 
     property_classes: tuple[str, ...]
-    basis: Literal["history", "preference"]
+    basis: Literal["predictor", "history", "preference"]
     ranked: tuple[RankedEngine, ...]
+
+
+class Forecast(DomainModel):
+    """What the model expects of an engine on a net: the chance of an answer, and how long."""
+
+    chance: float
+    seconds: float | None
 
 
 class Scored(DomainModel):
@@ -64,12 +72,18 @@ class SelectionService:
     """Rank the engines that can check some properties on a net."""
 
     def __init__(
-        self, *, nets: NetRepository, engines: EngineGateway, results: ResultsRepository
+        self,
+        *,
+        nets: NetRepository,
+        engines: EngineGateway,
+        results: ResultsRepository,
+        predictor: Predictor | None = None,
     ) -> None:
-        """Create the service over the stored nets, the engines and the imported results."""
+        """Create the service over the nets, the engines, the results and maybe a model."""
         self._nets = nets
         self._engines = engines
         self._results = results
+        self._predictor = predictor
 
     def select(self, *, request: SelectionRequest) -> Selection:
         """Return the candidate engines for the formulas on the net, best first.
@@ -111,6 +125,49 @@ class SelectionService:
                     seconds=statistics.median(times) / 1000 if times else None,
                 )
             )
+        summary = stored.summary
+        features = features_of(
+            places=summary.places,
+            transitions=summary.transitions,
+            arcs=summary.arcs,
+            colored=colored,
+        )
+        needed = sorted(
+            {
+                alternative[0]
+                for c in classes
+                for alternative in examinations_needed(property_class=c)
+            }
+        )
+        chances = self.forecasts(
+            features=features, examinations=needed, tools=[item.info.name for item in scored]
+        )
+        if chances:
+            return Selection(
+                property_classes=keys,
+                basis="predictor",
+                ranked=tuple(
+                    RankedEngine(
+                        engine=item.info.name,
+                        version=item.info.version,
+                        success_probability=chances[item.info.name].chance,
+                        expected_time_s=chances[item.info.name].seconds,
+                        rationale=(
+                            f"the model gives it {chances[item.info.name].chance:.0%} to answer on "
+                            f"{summary.places} places and {summary.transitions} transitions"
+                        ),
+                    )
+                    for item in sorted(
+                        (i for i in scored if i.info.name in chances),
+                        key=lambda i: (
+                            -self.rank_score(
+                                tool=i.info.name, chances=chances, examinations=needed
+                            ),
+                            i.info.name,
+                        ),
+                    )
+                ),
+            )
         history = any(item.runs for item in scored)
         order = (
             sorted(scored, key=lambda item: (-(item.probability or 0), item.seconds or INFINITE_S))
@@ -141,3 +198,37 @@ class SelectionService:
                 for item in order
             ),
         )
+
+    def forecasts(
+        self, *, features: tuple[float, ...], examinations: list[str], tools: list[str]
+    ) -> dict[str, Forecast]:
+        """Return, per engine the model covers for every examination needed, its mean forecast."""
+        if self._predictor is None:
+            return {}
+        chances: dict[str, list[float]] = {}
+        times: dict[str, list[float]] = {}
+        for tree in self._predictor.trees:
+            if tree.examination in examinations and tree.tool in tools:
+                chances.setdefault(tree.tool, []).append(
+                    probability_of(tree=tree.tree, features=features)
+                )
+                seconds = expected_time_s(tree=tree.tree, features=features)
+                if seconds is not None:
+                    times.setdefault(tree.tool, []).append(seconds)
+        return {
+            tool: Forecast(
+                chance=sum(values) / len(values),
+                seconds=sum(times[tool]) / len(times[tool]) if tool in times else None,
+            )
+            for tool, values in chances.items()
+            if len(values) == len(examinations)
+        }
+
+    def rank_score(
+        self, *, tool: str, chances: dict[str, Forecast], examinations: list[str]
+    ) -> float:
+        """Rank by the chance, plus the model's margin for the default engine of the question."""
+        if self._predictor is None:
+            return chances[tool].chance
+        defaults = {d.tool for d in self._predictor.defaults if d.examination in examinations}
+        return chances[tool].chance + (self._predictor.margin if tool in defaults else 0.0)

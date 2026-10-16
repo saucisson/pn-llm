@@ -231,6 +231,20 @@ MIGRATIONS = (
             "CREATE INDEX net_lineage_parent ON net_lineage(parent_id)",
         ),
     ),
+    Migration(
+        version=11,
+        description="sizes of the contest instances, the features of the predictor",
+        statements=(
+            """CREATE TABLE mcc_instance_sizes (
+    instance    TEXT PRIMARY KEY,
+    family      TEXT NOT NULL,
+    net_type    TEXT NOT NULL,
+    places      INTEGER NOT NULL,
+    transitions INTEGER NOT NULL,
+    arcs        INTEGER NOT NULL
+)""",
+        ),
+    ),
 )
 LATEST_VERSION = MIGRATIONS[-1].version
 WAL_ATTEMPTS = 50

@@ -41,6 +41,11 @@ def seed_main() -> None:
     parser.add_argument("--folds", type=int, default=5)
     parser.add_argument("--test-fraction", type=float, default=0.2)
     parser.add_argument(
+        "--sizes",
+        action="store_true",
+        help="count the places, transitions and arcs of every contest instance (reads the inputs)",
+    )
+    parser.add_argument(
         "--properties",
         action="store_true",
         help="read the contest inputs (about 1 GB) to store the formulas of each examination too",
@@ -65,6 +70,10 @@ def seed_main() -> None:
             source=source, year=config.mcc_year
         )
         sys.stdout.write(stored.model_dump_json(indent=2) + "\n")
+        return
+    if arguments.sizes:
+        count = SqliteCatalog(path=config.database_path).save_sizes(sizes=source.instance_sizes())
+        sys.stdout.write(f'{{"instances_sized": {count}}}\n')
         return
     if arguments.split:
         split = SplitService(

@@ -4255,7 +4255,7 @@ export interface components {
              * Basis
              * @enum {string}
              */
-            basis: "history" | "preference";
+            basis: "predictor" | "history" | "preference";
             /** Property Classes */
             property_classes: string[];
             /** Ranked */

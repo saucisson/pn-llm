@@ -46,6 +46,11 @@ class Settings(BaseSettings):
     # Largest accepted description of a net (UTF-8 bytes).
     max_description_bytes: int = 65_536
 
+    # A trained predictor of which engine will answer (python -m app.train_predictor); without one
+    # the selector ranks by contest history, or by a fixed order. docs/predictor.md says why it is
+    # not on by default.
+    predictor_path: Path | None = None
+
     # Model Checking Contest data (``python -m app.seed``): where downloads are kept, where they
     # come from, and the largest net accepted when seeding (contest nets can be huge).
     mcc_directory: Path = Path("data/mcc")

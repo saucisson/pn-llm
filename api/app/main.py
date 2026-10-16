@@ -7,6 +7,7 @@ import contextlib
 import signal
 import threading
 from collections.abc import AsyncIterator, Callable
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
@@ -44,6 +45,7 @@ from app.application.splits import SplitService
 from app.application.tools import ToolFacade
 from app.application.traces import TraceService
 from app.application.workers import WorkerPool
+from app.domain.predictor import Predictor
 from app.infrastructure.anthropic_llm import AnthropicLlm
 from app.infrastructure.docker_runner import DockerRunner
 from app.infrastructure.engine_registry import DEFAULT_ENGINES, EngineRegistry
@@ -127,6 +129,11 @@ def build_retention(
     )
 
 
+def load_predictor(*, path: Path | None) -> Predictor | None:
+    """Read the trained predictor, if a path is configured."""
+    return None if path is None else Predictor.model_validate_json(path.read_text())
+
+
 def build_operations(
     *, config: Settings, store: SqliteStore, engines: EngineGateway
 ) -> OperationService:
@@ -189,7 +196,10 @@ def create_app(
     store = SqliteStore(path=config.database_path)
     registry = engine_gateway or EngineRegistry(specs=DEFAULT_ENGINES, docker=DockerRunner())
     selection = SelectionService(
-        nets=store, engines=registry, results=SqliteResults(path=config.database_path)
+        nets=store,
+        engines=registry,
+        results=SqliteResults(path=config.database_path),
+        predictor=load_predictor(path=config.predictor_path),
     )
     checks = CheckService(
         nets=store,
@@ -305,7 +315,10 @@ def worker_main() -> None:
         engines=registry,
         lease_seconds=config.job_lease_seconds,
         selection=SelectionService(
-            nets=store, engines=registry, results=SqliteResults(path=config.database_path)
+            nets=store,
+            engines=registry,
+            results=SqliteResults(path=config.database_path),
+            predictor=load_predictor(path=config.predictor_path),
         ),
     )
     operations_service = build_operations(config=config, store=store, engines=registry)
