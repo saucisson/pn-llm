@@ -88,9 +88,9 @@ class CheckData(DomainModel):
     job_id: str
     results: tuple[FormulaResult, ...]
     # Properties the structure of the net already decides: they were checked, but say nothing.
-    trivial: tuple[FormulaTriviality, ...] = ()
+    trivial: tuple[FormulaTriviality, ...] | None = ()
     # For each formula that got no answer: what could be tried next (the model decides).
-    next_moves: tuple[ResultMoves, ...] = ()
+    next_moves: tuple[ResultMoves, ...] | None = ()
 
 
 class TraceData(DomainModel):
@@ -125,6 +125,7 @@ class ToolFacade:
         max_result_chars: int,
         poll_seconds: float,
         advice: AdviceTools | None = None,
+        only: frozenset[str] | None = None,
     ) -> None:
         """Create the facade over the use cases it exposes."""
         self._inspection = inspection
@@ -134,12 +135,15 @@ class ToolFacade:
         self._advice = advice
         self._max_result_chars = max_result_chars
         self._poll_seconds = poll_seconds
-        self._tools = (
+        offered = (
             *self.reading_tools(),
             *analyses.tools(),
             *(() if advice is None else advice.tools()),
             *self.acting_tools(),
         )
+        self._tools = tuple(t for t in offered if only is None or t.spec.name in only)
+        # Static analysis also speaks through the structural verdict on a checked property.
+        self._with_facts = only is None or "analyze" in only
 
     def reading_tools(self) -> tuple[Tool, ...]:
         """The tools that only look: the net, its description."""
@@ -563,14 +567,22 @@ class ToolFacade:
                     has_trace=result.trace_url is not None,
                 )
             )
-        trivial = self._analyses.triviality(
-            net_id=context.session.net_id, formulas=tuple(parsed), is_cancelled=is_cancelled
+        trivial = (
+            self._analyses.triviality(
+                net_id=context.session.net_id, formulas=tuple(parsed), is_cancelled=is_cancelled
+            )
+            if self._with_facts
+            else None
         )
-        moves = (
-            ()
-            if self._advice is None
-            else self._advice.moves_after(net_id=context.session.net_id, formulas=parsed, job=job)
-        )
+        moves: tuple[ResultMoves, ...] | None = None
+        if self._with_facts:
+            moves = (
+                ()
+                if self._advice is None
+                else self._advice.moves_after(
+                    net_id=context.session.net_id, formulas=parsed, job=job
+                )
+            )
         outcome = answer(
             data=CheckData(job_id=job_id, results=job.results, trivial=trivial, next_moves=moves)
         )

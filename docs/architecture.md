@@ -98,6 +98,7 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/domain/mutation_score.py` | domain | Judging mutants against a property set: killed, survived or undecided; mutation score (M5), seeded fault finding (M6) |
 | `app/domain/obfuscation.py` | domain | Condition N: deterministic renaming of a P/T net's elements (all names dropped) and the way back for properties |
 | `app/domain/experiment.py` | domain | An experimental run: condition, budget, provenance (seed, commit, tools, model, prompt) and the record of what was measured |
+| `app/domain/conditions.py` | domain | What each condition (L1, L2, L3, N) gives the model: tools, description, the goal, the hash of the prompt |
 | `app/domain/predictor.py` | domain | Instance features, decision trees (CART) giving the chance an engine answers, the `Predictor` model |
 | `app/domain/selection_evaluation.py` | domain | Training the predictor from contest runs and scoring it against the single best engine and the oracle, by family |
 | `app/domain/mcc_results.py` | domain | The contest's published runs: tool names normalized, the contest's own outcome classes kept (never a verdict), success rate and median time per family |
@@ -135,6 +136,7 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/application/predictor_training.py` | application | `PredictorTrainer`: train the engine predictor on the development families of a split, pick its margin by cross-validation |
 | `app/application/soundness.py` | application | `SoundnessAuditor`: read sessions and the jobs their verdicts cite, and report what does not hold |
 | `app/application/experiment.py` | application | `ExperimentRunner`: the deterministic judge, measuring a property set on a net and its mutants under a budget |
+| `app/application/experiment_sessions.py` | application | `ModelConditionRunner`: a session of the model in non-interactive mode, then the common measurement |
 | `app/application/engines.py` | application | `EngineService`: list engines (with filters), capabilities, equivalence |
 | `app/infrastructure/sqlite_store.py` | infrastructure | SQLite implementation of `NetRepository` and `JobRepository` |
 | `app/infrastructure/sqlite_database.py` | infrastructure | The shared base of the SQLite adapters: the file, its migration, short-lived connections |

@@ -22,7 +22,7 @@ from app.domain.conversation import (
 )
 from app.domain.descriptions import Description
 from app.domain.errors import ConflictError, InvalidRequestError, LlmUnavailableError
-from app.domain.llm import LlmToolCall
+from app.domain.llm import LlmToolCall, ToolSpec
 from app.domain.models import DomainModel
 from app.domain.report import SessionReport, build_report
 from app.domain.sessions import (
@@ -153,6 +153,10 @@ class AgentService:
             net_id=net_id, description_id=description_id, description_origin=origin, goal=goal
         )
         return self._sessions.create_session(session=session, started=started)
+
+    def tool_specs(self) -> tuple[ToolSpec, ...]:
+        """Return the tools this agent offers the model."""
+        return self._tools.specs()
 
     def report(self, *, session_id: str) -> SessionReport:
         """Build the report of a session from its events.
