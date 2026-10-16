@@ -188,8 +188,15 @@ def create_app(
 
     store = SqliteStore(path=config.database_path)
     registry = engine_gateway or EngineRegistry(specs=DEFAULT_ENGINES, docker=DockerRunner())
+    selection = SelectionService(
+        nets=store, engines=registry, results=SqliteResults(path=config.database_path)
+    )
     checks = CheckService(
-        nets=store, jobs=store, engines=registry, lease_seconds=config.job_lease_seconds
+        nets=store,
+        jobs=store,
+        engines=registry,
+        lease_seconds=config.job_lease_seconds,
+        selection=selection,
     )
     operations_service = build_operations(config=config, store=store, engines=registry)
     agent = build_agent(
@@ -251,9 +258,7 @@ def create_app(
     app.state.results = ResultsService(results=SqliteResults(path=config.database_path))
     app.state.checks = checks
     app.state.operations = operations_service
-    app.state.selection = SelectionService(
-        nets=store, engines=registry, results=SqliteResults(path=config.database_path)
-    )
+    app.state.selection = selection
     app.state.traces = TraceService(
         checks=checks, nets=store, lineage=SqliteOperations(path=config.database_path)
     )
@@ -295,7 +300,13 @@ def worker_main() -> None:
     store = SqliteStore(path=config.database_path)
     registry = EngineRegistry(specs=DEFAULT_ENGINES, docker=DockerRunner())
     checks = CheckService(
-        nets=store, jobs=store, engines=registry, lease_seconds=config.job_lease_seconds
+        nets=store,
+        jobs=store,
+        engines=registry,
+        lease_seconds=config.job_lease_seconds,
+        selection=SelectionService(
+            nets=store, engines=registry, results=SqliteResults(path=config.database_path)
+        ),
     )
     operations_service = build_operations(config=config, store=store, engines=registry)
     agent = build_agent(

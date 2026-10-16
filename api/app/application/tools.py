@@ -225,7 +225,9 @@ class ToolFacade:
                     "(a counterexample may be available with get_trace). UNKNOWN: the engine could "
                     "not decide. TIMEOUT: it ran out of time. OOM: it ran out of memory. ERROR: "
                     "something failed. The last four are not FALSE and say nothing about the "
-                    "property."
+                    "property. With a portfolio, a result whose agreement is 'contradiction' means "
+                    "engines gave opposite answers: it is unresolved and a sign of a bug, not a "
+                    "verdict."
                 ),
                 arguments=CheckFormulasArguments,
                 run=self.check_formulas,
@@ -499,6 +501,8 @@ class ToolFacade:
             formulas=tuple(parsed),
             engine=arguments.engine,
             limits=Limits(timeout_s=arguments.timeout_s),
+            portfolio=arguments.portfolio,
+            cross_check=arguments.cross_check,
         )
         submission = self._checks.submit(net_id=context.session.net_id, request=request)
         job_id = submission.job.job_id

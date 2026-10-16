@@ -1386,6 +1386,11 @@ export interface components {
          */
         "CheckRequest-Input": {
             /**
+             * Cross Check
+             * @default false
+             */
+            cross_check: boolean;
+            /**
              * Engine
              * @default auto
              */
@@ -1393,6 +1398,11 @@ export interface components {
             /** Formulas */
             formulas: components["schemas"]["Formula-Input"][];
             limits?: components["schemas"]["Limits"];
+            /**
+             * Portfolio
+             * @default 1
+             */
+            portfolio: number;
             /**
              * Reduce
              * @default true
@@ -1405,6 +1415,11 @@ export interface components {
          */
         "CheckRequest-Output": {
             /**
+             * Cross Check
+             * @default false
+             */
+            cross_check: boolean;
+            /**
              * Engine
              * @default auto
              */
@@ -1412,6 +1427,11 @@ export interface components {
             /** Formulas */
             formulas: components["schemas"]["Formula-Output"][];
             limits?: components["schemas"]["Limits"];
+            /**
+             * Portfolio
+             * @default 1
+             */
+            portfolio: number;
             /**
              * Reduce
              * @default true
@@ -1741,6 +1761,35 @@ export interface components {
             op: "enabled";
             /** Transition */
             transition: string;
+        };
+        /**
+         * EngineAnswer
+         * @description What one engine answered for a formula, kept as evidence when several engines were asked.
+         */
+        EngineAnswer: {
+            /** Engine */
+            engine: string;
+            /**
+             * Engine Version
+             * @default unknown
+             */
+            engine_version: string;
+            /**
+             * Has Trace
+             * @default false
+             */
+            has_trace: boolean;
+            /**
+             * Time S
+             * @default 0
+             */
+            time_s: number;
+            verdict: components["schemas"]["app__domain__models__Verdict"];
+            /**
+             * Warnings
+             * @default []
+             */
+            warnings: string[];
         };
         /**
          * EngineInfo
@@ -3005,6 +3054,19 @@ export interface components {
          * @description Verdict of one formula, with the engine that produced it.
          */
         FormulaResult: {
+            /**
+             * Agreement
+             * @default single
+             * @enum {string}
+             */
+            agreement: "single" | "agree" | "contradiction";
+            /**
+             * Alternatives
+             * @default []
+             */
+            alternatives: components["schemas"]["EngineAnswer"][];
+            /** Arbitration */
+            arbitration?: string | null;
             /** Engine */
             engine: string;
             /**

@@ -6,6 +6,7 @@ They also serve as the tool schema exposed to the LLM through the OpenAPI docume
 from __future__ import annotations
 
 from enum import StrEnum
+from typing import Literal
 
 from pydantic import Field, model_validator
 
@@ -52,6 +53,11 @@ class CheckRequest(DomainModel):
     # Let the engine reduce the net internally (most do, whatever is asked). False asks it not to,
     # to compare: an engine that cannot switch its reductions off says so in a warning.
     reduce: bool = True
+    # With ``engine: auto``: how many of the best engines to run at the same time (a portfolio).
+    portfolio: int = Field(default=1, ge=1, le=4)
+    # Wait for every engine of the portfolio and compare their verdicts, instead of stopping the
+    # others at the first definitive answer to every formula.
+    cross_check: bool = False
 
     @model_validator(mode="after")
     def _formula_ids_are_unique(self) -> CheckRequest:
@@ -60,7 +66,21 @@ class CheckRequest(DomainModel):
         if len(set(ids)) != len(ids):
             message = "formula ids must be unique"
             raise ValueError(message)
+        if self.portfolio > 1 and self.engine != "auto":
+            message = "a portfolio chooses its engines: use engine auto"
+            raise ValueError(message)
         return self
+
+
+class EngineAnswer(DomainModel):
+    """What one engine answered for a formula, kept as evidence when several engines were asked."""
+
+    engine: str
+    engine_version: str = "unknown"
+    verdict: Verdict
+    time_s: float = 0.0
+    warnings: tuple[str, ...] = ()
+    has_trace: bool = False
 
 
 class FormulaResult(DomainModel):
@@ -75,6 +95,12 @@ class FormulaResult(DomainModel):
     rendered: str | None = None
     trace_url: str | None = None
     warnings: tuple[str, ...] = ()
+    # With a portfolio: whether one engine answered (single), several agreed, or definitive
+    # verdicts contradicted each other. A contradiction is never resolved silently (CLAUDE.md,
+    # domain rule 8): the verdict is UNKNOWN unless a counterexample replayed on the net settles it.
+    agreement: Literal["single", "agree", "contradiction"] = "single"
+    arbitration: str | None = None
+    alternatives: tuple[EngineAnswer, ...] = ()
 
 
 class Job(DomainModel):
