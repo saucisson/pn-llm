@@ -13,9 +13,14 @@ from pydantic import BaseModel, JsonValue, TypeAdapter
 
 from app.domain.contract import Page
 from app.domain.descriptions import Description
+from app.domain.formula import Formula
+from app.domain.formula_check import FormulaValidationRequest
 from app.domain.llm import ToolSpec
 from app.domain.models import DomainModel
 from app.domain.sessions import Session, SessionEvent
+from app.domain.tool_inputs import FormulaText
+
+from .formulas import FormulaService
 
 
 class ToolContext(DomainModel):
@@ -83,3 +88,36 @@ def answer(*, data: object, page: Page | None = None) -> ToolOutcome:
     truncated = page if page is not None and page.next_cursor is not None else None
     payload = ToolPayload(status="ok", data=to_json(value=data), truncated=truncated)
     return ToolOutcome(ok=True, content=payload.model_dump_json(exclude_none=True))
+
+
+class ParsedFormulas(DomainModel):
+    """The formulas of a call once parsed, or the first reason one of them was refused."""
+
+    formulas: tuple[Formula, ...] = ()
+    error: str | None = None
+
+
+def parse_formulas(
+    *, formulas: FormulaService, net_id: str, items: tuple[FormulaText, ...]
+) -> ParsedFormulas:
+    """Parse the properties the model wrote against the net; stop at the first refused one."""
+    ids = [item.id for item in items]
+    if len(set(ids)) != len(ids):
+        return ParsedFormulas(error="Formula ids must be unique in one call")
+    parsed: list[Formula] = []
+    for item in items:
+        report = formulas.validate(
+            request=FormulaValidationRequest(
+                net_id=net_id,
+                text=item.text,
+                logic=item.logic,
+                id=item.id,
+                gloss=item.gloss,
+                origin="llm",
+            )
+        )
+        if not report.valid or report.formula is None:
+            issue = report.errors[0]
+            return ParsedFormulas(error=f"Formula {item.id!r}: {issue.message} ({issue.path})")
+        parsed.append(report.formula)
+    return ParsedFormulas(formulas=tuple(parsed))

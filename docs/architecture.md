@@ -90,6 +90,7 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/domain/analyses/p_invariants.py` | domain | Analysis `p-invariants`: minimal-support place invariants with their constants |
 | `app/domain/analyses/semiflows.py` | domain | Minimal-support semiflows of an integer matrix (Farkas), shared by P- and T-invariants |
 | `app/domain/analyses/graph.py` | domain | Arc adjacency and reachability shared by the analyses |
+| `app/domain/next_moves.py` | domain | What to try after a timeout, out-of-memory, UNKNOWN or error: suggestions that never become a verdict |
 | `app/domain/predictor.py` | domain | Instance features, decision trees (CART) giving the chance an engine answers, the `Predictor` model |
 | `app/domain/selection_evaluation.py` | domain | Training the predictor from contest runs and scoring it against the single best engine and the oracle, by family |
 | `app/domain/mcc_results.py` | domain | The contest's published runs: tool names normalized, the contest's own outcome classes kept (never a verdict), success rate and median time per family |
@@ -116,6 +117,7 @@ which builds the adapters, injects them into the use cases, and hands the use ca
 | `app/application/operations.py` | application | `OperationService`: describe, submit, run and read operations; a finished run is the cache of its key |
 | `app/application/tool_kit.py` | application | What every tool is made of: context, outcome, trimmed JSON answers |
 | `app/application/analysis_runner.py` | application | Submit an analysis from inside a tool and wait for it, working the queue meanwhile |
+| `app/application/advice_tools.py` | application | The tool `select_tools` and the moves proposed after a non-answer (other engine, longer timeout, simpler or weaker property) |
 | `app/application/analysis_tools.py` | application | The tools `analysis_summary` and `analyze`: the operation runner as the agent's tools |
 | `app/application/traces.py` | application | `TraceService`: counterexamples on the original net or the reduced one they were found on |
 | `app/application/results.py` | application | `ResultsService`: import the published results (all or nothing) and summarize them |

@@ -109,6 +109,13 @@ class CheckFormulasArguments(DomainModel):
     )
 
 
+class SelectToolsArguments(DomainModel):
+    """Ask which engines can check some properties, best first."""
+
+    formulas: tuple[FormulaText, ...] = Field(min_length=1, max_length=10)
+    timeout_s: int = Field(default=60, ge=1, le=600)
+
+
 class TraceArguments(DomainModel):
     """The counterexample of one result of a check."""
 

@@ -27,6 +27,7 @@ from app.api import (
 )
 from app.api.errors import register_error_handlers
 from app.api.middleware import log_requests
+from app.application.advice_tools import AdviceTools
 from app.application.agent import AgentConfig, AgentService
 from app.application.analysis_tools import AnalysisTools
 from app.application.checks import CheckService
@@ -86,12 +87,14 @@ def build_agent(
     store: SqliteStore,
     checks: CheckService,
     operations: OperationService,
+    selection: SelectionService,
     llm: LlmGateway,
 ) -> AgentService:
     """Wire the agent over the store, the use cases it exposes as tools, and a language model."""
+    formulas = FormulaService(nets=store)
     tools = ToolFacade(
         inspection=InspectionService(nets=store),
-        formulas=FormulaService(nets=store),
+        formulas=formulas,
         checks=checks,
         analyses=AnalysisTools(
             operations=operations,
@@ -100,6 +103,7 @@ def build_agent(
         ),
         max_result_chars=config.tool_result_max_chars,
         poll_seconds=config.tool_poll_seconds,
+        advice=AdviceTools(formulas=formulas, selection=selection),
     )
     return AgentService(
         sessions=store,
@@ -214,6 +218,7 @@ def create_app(
         store=store,
         checks=checks,
         operations=operations_service,
+        selection=selection,
         llm=llm_gateway or build_llm(config=config),
     )
     retention = build_retention(config=config, store=store, agent=agent)
@@ -309,17 +314,18 @@ def worker_main() -> None:
     configure_logging(level=config.log_level, as_json=config.log_json)
     store = SqliteStore(path=config.database_path)
     registry = EngineRegistry(specs=DEFAULT_ENGINES, docker=DockerRunner())
+    selection = SelectionService(
+        nets=store,
+        engines=registry,
+        results=SqliteResults(path=config.database_path),
+        predictor=load_predictor(path=config.predictor_path),
+    )
     checks = CheckService(
         nets=store,
         jobs=store,
         engines=registry,
         lease_seconds=config.job_lease_seconds,
-        selection=SelectionService(
-            nets=store,
-            engines=registry,
-            results=SqliteResults(path=config.database_path),
-            predictor=load_predictor(path=config.predictor_path),
-        ),
+        selection=selection,
     )
     operations_service = build_operations(config=config, store=store, engines=registry)
     agent = build_agent(
@@ -327,6 +333,7 @@ def worker_main() -> None:
         store=store,
         checks=checks,
         operations=operations_service,
+        selection=selection,
         llm=build_llm(config=config),
     )
     retention = build_retention(config=config, store=store, agent=agent)
