@@ -9,7 +9,7 @@ COPY ui ./
 RUN npm run build
 
 # ---- Stage 2: the API, serving the built UI under /ui ----------------------------------------
-FROM python:3.14-slim
+FROM python:3.15-slim
 WORKDIR /srv
 COPY api/pyproject.toml api/requirements.txt ./
 COPY api/app ./app
